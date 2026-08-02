@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>SEVERA MOTOS · Cobro</title>
+<style>
+:root{
+  --ink:#241F1A; --ink-soft:#7A7068;
+  --asphalt:#211E1A; --plate:#E8A93A;
+  --paper:#F5F1E7; --card:#FFFFFF;
+  --borde:#DAD1BA; --verde:#256B45; --verde-bg:#E3EFE7;
+  --rojo:#A63333; --radio:14px;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+html{background:var(--paper);}
+body{
+  font-family:-apple-system,'Inter',system-ui,sans-serif;
+  background:var(--paper);color:var(--ink);
+  min-height:100vh;padding-bottom:48px;
+  -webkit-text-size-adjust:100%;
+}
+
+/* ── Header ─────────────────────────────────────────────────────────── */
+.header{
+  background:var(--asphalt);border-bottom:4px solid var(--plate);
+  padding:14px 18px;display:flex;align-items:center;gap:14px;
+  position:sticky;top:0;z-index:10;
+}
+.header-text h1{
+  font-size:1.25rem;font-weight:900;letter-spacing:.06em;
+  color:var(--plate);line-height:1;
+}
+.header-text span{font-size:.7rem;color:#C9C2B2;letter-spacing:.04em;}
+
+/* ── Form ────────────────────────────────────────────────────────────── */
+.form-wrap{padding:20px 16px;display:flex;flex-direction:column;gap:18px;}
+
+.campo{display:flex;flex-direction:column;gap:7px;}
+.campo label{
+  font-size:.72rem;font-weight:700;text-transform:uppercase;
+  letter-spacing:.07em;color:var(--ink-soft);
+}
+.campo select,
+.campo input[type=number],
+.campo input[type=date],
+.campo textarea{
+  width:100%;padding:14px 16px;
+  border:2px solid var(--borde);border-radius:var(--radio);
+  background:var(--card);color:var(--ink);
+  font-size:1.05rem;font-family:inherit;
+  -webkit-appearance:none;appearance:none;outline:none;
+}
+.campo select:focus,
+.campo input:focus,
+.campo textarea:focus{
+  border-color:var(--plate);
+  box-shadow:0 0 0 3px rgba(232,169,58,.2);
+}
+.campo textarea{resize:none;height:72px;font-size:.95rem;}
+
+/* ── Tarjeta moto (auto-fill) ────────────────────────────────────────── */
+.moto-card{
+  display:none;background:var(--verde-bg);
+  border:2px solid var(--verde);border-radius:var(--radio);
+  padding:13px 16px;gap:12px;align-items:center;
+}
+.moto-card.visible{display:flex;}
+.placa-badge{
+  background:var(--asphalt);color:var(--plate);
+  font-size:.78rem;font-weight:900;letter-spacing:.1em;
+  padding:5px 11px;border-radius:9px;white-space:nowrap;flex:none;
+}
+.moto-nom{font-size:.9rem;font-weight:700;color:var(--ink);}
+.moto-tarifa{font-size:.75rem;color:var(--ink-soft);margin-top:2px;}
+
+/* ── Valor ────────────────────────────────────────────────────────────── */
+.valor-wrap{position:relative;}
+.valor-prefix{
+  position:absolute;left:16px;top:50%;transform:translateY(-50%);
+  font-size:1.1rem;font-weight:700;color:var(--ink-soft);pointer-events:none;
+}
+.campo .valor-wrap input{
+  padding-left:28px;font-size:1.3rem;font-weight:700;
+}
+
+/* ── Medios de pago ────────────────────────────────────────────────────── */
+.medios{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.medio-btn{
+  padding:14px 8px;border:2px solid var(--borde);
+  border-radius:var(--radio);background:var(--card);color:var(--ink);
+  font-size:.88rem;font-weight:600;cursor:pointer;text-align:center;
+  transition:all .15s;-webkit-tap-highlight-color:transparent;
+  user-select:none;
+}
+.medio-btn .ico{display:block;font-size:1.5rem;margin-bottom:4px;}
+.medio-btn.activo{
+  border-color:var(--plate);background:var(--asphalt);color:var(--plate);
+}
+
+/* ── Botón enviar ────────────────────────────────────────────────────── */
+.btn-enviar{
+  width:100%;padding:18px;background:var(--plate);color:var(--asphalt);
+  border:none;border-radius:var(--radio);
+  font-size:1.1rem;font-weight:900;letter-spacing:.05em;
+  cursor:pointer;margin-top:6px;
+  -webkit-tap-highlight-color:transparent;transition:opacity .15s;
+}
+.btn-enviar:disabled{opacity:.5;cursor:default;}
+.btn-enviar:active{opacity:.85;}
+
+/* ── Error toast ─────────────────────────────────────────────────────── */
+.toast{
+  display:none;background:#A63333;color:#fff;
+  padding:12px 16px;border-radius:10px;
+  font-size:.85rem;font-weight:600;
+}
+.toast.visible{display:block;}
+
+/* ── Pantalla de éxito ───────────────────────────────────────────────── */
+.success{
+  display:none;position:fixed;inset:0;background:var(--asphalt);z-index:100;
+  flex-direction:column;align-items:center;justify-content:center;
+  gap:14px;padding:32px 24px;text-align:center;
+}
+.success.visible{display:flex;}
+.suc-ico{font-size:4rem;}
+.suc-nombre{color:var(--plate);font-size:1.4rem;font-weight:900;letter-spacing:.04em;}
+.suc-monto{color:#F4EFE2;font-size:2.4rem;font-weight:900;line-height:1;}
+.suc-meta{color:#C9C2B2;font-size:.85rem;}
+.btn-nuevo{
+  margin-top:20px;padding:16px 36px;
+  background:var(--plate);color:var(--asphalt);
+  border:none;border-radius:var(--radio);
+  font-size:1rem;font-weight:900;cursor:pointer;
+}
+</style>
+</head>
+<body>
+
+<!-- ── Header ───────────────────────────────────────────────────────── -->
+<header class="header">
+  <svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" width="44" height="44" style="flex:none">
+    <circle cx="32" cy="32" r="29.5" fill="none" stroke="#E8A93A" stroke-width="5.5"/>
+    <circle cx="32" cy="32" r="26" fill="#141110"/>
+    <g stroke="#E8A93A" stroke-width="1.2" opacity="0.55">
+      <line x1="32" y1="4" x2="32" y2="60"/>
+      <line x1="4" y1="32" x2="60" y2="32"/>
+      <line x1="10.5" y1="10.5" x2="53.5" y2="53.5"/>
+      <line x1="53.5" y1="10.5" x2="10.5" y2="53.5"/>
+    </g>
+    <circle cx="32" cy="32" r="18" fill="none" stroke="#E8A93A" stroke-width="0.9" opacity="0.4"/>
+    <circle cx="32" cy="32" r="4" fill="#E8A93A"/>
+    <text x="32" y="43" text-anchor="middle"
+      font-family="Impact,'Arial Narrow',sans-serif"
+      font-size="26" font-weight="900" fill="#E8A93A" letter-spacing="3">SM</text>
+  </svg>
+  <div class="header-text">
+    <h1>SEVERA MOTOS</h1>
+    <span>Registrar cobro del día</span>
+  </div>
+</header>
+
+<!-- ── Formulario ────────────────────────────────────────────────────── -->
+<main>
+<form class="form-wrap" id="frm" onsubmit="return false">
+
+  <div class="campo">
+    <label>Cliente</label>
+    <select id="sel-cliente" onchange="onCliente()">
+      <option value="">— Seleccionar cliente —</option>
+    </select>
+  </div>
+
+  <div class="moto-card" id="moto-card">
+    <span class="placa-badge" id="card-placa">—</span>
+    <div>
+      <div class="moto-nom" id="card-moto">—</div>
+      <div class="moto-tarifa" id="card-tarifa">—</div>
+    </div>
+  </div>
+
+  <div class="campo">
+    <label>Fecha del cobro</label>
+    <input type="date" id="inp-fecha">
+  </div>
+
+  <div class="campo">
+    <label>Valor recibido</label>
+    <div class="valor-wrap">
+      <span class="valor-prefix">$</span>
+      <input type="number" id="inp-valor" placeholder="0" min="0" step="1000" inputmode="numeric">
+    </div>
+  </div>
+
+  <div class="campo">
+    <label>Medio de pago</label>
+    <div class="medios" id="medios">
+      <button type="button" class="medio-btn" onclick="selMedio(this,'efectivo')">
+        <span class="ico">💵</span>Efectivo
+      </button>
+      <button type="button" class="medio-btn" onclick="selMedio(this,'nequi')">
+        <span class="ico">📱</span>Nequi
+      </button>
+      <button type="button" class="medio-btn" onclick="selMedio(this,'daviplata')">
+        <span class="ico">💳</span>Daviplata
+      </button>
+      <button type="button" class="medio-btn" onclick="selMedio(this,'transferencia')">
+        <span class="ico">🏦</span>Transferencia
+      </button>
+    </div>
+  </div>
+
+  <div class="campo">
+    <label>Observaciones (opcional)</label>
+    <textarea id="inp-obs" placeholder="Ej: pago parcial, abono, novedad, etc."></textarea>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <button class="btn-enviar" id="btn-enviar" onclick="enviar()">
+    REGISTRAR COBRO
+  </button>
+
+</form>
+</main>
+
+<!-- ── Pantalla de éxito ─────────────────────────────────────────────── -->
+<div class="success" id="success">
+  <div class="suc-ico">✅</div>
+  <div class="suc-nombre" id="suc-nombre">—</div>
+  <div class="suc-monto" id="suc-monto">—</div>
+  <div class="suc-meta" id="suc-fecha">—</div>
+  <div class="suc-meta" id="suc-medio">—</div>
+  <button class="btn-nuevo" onclick="resetForm()">+ Registrar otro cobro</button>
+</div>
+
+<script>
+// ── Clientes (placa, moto, tarifa) ─────────────────────────────────────
+const CLIENTES = [
+  {n:"Braillon",                          m:"Bajaj OUA 19H", p:"OUA19H", t:240000},
+  {n:"Chacal / Caterine",                 m:"Bajaj OSZ 43H", p:"OSZ43H", t:240000},
+  {n:"Darwin / Yaimis / Ysabel",          m:"Bajaj OTE 80H", p:"OTE80H", t:240000},
+  {n:"Dorlys Jose Julio",                 m:"Bajaj EYO 114",  p:"EYO114",  t:240000},
+  {n:"Duvon Enrique",                     m:"Bajaj KEB 58H", p:"KEB58H", t:240000},
+  {n:"Efrain",                            m:"Bajaj OTZ 01H", p:"OTZ01H", t:240000},
+  {n:"Elkin Espitia Payares",             m:"Bajaj EYO 06H", p:"EYO06H", t:240000},
+  {n:"Erzik",                             m:"Bajaj OUN 39H", p:"OUN39H", t:384000},
+  {n:"Gonzado Estherline",                m:"Bajaj OUB 81H", p:"OUB81H", t:240000},
+  {n:"Gustavo Primo",                     m:"Bajaj OON 66H", p:"OON66H", t:240000},
+  {n:"Jesus Morales / Yuliana Olivares",  m:"Bajaj KFK 1AH", p:"KFK1AH", t:240000},
+  {n:"Jorge Luis Reyes",                  m:"Bajaj KOO B1H", p:"KOOB1H", t:240000},
+  {n:"Juan Andres De Arco",               m:"Bajaj KOO 16H", p:"KOO16H", t:240000},
+  {n:"Kevin Rodriguez",                   m:"Bajaj OXO 04H", p:"OXO04H", t:240000},
+  {n:"Lucho / Laura Nosu",                m:"Bajaj OTF 59H", p:"OTF59H", t:240000},
+  {n:"Luis Gabriel Polo",                 m:"Bajaj KOM 89H", p:"KOM89H", t:240000},
+  {n:"Nabro / Maria / Jesse",             m:"Bajaj OTE 68H", p:"OTE68H", t:240000},
+  {n:"Osmed / Brenda",                    m:"Bajaj OSZ 46H", p:"OSZ46H", t:240000},
+  {n:"Roberto",                           m:"Bajaj OTR 29H", p:"OTR29H", t:240000},
+  {n:"Wilian Junior / Darlis Esther",     m:"Bajaj OTE 02H", p:"OTE02H", t:240000},
+  {n:"Wilmer Ivis",                       m:"Bajaj KEW 23H", p:"KEW23H", t:240000},
+];
+
+// ── Init ────────────────────────────────────────────────────────────────
+const sel = document.getElementById("sel-cliente");
+CLIENTES.forEach((c,i)=>{
+  const o = document.createElement("option");
+  o.value = i; o.textContent = c.n;
+  sel.appendChild(o);
+});
+const hoy = new Date();
+const yyyymmdd = hoy.getFullYear()+"-"+String(hoy.getMonth()+1).padStart(2,"0")+"-"+String(hoy.getDate()).padStart(2,"0");
+document.getElementById("inp-fecha").value = yyyymmdd;
+
+let medioSel = "";
+
+// ── Funciones ────────────────────────────────────────────────────────────
+function onCliente(){
+  const idx = sel.value;
+  const card = document.getElementById("moto-card");
+  if(idx===""){card.classList.remove("visible");return;}
+  const c = CLIENTES[idx];
+  document.getElementById("card-placa").textContent   = c.p;
+  document.getElementById("card-moto").textContent    = c.m;
+  document.getElementById("card-tarifa").textContent  = "Cuota: $"+c.t.toLocaleString("es-CO");
+  document.getElementById("inp-valor").value = c.t;
+  card.classList.add("visible");
+}
+
+function selMedio(el, medio){
+  document.querySelectorAll(".medio-btn").forEach(b=>b.classList.remove("activo"));
+  el.classList.add("activo");
+  medioSel = medio;
+}
+
+function toast(msg){
+  const t = document.getElementById("toast");
+  t.textContent = msg; t.classList.add("visible");
+  setTimeout(()=>t.classList.remove("visible"), 4000);
+}
+
+function pesos(n){return "$"+Number(n).toLocaleString("es-CO");}
+
+function enviar(){
+  const idx   = document.getElementById("sel-cliente").value;
+  const fecha = document.getElementById("inp-fecha").value;
+  const valor = Number(document.getElementById("inp-valor").value);
+  const obs   = document.getElementById("inp-obs").value.trim();
+  if(idx==="")       return toast("⚠️ Selecciona un cliente.");
+  if(!fecha)         return toast("⚠️ Ingresa la fecha del cobro.");
+  if(valor<=0)       return toast("⚠️ Ingresa el valor recibido.");
+  if(!medioSel)      return toast("⚠️ Selecciona el medio de pago.");
+  const c = CLIENTES[idx];
+  const btn = document.getElementById("btn-enviar");
+  btn.disabled = true; btn.textContent = "Guardando…";
+  google.script.run
+    .withSuccessHandler(function(){
+      document.getElementById("suc-nombre").textContent = c.n;
+      document.getElementById("suc-monto").textContent  = pesos(valor);
+      document.getElementById("suc-fecha").textContent  =
+        new Date(fecha+"T12:00:00").toLocaleDateString("es-CO",{weekday:"long",day:"numeric",month:"long"});
+      document.getElementById("suc-medio").textContent  = "Pago por "+medioSel;
+      document.getElementById("success").classList.add("visible");
+      btn.disabled=false; btn.textContent="REGISTRAR COBRO";
+    })
+    .withFailureHandler(function(err){
+      toast("❌ Error: "+err.message);
+      btn.disabled=false; btn.textContent="REGISTRAR COBRO";
+    })
+    .registrarPago({
+      fecha:fecha, cliente:c.n, moto:c.m, placa:c.p,
+      tarifa:c.t, valor:valor, medio:medioSel, obs:obs
+    });
+}
+
+function resetForm(){
+  document.getElementById("success").classList.remove("visible");
+  document.getElementById("sel-cliente").value="";
+  document.getElementById("moto-card").classList.remove("visible");
+  document.getElementById("inp-valor").value="";
+  document.getElementById("inp-obs").value="";
+  medioSel="";
+  document.querySelectorAll(".medio-btn").forEach(b=>b.classList.remove("activo"));
+  document.getElementById("inp-fecha").value=yyyymmdd;
+}
+</script>
+</body>
+</html>

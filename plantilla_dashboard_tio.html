@@ -1,0 +1,1881 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SEVERA MOTOS · Control de cobros</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#EDE7D8;
+    --card:#FBF8EF;
+    --card-soft:#F3EEDF;
+    --ink:#241F1A;
+    --ink-soft:#6B6255;
+    --asphalt:#211E1A;
+    --asphalt-soft:#37332C;
+    --plate:#E8A93A;
+    --plate-ink:#241F1A;
+    --verde:#256B45;
+    --verde-bg:#E3EFE7;
+    --ambar:#A8631A;
+    --ambar-bg:#F5E9D8;
+    --rojo:#A63333;
+    --rojo-bg:#F5E0DE;
+    --gris:#9C9484;
+    --gris-bg:#EAE5D8;
+    --borde:#DAD1BA;
+    --radio:14px;
+    --sombra:0 2px 14px rgba(36,31,26,0.09);
+    --font-display:'Bebas Neue',Impact,'Arial Narrow',sans-serif;
+    --font-mono:'IBM Plex Mono','Consolas','SFMono-Regular',monospace;
+    --font-body:'Inter',-apple-system,'Segoe UI',sans-serif;
+  }
+
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    margin:0;
+    background:var(--paper);
+    color:var(--ink);
+    font-family:var(--font-body);
+    line-height:1.45;
+    -webkit-font-smoothing:antialiased;
+  }
+  .contenedor{max-width:1240px;margin:0 auto;padding:0 24px;}
+
+  /* ---------- HEADER ---------- */
+  header.barra{
+    background:var(--asphalt);
+    color:#F4EFE2;
+    padding:22px 0;
+    border-bottom:4px solid var(--plate);
+    position:relative;
+    overflow:hidden;
+  }
+  .barra-inner{
+    display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;
+    position:relative;z-index:1;
+  }
+  .marca{display:flex;align-items:center;gap:14px;}
+  .logo-rueda{display:block;flex:none;filter:drop-shadow(0 2px 8px rgba(232,169,58,0.45));}
+  .moto-deco{
+    position:absolute;right:-10px;top:50%;transform:translateY(-50%);
+    pointer-events:none;opacity:1;
+  }
+  @media(max-width:760px){.moto-deco{display:none;}}
+  .marca h1{
+    font-family:var(--font-display);
+    font-size:2.6rem;
+    letter-spacing:0.03em;
+    color:var(--plate);
+    margin:0;
+    line-height:1;
+  }
+  .marca span.sub{
+    font-family:var(--font-body);
+    font-size:0.86rem;
+    color:#C9C2B2;
+    letter-spacing:0.02em;
+  }
+  .fecha-hoy{text-align:right;font-family:var(--font-mono);font-size:0.8rem;color:#C9C2B2;}
+  .fecha-hoy strong{display:block;color:#F4EFE2;font-size:0.92rem;font-family:var(--font-body);font-weight:600;}
+
+  section{padding:34px 0 8px;}
+  h2.titulo-seccion{
+    font-family:var(--font-display);
+    font-size:1.5rem;
+    letter-spacing:0.04em;
+    margin:0 0 16px;
+    color:var(--ink);
+    display:flex;align-items:center;gap:10px;
+  }
+  h2.titulo-seccion::before{
+    content:"";
+    width:10px;height:10px;background:var(--plate);border-radius:2px;transform:rotate(45deg);
+    flex:none;
+  }
+
+  /* ---------- TICKERS GLOBALES ---------- */
+  .tickers{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(190px,1fr));
+    gap:14px;
+  }
+  .ticker{
+    background:var(--card);
+    border:1px solid var(--borde);
+    border-radius:var(--radio);
+    padding:16px 18px;
+    box-shadow:var(--sombra);
+  }
+  .ticker .eyebrow{
+    font-size:0.68rem;text-transform:uppercase;letter-spacing:0.09em;
+    color:var(--ink-soft);font-weight:600;margin-bottom:6px;
+  }
+  .ticker .valor{
+    font-family:var(--font-mono);font-size:1.55rem;font-weight:600;letter-spacing:-0.01em;
+  }
+  .ticker.destacado{border-color:var(--asphalt);}
+  .ticker .valor.rojo{color:var(--rojo);}
+  .ticker .valor.verde{color:var(--verde);}
+
+  /* ---------- CUENTAS DE COBRO (tickets) ---------- */
+  .cuentas{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(310px,1fr));
+    gap:28px;
+    margin-bottom:24px;
+  }
+  .ticket-cliente{
+    position:relative;
+    background:var(--card);
+    border:1px solid var(--borde);
+    border-radius:var(--radio) var(--radio) 0 0;
+    padding:20px 22px 26px;
+    box-shadow:var(--sombra);
+  }
+  .ticket-cliente::after{
+    content:"";
+    position:absolute;left:0;right:0;bottom:-10px;height:20px;
+    background-color:var(--card);
+    background-image:radial-gradient(circle at center, var(--paper) 10px, transparent 10.5px);
+    background-size:20px 20px;
+    background-repeat:repeat-x;
+    pointer-events:none;
+  }
+  .stamp{
+    position:absolute;top:20px;right:20px;
+    transform:rotate(-7deg);
+    border:2px solid currentColor;
+    border-radius:6px;
+    padding:3px 9px;
+    font-family:var(--font-display);
+    letter-spacing:0.07em;
+    font-size:0.92rem;
+    opacity:0.95;
+  }
+  .stamp.al_dia{color:var(--verde);}
+  .stamp.atraso_leve{color:var(--ambar);}
+  .stamp.atraso_alto{color:var(--rojo);}
+  .stamp.finalizado{color:var(--verde);border-style:double;border-width:3px;}
+
+  .tc-nombre{
+    font-family:var(--font-display);
+    font-size:1.7rem;
+    letter-spacing:0.02em;
+    margin:0;
+    padding-right:90px;
+  }
+  .tc-moto{font-size:0.82rem;color:var(--ink-soft);margin-top:2px;}
+  .tc-moto b{color:var(--ink);font-weight:600;}
+
+  .tc-deuda{margin:16px 0 4px;}
+  .tc-deuda .label{font-size:0.7rem;text-transform:uppercase;letter-spacing:0.08em;color:var(--ink-soft);font-weight:600;}
+  .tc-deuda .monto{font-family:var(--font-mono);font-size:2.1rem;font-weight:600;line-height:1.15;}
+  .tc-deuda .monto.verde{color:var(--verde);}
+  .tc-deuda .monto.ambar{color:var(--ambar);}
+  .tc-deuda .monto.rojo{color:var(--rojo);}
+  .tc-deuda .tarifas{font-size:0.78rem;color:var(--ink-soft);}
+
+  .tc-fila-tear{
+    border-top:1.5px dashed var(--borde);
+    margin:14px 0;
+  }
+
+  .tc-stats{display:grid;grid-template-columns:1fr 1fr;gap:10px 14px;margin-bottom:6px;}
+  .tc-stat .label{font-size:0.66rem;text-transform:uppercase;letter-spacing:0.06em;color:var(--ink-soft);}
+  .tc-stat .valor{font-family:var(--font-mono);font-size:1rem;font-weight:600;}
+
+  .tc-semana-titulo{font-size:0.7rem;text-transform:uppercase;letter-spacing:0.07em;color:var(--ink-soft);font-weight:600;margin:16px 0 8px;}
+  .chips-semana{display:flex;gap:6px;flex-wrap:wrap;}
+  .chip{
+    width:42px;height:48px;border-radius:8px;
+    display:flex;flex-direction:column;align-items:center;justify-content:center;
+    font-family:var(--font-mono);font-size:0.68rem;color:#fff;font-weight:600;
+    cursor:default;position:relative;border:none;
+    flex:0 0 auto;
+  }
+  .chip .n{font-size:0.95rem;line-height:1;}
+  .chip.pagado{background:var(--verde);}
+  .chip.parcial{background:var(--ambar);}
+  .chip.no_pago{background:var(--rojo);}
+  .chip.sin_cobro{background:var(--gris);}
+  .chip.pendiente{background:var(--card-soft);color:var(--ink);border:2px dashed var(--plate);}
+  .chip.sin_dato{background:transparent;color:var(--gris);border:1.5px dashed var(--borde);}
+  .chip[data-tip]{outline-offset:2px;}
+  .chip[data-tip]:hover::before, .chip[data-tip]:focus::before{
+    content:attr(data-tip);
+    position:absolute;bottom:56px;left:50%;transform:translateX(-50%);
+    background:var(--asphalt);color:#F4EFE2;
+    font-family:var(--font-body);font-size:0.72rem;font-weight:500;
+    padding:7px 10px;border-radius:7px;white-space:pre-line;
+    width:max-content;max-width:190px;text-align:left;
+    box-shadow:0 4px 14px rgba(0,0,0,0.22);z-index:5;line-height:1.35;
+  }
+  .chip[data-tip]:hover::after, .chip[data-tip]:focus::after{
+    content:"";position:absolute;bottom:50px;left:50%;transform:translateX(-50%);
+    border:6px solid transparent;border-top-color:var(--asphalt);
+  }
+
+  .tc-resumen-frase{
+    margin-top:12px;font-size:0.86rem;color:var(--ink);
+    background:var(--card-soft);border-radius:8px;padding:9px 12px;
+    border-left:3px solid var(--plate);
+  }
+  .tc-resumen-frase.frase-alerta{border-left-color:var(--rojo);background:var(--rojo-bg);}
+
+  /* ---------- CONTRATO / PROGRESO SEMANAL ---------- */
+  .tc-contrato{margin:16px 0 4px;}
+  .tc-contrato-hdr{display:flex;justify-content:space-between;align-items:baseline;flex-wrap:wrap;gap:6px;margin-bottom:6px;}
+  .tc-contrato-cuotas{font-family:var(--font-mono);font-size:1.05rem;font-weight:700;}
+  .tc-contrato-cuotas .of{font-size:0.8rem;color:var(--ink-soft);font-weight:400;}
+  .tc-contrato-fin{font-size:0.74rem;color:var(--ink-soft);}
+  .progreso-bar{height:9px;background:var(--borde);border-radius:5px;overflow:hidden;}
+  .progreso-fill{height:100%;background:var(--verde);border-radius:5px;transition:width 1s ease;}
+  .tc-contrato-sub{font-size:0.73rem;color:var(--ink-soft);margin-top:5px;}
+
+  /* Chips semanales */
+  .chip-sem{
+    min-width:44px;height:54px;border-radius:8px;
+    display:flex;flex-direction:column;align-items:center;justify-content:center;
+    font-family:var(--font-mono);font-size:0.65rem;color:#fff;font-weight:600;
+    cursor:default;position:relative;border:none;flex:0 0 auto;padding:0 5px;gap:2px;
+  }
+  .chip-sem .n{font-size:0.88rem;line-height:1.1;}
+  .chip-sem.pagado{background:var(--verde);}
+  .chip-sem.parcial{background:var(--ambar);}
+  .chip-sem.no_pago{background:var(--rojo);}
+  .chip-sem.proximo{background:var(--card-soft);color:var(--ink);border:2px dashed var(--plate);}
+  .chip-sem.vencido{background:var(--rojo);}
+  .chip-sem[data-tip]{outline-offset:2px;}
+  .chip-sem[data-tip]:hover::before,.chip-sem[data-tip]:focus::before{
+    content:attr(data-tip);
+    position:absolute;bottom:60px;left:50%;transform:translateX(-50%);
+    background:var(--asphalt);color:#F4EFE2;
+    font-family:var(--font-body);font-size:0.72rem;font-weight:500;
+    padding:7px 10px;border-radius:7px;white-space:pre-line;
+    width:max-content;max-width:200px;text-align:left;
+    box-shadow:0 4px 14px rgba(0,0,0,0.22);z-index:5;line-height:1.35;
+  }
+  .chip-sem[data-tip]:hover::after,.chip-sem[data-tip]:focus::after{
+    content:"";position:absolute;bottom:54px;left:50%;transform:translateX(-50%);
+    border:6px solid transparent;border-top-color:var(--asphalt);
+  }
+
+  /* ---------- TENDENCIA ---------- */
+  .panel{
+    background:var(--card);border:1px solid var(--borde);border-radius:var(--radio);
+    padding:20px 22px;box-shadow:var(--sombra);
+  }
+  .chart-axis{fill:var(--ink-soft);font-family:var(--font-mono);font-size:10.5px;}
+  .barra{transition:opacity .15s;}
+  .barra:hover{opacity:0.75;}
+  .barra-esperado{fill:var(--gris-bg);stroke:var(--gris);stroke-width:1;}
+  .barra-recibido{fill:var(--verde);}
+  .leyenda-chart{display:flex;gap:18px;margin-top:6px;font-size:0.76rem;color:var(--ink-soft);flex-wrap:wrap;}
+  .leyenda-chart .pt{display:inline-flex;align-items:center;gap:6px;}
+  .leyenda-chart .sw{width:11px;height:11px;border-radius:3px;display:inline-block;}
+
+  #tooltip-chart{
+    position:fixed;pointer-events:none;opacity:0;transition:opacity .1s;
+    background:var(--asphalt);color:#F4EFE2;font-size:0.78rem;padding:8px 11px;
+    border-radius:8px;box-shadow:0 4px 14px rgba(0,0,0,0.25);z-index:50;line-height:1.4;
+  }
+
+  /* ---------- TABLA DETALLE ---------- */
+  .filtros{display:flex;gap:14px;flex-wrap:wrap;align-items:center;margin-bottom:14px;}
+  .filtros label{font-size:0.76rem;color:var(--ink-soft);font-weight:600;margin-right:6px;}
+  .filtros select, .filtros .chk, .filtros input[type=date]{
+    font-family:var(--font-body);font-size:0.86rem;
+    border:1px solid var(--borde);border-radius:8px;padding:7px 10px;
+    background:var(--card);color:var(--ink);
+  }
+  .btn-filtro-rapido{
+    font-family:var(--font-body);font-size:0.82rem;font-weight:600;
+    background:var(--plate);color:var(--plate-ink);border:none;border-radius:8px;
+    padding:8px 14px;cursor:pointer;white-space:nowrap;
+  }
+  .btn-filtro-rapido:hover{filter:brightness(0.94);}
+  table.detalle tfoot td{
+    padding:10px 12px;font-weight:700;background:var(--card-soft);
+    border-top:2px solid var(--asphalt);font-family:var(--font-mono);white-space:nowrap;
+  }
+  table.detalle tfoot td:first-child{font-family:var(--font-body);}
+  tr.fila-vencimiento td{background:rgba(166,51,51,0.07);}
+  tr.fila-vencimiento td:first-child{color:var(--rojo);font-weight:600;}
+  .filtros .chk-wrap{display:flex;align-items:center;gap:7px;font-size:0.86rem;}
+  .tabla-scroll{overflow-x:auto;border:1px solid var(--borde);border-radius:var(--radio);background:var(--card);}
+  table.detalle{width:100%;border-collapse:collapse;font-size:0.86rem;min-width:720px;}
+  table.detalle th{
+    position:sticky;top:0;background:var(--asphalt);color:#F4EFE2;
+    text-align:left;padding:10px 12px;font-weight:600;font-size:0.74rem;
+    text-transform:uppercase;letter-spacing:0.04em;cursor:pointer;user-select:none;
+    white-space:nowrap;
+  }
+  table.detalle th:hover{background:var(--asphalt-soft);}
+  table.detalle th .arrow{opacity:0.55;font-size:0.7rem;margin-left:3px;}
+  table.detalle td{padding:9px 12px;border-bottom:1px solid var(--borde);white-space:nowrap;}
+  table.detalle td.nota{white-space:normal;color:var(--ink-soft);font-size:0.8rem;max-width:260px;}
+  table.detalle tbody tr:nth-child(even){background:var(--card-soft);}
+  table.detalle td.num{font-family:var(--font-mono);text-align:right;}
+  .pill{display:inline-flex;align-items:center;gap:5px;font-size:0.76rem;font-weight:600;padding:3px 8px;border-radius:20px;}
+  .pill .dot{width:7px;height:7px;border-radius:50%;display:inline-block;}
+  .pill.pagado{background:var(--verde-bg);color:var(--verde);}
+  .pill.pagado .dot{background:var(--verde);}
+  .pill.parcial{background:var(--ambar-bg);color:var(--ambar);}
+  .pill.parcial .dot{background:var(--ambar);}
+  .pill.no_pago{background:var(--rojo-bg);color:var(--rojo);}
+  .pill.no_pago .dot{background:var(--rojo);}
+  .pill.sin_cobro{background:var(--gris-bg);color:var(--ink-soft);}
+  .pill.sin_cobro .dot{background:var(--gris);}
+  .aviso-vacio{padding:26px;text-align:center;color:var(--ink-soft);font-size:0.9rem;}
+
+  /* ---------- PESTAÑAS ---------- */
+  .tabs-nav{display:flex;gap:8px;margin-top:22px;}
+  .tab-btn{
+    font-family:var(--font-display);font-size:1.05rem;letter-spacing:0.04em;
+    background:var(--card);color:var(--ink-soft);
+    border:1px solid var(--borde);border-bottom:none;
+    border-radius:10px 10px 0 0;padding:10px 22px 12px;cursor:pointer;
+  }
+  .tab-btn:hover{color:var(--ink);}
+  .tab-btn.activo{background:var(--asphalt);color:var(--plate);border-color:var(--asphalt);}
+  .vista{display:none;}
+  .vista.activa{display:block;}
+
+  /* ---------- GERENCIA: cuánto me deben ---------- */
+  .deuda-lista{
+    background:var(--card);border:1px solid var(--borde);border-radius:var(--radio);
+    box-shadow:var(--sombra);overflow:hidden;
+  }
+  .deuda-fila{
+    display:flex;justify-content:space-between;align-items:center;gap:12px;
+    padding:14px 20px;border-bottom:1px solid var(--borde);
+  }
+  .deuda-fila:last-child{border-bottom:none;}
+  .deuda-fila .nom{font-weight:600;font-size:0.95rem;}
+  .deuda-fila .monto{font-family:var(--font-mono);font-size:1.05rem;font-weight:600;}
+  .deuda-fila.total{background:var(--asphalt);}
+  .deuda-fila.total .nom{color:#F4EFE2;}
+  .deuda-fila.total .monto{color:var(--plate);font-size:1.25rem;}
+
+  /* ---------- GERENCIA: simulador de ahorro ---------- */
+  .simulador .campo{display:flex;flex-wrap:wrap;gap:18px;margin-bottom:20px;}
+  .simulador label{display:block;font-size:0.7rem;text-transform:uppercase;letter-spacing:0.07em;color:var(--ink-soft);font-weight:600;margin-bottom:6px;}
+  .simulador input[type=number]{
+    font-family:var(--font-mono);font-size:1.1rem;
+    border:1px solid var(--borde);border-radius:8px;padding:9px 12px;
+    background:var(--paper);color:var(--ink);width:200px;max-width:100%;
+  }
+  .simulador input[type=number]:focus{outline:none;border-color:var(--plate);box-shadow:0 0 0 3px rgba(232,169,58,0.25);}
+  .resultado-simulador{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:14px;}
+  .resultado-simulador .rs-card{background:var(--card-soft);border-radius:10px;padding:14px 16px;}
+  .resultado-simulador .rs-card .label{font-size:0.68rem;text-transform:uppercase;letter-spacing:0.07em;color:var(--ink-soft);font-weight:600;margin-bottom:4px;}
+  .resultado-simulador .rs-card .valor{font-family:var(--font-mono);font-size:1.3rem;font-weight:600;color:var(--verde);}
+  .nota-sim{font-size:0.78rem;color:var(--ink-soft);margin-top:14px;line-height:1.5;}
+
+  /* ---------- TABLA RESUMEN: siempre visible ---------- */
+  #tabla-movil-wrap { display:block; }
+  @media (max-width:700px){ #cuentas-clientes { display:none; } }
+
+  /* Filtro de mes */
+  .tm-filtro { display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin-bottom:14px; padding:12px 14px; background:var(--card-soft); border-radius:10px; border:1px solid var(--borde); }
+  .tm-filtro-label { font-size:0.72rem; font-weight:700; text-transform:uppercase; letter-spacing:0.06em; color:var(--ink-soft); white-space:nowrap; }
+  .tm-sel { font-family:var(--font-mono); font-size:0.9rem; border:1px solid var(--borde); border-radius:8px; padding:6px 10px; background:var(--paper); color:var(--ink); }
+  .tm-sel:focus { outline:none; border-color:var(--plate); box-shadow:0 0 0 3px rgba(232,169,58,0.2); }
+  input.tm-sel[type=number] { width:76px; }
+
+  /* Tabla */
+  .tm-tabla { width:100%; border-collapse:collapse; font-size:0.85rem; }
+  .tm-tabla th {
+    text-align:left; font-size:0.64rem; text-transform:uppercase;
+    letter-spacing:0.06em; color:var(--ink-soft); font-weight:700;
+    padding:8px 10px; border-bottom:2px solid var(--borde);
+    background:var(--paper); white-space:nowrap; line-height:1.3;
+  }
+  .tm-tabla th.num { text-align:right; }
+  .tm-fila { border-bottom:1px solid var(--borde); }
+  .tm-fila:last-child { border-bottom:none; }
+  .tm-fila td { padding:10px 8px; vertical-align:middle; }
+
+  /* barra lateral por estado */
+  .tm-barra { width:4px; min-width:4px; border-radius:4px; padding:0 !important; }
+  .tm-barra.al_dia     { background:var(--verde); }
+  .tm-barra.atraso_leve{ background:var(--ambar); }
+  .tm-barra.atraso_alto{ background:var(--rojo); }
+  .tm-barra.finalizado { background:var(--verde); }
+
+  .tm-cliente { font-weight:700; font-size:0.9rem; color:var(--ink); line-height:1.2; }
+  .tm-placa   { font-size:0.7rem; color:var(--ink-soft); font-family:var(--font-mono); margin-top:2px; }
+
+  .tm-badge { display:inline-block; font-size:0.62rem; font-weight:800; letter-spacing:0.06em; text-transform:uppercase; padding:3px 7px; border-radius:20px; white-space:nowrap; }
+  .tm-badge.al_dia     { background:var(--verde-bg); color:var(--verde); }
+  .tm-badge.atraso_leve{ background:var(--ambar-bg); color:var(--ambar); }
+  .tm-badge.atraso_alto{ background:var(--rojo-bg);  color:var(--rojo); }
+  .tm-badge.finalizado { background:var(--verde-bg); color:var(--verde); }
+
+  .tm-dias { font-family:var(--font-mono); font-weight:700; font-size:0.95rem; line-height:1; }
+  .tm-dias.rojo  { color:var(--rojo); }
+  .tm-dias.ambar { color:var(--ambar); }
+  .tm-dias.verde { color:var(--verde); }
+  .tm-proxima { font-size:0.68rem; color:var(--ink-soft); margin-top:3px; }
+
+  .tm-cuotas-num { font-family:var(--font-mono); font-weight:700; font-size:0.88rem; }
+  .tm-cuotas-bar { height:4px; background:var(--borde); border-radius:3px; margin-top:5px; min-width:55px; }
+  .tm-cuotas-fill{ height:4px; border-radius:3px; background:var(--verde); }
+
+  /* Columnas numéricas financieras */
+  .tm-num { font-family:var(--font-mono); font-size:0.82rem; text-align:right; white-space:nowrap; }
+  .tm-num.verde { color:var(--verde); font-weight:700; }
+  .tm-num.ambar { color:var(--ambar); font-weight:600; }
+  .tm-num.rojo  { color:var(--rojo);  font-weight:700; }
+  .tm-num.soft  { color:var(--ink-soft); }
+
+  /* Fila de totales */
+  .tm-total-fila td { padding:10px 8px; font-weight:700; font-size:0.82rem; border-top:2px solid var(--borde); background:var(--card-soft); }
+
+  /* ---------- PANEL: por cobrar / proyección mensual ---------- */
+  .por-cobrar-total{
+    display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:14px;margin-bottom:22px;
+  }
+  .mes-selector{display:flex;flex-wrap:wrap;gap:12px;align-items:flex-end;margin-bottom:18px;}
+  .mes-selector label{display:block;font-size:0.7rem;text-transform:uppercase;letter-spacing:0.07em;color:var(--ink-soft);font-weight:600;margin-bottom:6px;}
+  .mes-selector select,.mes-selector input[type=number]{
+    font-family:var(--font-mono);font-size:1rem;
+    border:1px solid var(--borde);border-radius:8px;padding:8px 12px;
+    background:var(--paper);color:var(--ink);
+  }
+  .mes-selector select:focus,.mes-selector input[type=number]:focus{outline:none;border-color:var(--plate);box-shadow:0 0 0 3px rgba(232,169,58,0.25);}
+  .mes-selector select{width:150px;}
+  .mes-selector input[type=number]{width:90px;}
+  .proy-fila{display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--borde);}
+  .proy-fila:last-child{border-bottom:none;font-weight:700;}
+  .proy-fila .pf-nom{flex:1;font-size:0.88rem;}
+  .proy-fila .pf-cuotas{font-size:0.78rem;color:var(--ink-soft);margin:0 14px;text-align:center;min-width:70px;}
+  .proy-fila .pf-monto{font-family:var(--font-mono);font-size:0.95rem;font-weight:600;min-width:110px;text-align:right;}
+  .proy-sin-pagos{color:var(--ink-soft);font-size:0.85rem;padding:10px 0;}
+
+  /* ---------- Tab Créditos ---------- */
+  .tab-btn-credito{border-color:var(--plate) !important;color:var(--plate) !important;}
+  .tab-btn-credito.activo{background:var(--plate) !important;color:var(--asphalt) !important;}
+  /* ---------- Simulador hero ---------- */
+  .sim-hero{
+    display:flex;align-items:center;gap:22px;
+    padding:28px 0 22px;
+    border-bottom:2px solid var(--borde);
+    margin-bottom:32px;
+  }
+  .sim-hero-logo{flex:none;filter:drop-shadow(0 3px 12px rgba(232,169,58,0.5));}
+  .sim-titulo{
+    font-family:var(--font-display);font-size:3.2rem;letter-spacing:0.06em;
+    color:var(--ink);margin:0 0 4px;line-height:1;
+  }
+  .sim-sub{color:var(--ink-soft);font-size:0.9rem;margin:0;line-height:1.5;}
+  @media(max-width:640px){
+    .sim-titulo{font-size:2rem;}
+    .sim-hero{gap:14px;}
+  }
+  /* ---------- Simulador de crédito ---------- */
+  .cred-inputs{display:flex;flex-wrap:wrap;gap:18px;margin-bottom:22px;}
+  .cred-campo{display:flex;flex-direction:column;gap:4px;}
+  .cred-campo label{font-size:0.7rem;text-transform:uppercase;letter-spacing:0.07em;color:var(--ink-soft);font-weight:600;}
+  .cred-campo input[type=number]{
+    font-family:var(--font-mono);font-size:1.1rem;
+    border:1px solid var(--borde);border-radius:8px;padding:9px 12px;
+    background:var(--paper);color:var(--ink);width:210px;max-width:100%;
+  }
+  .cred-campo input[type=number]:focus{outline:none;border-color:var(--plate);box-shadow:0 0 0 3px rgba(232,169,58,0.25);}
+  .cred-hint{font-size:0.67rem;color:var(--gris);line-height:1.3;}
+  .cred-resultados{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:14px;margin-bottom:18px;}
+  .cred-card{background:var(--card-soft);border-radius:10px;padding:14px 18px;border:1px solid var(--borde);}
+  .cred-card-main{grid-column:span 2;background:var(--asphalt);}
+  .cred-card .lab{font-size:0.68rem;text-transform:uppercase;letter-spacing:0.07em;color:var(--ink-soft);font-weight:600;margin-bottom:6px;}
+  .cred-card-main .lab{color:#C9C2B2;}
+  .cred-card .val{font-family:var(--font-mono);font-size:1.3rem;font-weight:700;color:var(--ink);}
+  .cred-card-main .val{font-size:1.8rem;color:var(--plate);}
+  .cred-toggle{cursor:pointer;display:inline-block;font-size:0.78rem;font-weight:600;color:var(--ink-soft);padding:6px 14px;border:1px solid var(--borde);border-radius:8px;background:var(--card-soft);margin-top:4px;user-select:none;transition:background 0.15s;}
+  .cred-toggle:hover{background:var(--borde);}
+  .cred-tabla{margin-top:14px;}
+  @media(max-width:900px){.cred-resultados{grid-template-columns:1fr 1fr;}.cred-card-main{grid-column:span 2;}}
+  @media(max-width:640px){.cred-campo input[type=number]{width:100%;}.cred-resultados{grid-template-columns:1fr;}.cred-card-main{grid-column:span 1;}}
+
+  footer{
+    margin-top:40px;padding:22px 0 34px;border-top:1px solid var(--borde);
+    color:var(--ink-soft);font-size:0.78rem;
+  }
+  footer code{background:var(--card-soft);padding:2px 6px;border-radius:5px;font-family:var(--font-mono);}
+
+  @media (max-width:640px){
+    .marca h1{font-size:2rem;}
+    .fecha-hoy{text-align:left;}
+    .barra-inner{align-items:flex-start;}
+    .tc-nombre{padding-right:0;}
+    .stamp{position:static;display:inline-block;transform:rotate(-4deg);margin-top:8px;}
+    .tab-btn{flex:1;padding:10px 10px 12px;font-size:0.92rem;text-align:center;}
+    .simulador .campo{gap:12px;}
+    .simulador input[type=number]{width:100%;}
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    *{transition:none !important; scroll-behavior:auto !important;}
+  }
+</style>
+</head>
+<body>
+
+<header class="barra">
+  <div class="contenedor barra-inner">
+    <div class="marca">
+      <svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" width="54" height="54" class="logo-rueda" aria-label="Severa Motos">
+        <!-- Outer tire -->
+        <circle cx="32" cy="32" r="29.5" fill="none" stroke="#E8A93A" stroke-width="5.5"/>
+        <!-- Dark fill -->
+        <circle cx="32" cy="32" r="26" fill="#141110"/>
+        <!-- 8 spokes -->
+        <g stroke="#E8A93A" stroke-width="1.2" opacity="0.55">
+          <line x1="32" y1="4" x2="32" y2="60"/>
+          <line x1="4" y1="32" x2="60" y2="32"/>
+          <line x1="10.5" y1="10.5" x2="53.5" y2="53.5"/>
+          <line x1="53.5" y1="10.5" x2="10.5" y2="53.5"/>
+        </g>
+        <!-- Inner rim -->
+        <circle cx="32" cy="32" r="18" fill="none" stroke="#E8A93A" stroke-width="0.9" opacity="0.4"/>
+        <!-- Hub -->
+        <circle cx="32" cy="32" r="4" fill="#E8A93A"/>
+        <!-- SM letters -->
+        <text x="32" y="43" text-anchor="middle" font-family="'Bebas Neue',Impact,'Arial Narrow',sans-serif" font-size="26" font-weight="900" fill="#E8A93A" letter-spacing="3">SM</text>
+      </svg>
+      <div>
+        <h1>SEVERA MOTOS</h1>
+        <span class="sub">Control de cobros</span>
+      </div>
+    </div>
+    <div class="fecha-hoy">
+      <strong id="fecha-hoy-legible">—</strong>
+      generado <span id="generado-en">—</span>
+    </div>
+  </div>
+  <!-- Moto decorativa de fondo -->
+  <div class="moto-deco" aria-hidden="true">
+    <svg viewBox="0 0 260 100" xmlns="http://www.w3.org/2000/svg" width="300" height="112">
+      <!-- Rueda trasera -->
+      <circle cx="50" cy="68" r="26" fill="none" stroke="#E8A93A" stroke-width="6" opacity="0.55"/>
+      <circle cx="50" cy="68" r="16" fill="none" stroke="#E8A93A" stroke-width="1.5" opacity="0.3"/>
+      <circle cx="50" cy="68" r="4.5" fill="#E8A93A" opacity="0.5"/>
+      <g stroke="#E8A93A" stroke-width="1.3" opacity="0.3">
+        <line x1="50" y1="44" x2="50" y2="92"/><line x1="26" y1="68" x2="74" y2="68"/>
+        <line x1="33" y1="51" x2="67" y2="85"/><line x1="67" y1="51" x2="33" y2="85"/>
+      </g>
+      <!-- Rueda delantera -->
+      <circle cx="210" cy="68" r="26" fill="none" stroke="#E8A93A" stroke-width="6" opacity="0.55"/>
+      <circle cx="210" cy="68" r="16" fill="none" stroke="#E8A93A" stroke-width="1.5" opacity="0.3"/>
+      <circle cx="210" cy="68" r="4.5" fill="#E8A93A" opacity="0.5"/>
+      <g stroke="#E8A93A" stroke-width="1.3" opacity="0.3">
+        <line x1="210" y1="44" x2="210" y2="92"/><line x1="186" y1="68" x2="234" y2="68"/>
+        <line x1="193" y1="51" x2="227" y2="85"/><line x1="227" y1="51" x2="193" y2="85"/>
+      </g>
+      <!-- Basculante -->
+      <path d="M74 68 L92 46" fill="none" stroke="#E8A93A" stroke-width="3.5" stroke-linecap="round" opacity="0.6"/>
+      <!-- Chasis principal -->
+      <path d="M92 46 L106 24 L136 22 L155 46 L184 68" fill="none" stroke="#E8A93A" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" opacity="0.65"/>
+      <!-- Asiento y depósito -->
+      <path d="M106 24 L118 15 L142 17 L136 22" fill="none" stroke="#E8A93A" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" opacity="0.6"/>
+      <path d="M118 15 L133 12 L148 15 L142 17" fill="none" stroke="#E8A93A" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" opacity="0.55"/>
+      <!-- Motor -->
+      <rect x="102" y="34" width="34" height="22" rx="4" fill="none" stroke="#E8A93A" stroke-width="2.2" opacity="0.45"/>
+      <!-- Horquilla delantera -->
+      <path d="M155 46 L166 26 L174 26 L184 68" fill="none" stroke="#E8A93A" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" opacity="0.6"/>
+      <!-- Manillar -->
+      <line x1="159" y1="24" x2="177" y2="21" stroke="#E8A93A" stroke-width="3.5" stroke-linecap="round" opacity="0.65"/>
+      <line x1="159" y1="21" x2="159" y2="29" stroke="#E8A93A" stroke-width="3" stroke-linecap="round" opacity="0.55"/>
+      <!-- Escape -->
+      <path d="M102 52 L74 58 L66 64" fill="none" stroke="#E8A93A" stroke-width="2.5" stroke-linecap="round" opacity="0.4"/>
+      <!-- Cabeza piloto -->
+      <ellipse cx="130" cy="9" rx="10" ry="11" fill="none" stroke="#E8A93A" stroke-width="2" opacity="0.45"/>
+      <!-- Cuerpo piloto -->
+      <path d="M120 19 L126 34 L142 31 L138 19" fill="none" stroke="#E8A93A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" opacity="0.4"/>
+    </svg>
+  </div>
+</header>
+
+<div class="contenedor">
+
+  <div class="tabs-nav">
+    <button type="button" class="tab-btn activo" data-vista="operativo">Operativo</button>
+    <button type="button" class="tab-btn" data-vista="gerencia">Gerencia</button>
+    <button type="button" class="tab-btn tab-btn-credito" data-vista="simulador">⚡ Créditos</button>
+  </div>
+
+  <div id="vista-operativo" class="vista activa">
+
+  <section id="seccion-global">
+    <h2 class="titulo-seccion">Resumen general</h2>
+    <div class="tickers" id="tickers-globales"></div>
+  </section>
+
+  <section id="seccion-clientes">
+    <h2 class="titulo-seccion">Cuentas de cobro</h2>
+    <!-- Vista móvil: tabla compacta (solo visible en pantallas pequeñas) -->
+    <div id="tabla-movil-wrap"></div>
+    <!-- Vista escritorio: tarjetas (ocultas en móvil) -->
+    <div class="cuentas" id="cuentas-clientes"></div>
+  </section>
+
+  <section id="seccion-tendencia">
+    <h2 class="titulo-seccion">Tendencia mensual</h2>
+    <div class="panel">
+      <div id="grafico-tendencia"></div>
+      <div class="leyenda-chart">
+        <span class="pt"><span class="sw" style="background:var(--verde)"></span> Recibido</span>
+        <span class="pt"><span class="sw" style="background:var(--gris-bg);border:1px solid var(--gris)"></span> Esperado (tarifa completa)</span>
+      </div>
+    </div>
+  </section>
+
+  <section id="seccion-detalle">
+    <h2 class="titulo-seccion">Detalle día a día</h2>
+    <div class="filtros">
+      <span><label for="f-mes">Mes</label><select id="f-mes"></select></span>
+      <span><label for="f-cliente">Cliente</label><select id="f-cliente"></select></span>
+      <span><label for="f-placa">Placa</label><select id="f-placa"></select></span>
+      <span><label for="f-fecha">Día exacto</label><input type="date" id="f-fecha"></span>
+      <span class="chk-wrap"><input type="checkbox" id="f-atrasos" class="chk"><label for="f-atrasos" style="margin:0;">Solo atrasos / parciales</label></span>
+      <button type="button" class="btn-filtro-rapido" id="btn-ayer-sin-pagar">Ayer sin pagar</button>
+    </div>
+    <div class="tabla-scroll">
+      <table class="detalle" id="tabla-detalle">
+        <thead>
+          <tr>
+            <th data-key="fecha">Fecha</th>
+            <th data-key="cliente">Cliente</th>
+            <th data-key="placa">Placa</th>
+            <th data-key="esperado">Esperado</th>
+            <th data-key="recibido">Recibido</th>
+            <th data-key="diferencia">Diferencia</th>
+            <th data-key="saldo">Saldo</th>
+            <th data-key="medio_pago">Medio</th>
+            <th>Estado</th>
+            <th>Nota</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+        <tfoot id="tabla-detalle-pie"></tfoot>
+      </table>
+    </div>
+  </section>
+
+  </div>
+
+  <div id="vista-gerencia" class="vista">
+
+  <section id="seccion-gerencia-resumen">
+    <h2 class="titulo-seccion">Resumen gerencial del mes</h2>
+    <div class="tickers" id="tickers-gerencia"></div>
+  </section>
+
+  <section id="seccion-gerencia-deuda">
+    <h2 class="titulo-seccion">Cuánto me deben — saldo final</h2>
+    <div id="saldo-final-resumen"></div>
+    <div class="deuda-lista" id="lista-deuda"></div>
+  </section>
+
+  <section id="seccion-gerencia-deuda-total">
+    <h2 class="titulo-seccion">Lo que me deben a la fecha (con lo que falta del cronograma)</h2>
+    <div class="nota-sim" style="margin-top:0;margin-bottom:16px;">
+      Esto es <strong>aparte del saldo final de arriba</strong>. Cada moto tiene una fecha en la que termina
+      de pagarse — después de esa fecha la moto pasa a ser del cliente y ya no te genera más ingreso. Aquí se
+      suma lo atrasado a hoy + lo que aún falta por cobrar hasta esa fecha, moto por moto.
+    </div>
+    <div class="tickers" id="tickers-deuda-total"></div>
+    <div class="tabla-scroll" style="margin-top:16px;">
+      <table class="detalle" id="tabla-deuda-total">
+        <thead>
+          <tr><th>Cliente</th><th>Atrasado hoy</th><th>Por cobrar hasta fin de contrato</th><th>Fin de contrato</th><th>Total a la fecha</th></tr>
+        </thead>
+        <tbody></tbody>
+        <tfoot id="tabla-deuda-total-pie"></tfoot>
+      </table>
+    </div>
+  </section>
+
+  <section id="seccion-gerencia-simulador">
+    <h2 class="titulo-seccion">¿Cuándo tengo $X para la moto nueva?</h2>
+    <div class="panel simulador">
+      <div class="campo">
+        <div>
+          <label for="sim-ya-tienes">Ya tienes ahorrado</label>
+          <input type="number" id="sim-ya-tienes" placeholder="0" min="0" step="10000" value="0">
+        </div>
+        <div>
+          <label for="sim-objetivo">Quieres llegar a</label>
+          <input type="number" id="sim-objetivo" placeholder="Ej: 7000000" min="0" step="10000" value="7000000">
+        </div>
+      </div>
+      <div class="resultado-simulador" id="resultado-simulador"></div>
+      <div class="nota-sim" id="nota-simulador"></div>
+    </div>
+  </section>
+
+  <section id="seccion-gerencia-flota">
+    <h2 class="titulo-seccion">Proyección: crecer la flota</h2>
+    <div class="panel simulador">
+      <div class="campo">
+        <div>
+          <label for="proy-precio-moto">Precio de la moto nueva</label>
+          <input type="number" id="proy-precio-moto" placeholder="Ej: 6300000" min="0" step="50000" value="6300000">
+        </div>
+        <div>
+          <label for="proy-ya-tienes">Ya tienes ahorrado</label>
+          <input type="number" id="proy-ya-tienes" placeholder="0" min="0" step="10000" value="0">
+        </div>
+        <div>
+          <label for="proy-meta-motos">Motos a las que quieres llegar</label>
+          <input type="number" id="proy-meta-motos" placeholder="Ej: 10" min="1" max="60" step="1" value="10">
+        </div>
+      </div>
+      <div class="tabla-scroll">
+        <table class="detalle" id="tabla-proyeccion">
+          <thead><tr><th>Evento</th><th>Fecha</th><th>Días desde el anterior</th><th>Motos activas</th><th>Ingreso diario</th><th>Ingreso mensual</th><th>Observación</th></tr></thead>
+          <tbody></tbody>
+          <tfoot id="tabla-proyeccion-pie"></tfoot>
+        </table>
+      </div>
+      <div class="nota-sim" id="nota-proyeccion"></div>
+    </div>
+  </section>
+
+  <section id="seccion-por-cobrar">
+    <h2 class="titulo-seccion">¿Cuánto me falta por cobrar?</h2>
+
+    <div class="tickers por-cobrar-total" id="tickers-por-cobrar"></div>
+
+    <div class="panel simulador">
+      <h3 style="margin:0 0 14px;font-size:1rem;">Proyección por mes — cuánto entra si todos pagan</h3>
+      <div class="mes-selector">
+        <div>
+          <label for="pc-mes">Mes</label>
+          <select id="pc-mes">
+            <option value="1">Enero</option>
+            <option value="2">Febrero</option>
+            <option value="3">Marzo</option>
+            <option value="4">Abril</option>
+            <option value="5">Mayo</option>
+            <option value="6">Junio</option>
+            <option value="7">Julio</option>
+            <option value="8">Agosto</option>
+            <option value="9">Septiembre</option>
+            <option value="10">Octubre</option>
+            <option value="11">Noviembre</option>
+            <option value="12">Diciembre</option>
+          </select>
+        </div>
+        <div>
+          <label for="pc-anio">Año</label>
+          <input type="number" id="pc-anio" min="2025" max="2030" value="2026">
+        </div>
+      </div>
+      <div id="resultado-proyeccion-mes"></div>
+    </div>
+  </section>
+
+  </div>
+
+  <!-- ══════════════ VISTA: SIMULADOR DE CRÉDITOS ══════════════ -->
+  <div id="vista-simulador" class="vista">
+  <section id="seccion-credito">
+
+    <!-- Hero -->
+    <div class="sim-hero">
+      <svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" width="64" height="64" class="sim-hero-logo" aria-hidden="true">
+        <circle cx="32" cy="32" r="29.5" fill="none" stroke="#E8A93A" stroke-width="5.5"/>
+        <circle cx="32" cy="32" r="26" fill="#211E1A"/>
+        <g stroke="#E8A93A" stroke-width="1.3" opacity="0.55">
+          <line x1="32" y1="4" x2="32" y2="60"/>
+          <line x1="4" y1="32" x2="60" y2="32"/>
+          <line x1="10.5" y1="10.5" x2="53.5" y2="53.5"/>
+          <line x1="53.5" y1="10.5" x2="10.5" y2="53.5"/>
+        </g>
+        <circle cx="32" cy="32" r="18" fill="none" stroke="#E8A93A" stroke-width="0.9" opacity="0.4"/>
+        <circle cx="32" cy="32" r="4" fill="#E8A93A"/>
+        <text x="32" y="43" text-anchor="middle" font-family="'Bebas Neue',Impact,'Arial Narrow',sans-serif" font-size="26" font-weight="900" fill="#E8A93A" letter-spacing="3">SM</text>
+      </svg>
+      <div>
+        <h2 class="sim-titulo">SIMULADOR DE CRÉDITOS</h2>
+        <p class="sim-sub">Calcula la cuota, el total e intereses antes de comprometerte a financiar una moto.</p>
+      </div>
+    </div>
+
+    <!-- Panel calculadora -->
+    <div class="panel simulador">
+      <div class="cred-inputs">
+        <div class="cred-campo">
+          <label for="cred-valor">Valor a financiar</label>
+          <input type="number" id="cred-valor" placeholder="Ej: 5000000" min="0" step="100000" value="5000000">
+        </div>
+        <div class="cred-campo">
+          <label for="cred-tasa-mes">Interés mensual (%)</label>
+          <input type="number" id="cred-tasa-mes" placeholder="Ej: 3.5" min="0" max="50" step="0.1" value="3.5">
+          <span class="cred-hint">Cambia uno → el otro se ajusta solo</span>
+        </div>
+        <div class="cred-campo">
+          <label for="cred-tasa-anio">Interés anual (%)</label>
+          <input type="number" id="cred-tasa-anio" placeholder="Auto" min="0" max="500" step="0.1">
+          <span class="cred-hint">Equivale a mensual × 12</span>
+        </div>
+        <div class="cred-campo">
+          <label for="cred-meses">Número de cuotas (meses)</label>
+          <input type="number" id="cred-meses" placeholder="Ej: 24" min="1" max="120" step="1" value="24">
+        </div>
+      </div>
+      <div class="cred-resultados" id="cred-resultados"></div>
+      <span class="cred-toggle" id="cred-toggle" onclick="toggleAmort()">▼ Ver tabla de amortización</span>
+      <div class="cred-tabla" id="cred-tabla" style="display:none;">
+        <div class="tabla-scroll">
+          <table class="detalle" id="tabla-amort">
+            <thead>
+              <tr><th>#</th><th>Saldo inicial</th><th>Cuota</th><th>Interés</th><th>Capital</th><th>Saldo final</th></tr>
+            </thead>
+            <tbody id="tbody-amort"></tbody>
+            <tfoot id="tfoot-amort"></tfoot>
+          </table>
+        </div>
+      </div>
+    </div>
+
+  </section>
+  </div>
+
+  <footer>
+    Generado el <span id="generado-en-2">—</span> a partir de <code>control_motos_tio.xlsx</code>.
+    Los números reflejan el archivo en el momento de correr el script — vuelve a ejecutar
+    <code>python procesar_motos_tio.py</code> y refresca esta página para actualizar.
+  </footer>
+</div>
+
+<div id="tooltip-chart"></div>
+
+<script>
+const DATOS = __DATOS_JSON_AQUI__;
+
+function formatPesos(n){
+  n = Math.round(n || 0);
+  const signo = n < 0 ? "-" : "";
+  n = Math.abs(n);
+  return signo + "$" + n.toLocaleString("es-CO");
+}
+function formatCompacto(n){
+  const abs = Math.abs(n);
+  if (abs >= 1000000) return (n/1000000).toFixed(1).replace(/\.0$/,"") + "M";
+  if (abs >= 1000) return Math.round(n/1000) + "K";
+  return String(Math.round(n));
+}
+const prefiereMenosMovimiento = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+function animarNumero(el, valorFinal, duracion){
+  duracion = duracion || 800;
+  if (prefiereMenosMovimiento){ el.textContent = formatPesos(valorFinal); return; }
+  const inicio = performance.now();
+  function paso(t){
+    const p = Math.min(1, (t - inicio) / duracion);
+    const facil = 1 - Math.pow(1 - p, 3);
+    el.textContent = formatPesos(valorFinal * facil);
+    if (p < 1) requestAnimationFrame(paso);
+  }
+  requestAnimationFrame(paso);
+}
+
+function claseMonto(v){ return v > 0 ? "rojo" : "verde"; }
+
+// ---------------------------------------------------------------
+// RESUMEN GLOBAL
+// ---------------------------------------------------------------
+function renderGlobal(g){
+  const cont = document.getElementById("tickers-globales");
+  const items = [
+    {label:"Recibido histórico", valor:g.recibido_historico, clase:""},
+    {label:"Recibido este mes", valor:g.recibido_mes, clase:""},
+    {label:"Atrasado total", valor:g.atrasado_historico, clase: g.atrasado_historico>0 ? "rojo":"verde"},
+    {label:"Atrasado este mes", valor:g.atrasado_mes, clase: g.atrasado_mes>0 ? "rojo":"verde"},
+  ];
+  cont.innerHTML = items.map((it,i)=>`
+    <div class="ticker ${i>=2?'destacado':''}">
+      <div class="eyebrow">${it.label}</div>
+      <div class="valor ${it.clase}" id="tk-${i}"></div>
+    </div>
+  `).join("") + `
+    <div class="ticker destacado">
+      <div class="eyebrow">Cumplimiento global</div>
+      <div class="valor">${g.cumplimiento}%</div>
+    </div>
+  `;
+  items.forEach((it,i)=> animarNumero(document.getElementById("tk-"+i), it.valor));
+}
+
+// ---------------------------------------------------------------
+// CUENTAS DE COBRO POR CLIENTE
+// ---------------------------------------------------------------
+const ETIQUETA_ESTADO = {al_dia:"AL DÍA", atraso_leve:"ATRASO LEVE", atraso_alto:"ATRASADO", finalizado:"FINALIZADO"};
+const CLASE_MONTO_ESTADO = {al_dia:"verde", atraso_leve:"ambar", atraso_alto:"rojo", finalizado:"verde"};
+
+function tipChip(dia){
+  const partes = [dia.fecha];
+  if (dia.estado === "sin_dato") return partes.join("\n") + "\nSin registro";
+  if (dia.estado === "sin_cobro") return partes.join("\n") + "\nSin cobro ese día";
+  if (dia.estado === "pendiente") return partes.join("\n") + "\nAún no vence hoy";
+  partes.push("Esperado: " + formatPesos(dia.esperado));
+  partes.push("Recibido: " + formatPesos(dia.recibido || 0));
+  if (dia.nota) partes.push('"' + dia.nota + '"');
+  return partes.join("\n");
+}
+
+function fmtCorto(iso){
+  if (!iso) return "—";
+  const d = new Date(iso + "T00:00:00");
+  return d.getDate() + "/" + (d.getMonth()+1);
+}
+
+function renderTablaMobil(clientes){
+  const ETIQUETA = {al_dia:"Al día", atraso_leve:"Leve", atraso_alto:"Atrasado", finalizado:"Finalizado"};
+  const wrap = document.getElementById("tabla-movil-wrap");
+  const hoy  = new Date(DATOS.hoy + "T00:00:00");
+
+  // Indexar detalle por cliente para consultas rápidas
+  const detalleIdx = {};
+  (DATOS.detalle || []).forEach(d => {
+    if (!detalleIdx[d.cliente]) detalleIdx[d.cliente] = [];
+    detalleIdx[d.cliente].push(d);
+  });
+
+  // Cuánto recibió el cliente en un mes concreto (desde detalle)
+  function recibidoEnMes(nombre, year, month) {
+    const prefix = year + "-" + String(month).padStart(2, "0");
+    return (detalleIdx[nombre] || [])
+      .filter(d => d.fecha.startsWith(prefix))
+      .reduce((s, d) => s + (d.recibido || 0), 0);
+  }
+
+  // Cuánto debería haber pagado según el cronograma semanal,
+  // contando las cuotas que caen en el mes hasta el corte (hoy o fin de mes si ya pasó)
+  function esperadoEnMesACorte(cliente, year, month) {
+    if (!cliente.inicio || !cliente.total_cuotas) return 0;
+    const MS7   = 7 * 24 * 60 * 60 * 1000;
+    const mesIni = new Date(year, month - 1, 1);
+    const mesFin = new Date(year, month, 0);   // último día del mes
+    const esFuturo = mesIni > hoy;
+    // Para meses pasados o actual usa min(fin_mes, hoy); para futuros proyecta el mes completo
+    const corte = esFuturo ? mesFin : new Date(Math.min(mesFin.getTime(), hoy.getTime()));
+    let count = 0;
+    let ts = new Date(cliente.inicio + "T00:00:00").getTime();
+    for (let i = 0; i < cliente.total_cuotas; i++) {
+      const d = new Date(ts);
+      if (d > corte) break;
+      if (d >= mesIni) count++;
+      ts += MS7;
+    }
+    return count * (cliente.tarifa_ref || 240000);
+  }
+
+  // Construye y pinta la tabla para un mes/año dado
+  function buildTabla(year, month) {
+    const nombreMes = (MESES_NOMBRE[month] || "") + " " + year;
+    const esMesActual = (year === hoy.getFullYear() && month === hoy.getMonth() + 1);
+    const labelCorte  = esMesActual
+      ? "a hoy " + hoy.getDate() + "/" + (hoy.getMonth()+1)
+      : (new Date(year, month - 1, 1) > hoy ? "proyectado" : "al " + new Date(year, month, 0).getDate() + "/" + month);
+
+    const filas = clientes.map(c => {
+      const dsp = c.dias_sin_pagar || 0;
+      const pct = Math.min(100, c.porc_completado || 0);
+      const fin = c.contrato_completo;
+      const est = c.estado_general;
+
+      let diasHtml, diasClase;
+      if (fin)       { diasHtml = "✓";        diasClase = "verde"; }
+      else if (dsp > 0) { diasHtml = dsp + "d"; diasClase = dsp > 14 ? "rojo" : "ambar"; }
+      else              { diasHtml = "OK";       diasClase = "verde"; }
+
+      let proximaHtml;
+      if (fin)          proximaHtml = "Completo";
+      else if (dsp > 0) proximaHtml = "Vencía " + (c.proximo_pago_esperado ? fmtCorto(c.proximo_pago_esperado) : "—");
+      else              proximaHtml = "Próx. "  + (c.proximo_pago_esperado ? fmtCorto(c.proximo_pago_esperado) : "—");
+
+      const recibMes  = recibidoEnMes(c.nombre, year, month);
+      const espMes    = esperadoEnMesACorte(c, year, month);
+      const pendiente = (c.pagos_restantes || 0) * (c.tarifa_ref || 240000);
+      const histTot   = c.recibido_total || 0;
+
+      const recibCls  = recibMes > 0 ? "verde" : "soft";
+      const pendCls   = pendiente > 0 ? "ambar" : "verde";
+      const espCls    = espMes > 0 ? "" : "soft";
+
+      return `
+      <tr class="tm-fila">
+        <td class="tm-barra ${est}"></td>
+        <td>
+          <div class="tm-cliente">${c.nombre.split(" ").slice(0,2).join(" ")}</div>
+          <div class="tm-placa">${c.placa || "—"}</div>
+        </td>
+        <td><span class="tm-badge ${est}">${ETIQUETA[est]}</span></td>
+        <td>
+          <div class="tm-dias ${diasClase}">${diasHtml}</div>
+          <div class="tm-proxima">${proximaHtml}</div>
+        </td>
+        <td>
+          <div class="tm-cuotas-num">${c.pagos_realizados}<span style="font-weight:400;color:var(--ink-soft);font-size:0.72rem;">/${c.total_cuotas}</span></div>
+          <div class="tm-cuotas-bar"><div class="tm-cuotas-fill" style="width:${pct}%"></div></div>
+        </td>
+        <td class="tm-num ${recibCls}">${formatPesos(recibMes)}</td>
+        <td class="tm-num ${espCls}">${formatPesos(espMes)}</td>
+        <td class="tm-num">${formatPesos(histTot)}</td>
+        <td class="tm-num ${pendCls}">${formatPesos(pendiente)}</td>
+      </tr>`;
+    });
+
+    // Totales
+    const totRecib = clientes.reduce((s,c) => s + recibidoEnMes(c.nombre, year, month), 0);
+    const totEsp   = clientes.reduce((s,c) => s + esperadoEnMesACorte(c, year, month), 0);
+    const totHist  = clientes.reduce((s,c) => s + (c.recibido_total || 0), 0);
+    const totPend  = clientes.reduce((s,c) => s + (c.pagos_restantes||0)*(c.tarifa_ref||240000), 0);
+
+    document.getElementById("tm-tabla-cont").innerHTML = `
+      <div style="overflow-x:auto;-webkit-overflow-scrolling:touch;">
+        <table class="tm-tabla">
+          <thead>
+            <tr>
+              <th style="width:4px;padding:8px 0;"></th>
+              <th>Cliente</th>
+              <th>Estado</th>
+              <th>Días</th>
+              <th>Cuotas</th>
+              <th class="num">Recibido<br><span style="font-weight:400;font-size:0.6rem;">${nombreMes}</span></th>
+              <th class="num">Esperado<br><span style="font-weight:400;font-size:0.6rem;">${labelCorte}</span></th>
+              <th class="num">Total<br><span style="font-weight:400;font-size:0.6rem;">histórico</span></th>
+              <th class="num">Pendiente<br><span style="font-weight:400;font-size:0.6rem;">por cobrar</span></th>
+            </tr>
+          </thead>
+          <tbody>${filas.join("")}</tbody>
+          <tfoot>
+            <tr class="tm-total-fila">
+              <td></td>
+              <td colspan="4" style="font-size:0.75rem;text-transform:uppercase;letter-spacing:0.06em;">Total</td>
+              <td class="tm-num verde">${formatPesos(totRecib)}</td>
+              <td class="tm-num">${formatPesos(totEsp)}</td>
+              <td class="tm-num">${formatPesos(totHist)}</td>
+              <td class="tm-num ambar">${formatPesos(totPend)}</td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>`;
+  }
+
+  // Render filtro + tabla
+  const opcionesMes = MESES_NOMBRE.slice(1).map((n, i) =>
+    `<option value="${i+1}"${hoy.getMonth()+1 === i+1 ? " selected" : ""}>${n}</option>`
+  ).join("");
+
+  wrap.innerHTML = `
+    <div class="tm-filtro">
+      <span class="tm-filtro-label">Filtrar mes:</span>
+      <select id="tm-sel-mes" class="tm-sel">${opcionesMes}</select>
+      <input type="number" id="tm-sel-anio" class="tm-sel" min="2024" max="2032" value="${hoy.getFullYear()}">
+    </div>
+    <div id="tm-tabla-cont"></div>`;
+
+  // Render inicial
+  buildTabla(hoy.getFullYear(), hoy.getMonth() + 1);
+
+  // Eventos del filtro
+  function onFiltroChange() {
+    const y = parseInt(document.getElementById("tm-sel-anio").value) || hoy.getFullYear();
+    const m = parseInt(document.getElementById("tm-sel-mes").value)  || hoy.getMonth() + 1;
+    if (y >= 2024 && y <= 2032 && m >= 1 && m <= 12) buildTabla(y, m);
+  }
+  document.getElementById("tm-sel-mes").addEventListener("change", onFiltroChange);
+  document.getElementById("tm-sel-anio").addEventListener("input",  onFiltroChange);
+}
+
+function renderClientes(clientes){
+  const cont = document.getElementById("cuentas-clientes");
+  renderTablaMobil(clientes);
+  cont.innerHTML = clientes.map((c, idx) => {
+    const dsp = c.dias_sin_pagar || 0;
+    const pct = Math.min(100, c.porc_completado || 0);
+    const proxCorto = fmtCorto(c.proximo_pago_esperado);
+    const fin = c.contrato_completo;
+
+    const chipProximo = (!fin && c.proximo_pago_esperado) ? `
+      <button type="button" class="chip-sem ${dsp > 0 ? 'vencido' : 'proximo'}" tabindex="0"
+        data-tip="Próxima cuota&#10;${c.proximo_pago_esperado_legible}${dsp > 0 ? '&#10;⚠ ' + dsp + ' días sin pagar' : ''}">
+        <span>${dsp > 0 ? '⚠' : 'sig'}</span>
+        <span class="n">${dsp > 0 ? dsp + 'd' : proxCorto}</span>
+      </button>` : "";
+
+    const bloqueDeuda = fin
+      ? `<div class="tc-deuda">
+          <div class="label">Contrato</div>
+          <div class="monto verde">✓ Pagado</div>
+          <div class="tarifas">Último pago: ${c.ultimo_pago_fecha || '—'} · ${formatPesos(c.recibido_total)} recibidos</div>
+        </div>`
+      : `<div class="tc-deuda">
+          <div class="label">Días sin pagar</div>
+          <div class="monto ${dsp > 0 ? 'rojo' : 'verde'}">${dsp} días</div>
+          <div class="tarifas">
+            ${dsp > 0
+              ? `⚠ Vencía el ${c.proximo_pago_esperado_legible}`
+              : c.proximo_pago_esperado
+                ? `Próxima cuota: ${c.proximo_pago_esperado_legible}`
+                : '—'}
+          </div>
+        </div>`;
+
+    const bloqueContrato = fin
+      ? `<div class="tc-contrato">
+          <div class="tc-contrato-hdr">
+            <span class="tc-contrato-cuotas">${c.pagos_realizados}<span class="of"> / ${c.total_cuotas} cuotas</span></span>
+            <span class="tc-contrato-fin" style="color:var(--verde);font-weight:600;">Contrato completado</span>
+          </div>
+          <div class="progreso-bar"><div class="progreso-fill" style="width:100%"></div></div>
+          <div class="tc-contrato-sub" style="color:var(--verde)">Todas las cuotas pagadas · ${formatPesos(c.recibido_total)}</div>
+        </div>`
+      : `<div class="tc-contrato">
+          <div class="tc-contrato-hdr">
+            <span class="tc-contrato-cuotas">${c.pagos_realizados}<span class="of"> / ${c.total_cuotas} cuotas</span></span>
+            <span class="tc-contrato-fin">Fin estimado: ${c.fecha_fin_prevista_legible}</span>
+          </div>
+          <div class="progreso-bar"><div class="progreso-fill" style="width:${pct}%"></div></div>
+          <div class="tc-contrato-sub">${c.pagos_restantes} cuotas restantes · ${formatPesos(c.pagos_restantes * c.tarifa_ref)}</div>
+        </div>`;
+
+    const fraseFinal = fin
+      ? `Contrato finalizado. Último pago recibido el ${c.ultimo_pago_fecha || '—'}.`
+      : dsp > 0
+        ? `Lleva <strong>${dsp} días</strong> sin pagar. Vencía el ${c.proximo_pago_esperado_legible}.`
+        : `Último pago: ${c.ultimo_pago_fecha || '—'}. Próxima cuota: ${c.proximo_pago_esperado_legible}.`;
+
+    return `
+    <div class="ticket-cliente">
+      <span class="stamp ${c.estado_general}">${ETIQUETA_ESTADO[c.estado_general] || c.estado_general}</span>
+      <h3 class="tc-nombre">${c.nombre}</h3>
+      <div class="tc-moto"><b>${c.moto || ''}</b> · placa ${c.placa || '—'} · desde ${c.inicio_legible}</div>
+
+      ${bloqueDeuda}
+
+      <div class="tc-fila-tear"></div>
+
+      <div class="tc-stats">
+        <div class="tc-stat"><div class="label">Cuotas pagadas</div><div class="valor">${c.pagos_realizados} <span style="font-size:0.8rem;color:var(--ink-soft);font-weight:400;">/ ${c.total_cuotas}</span></div></div>
+        <div class="tc-stat"><div class="label">Por cobrar</div><div class="valor" style="color:${fin ? 'var(--verde)' : 'var(--ambar)'}">${formatPesos(c.pagos_restantes * c.tarifa_ref)}</div></div>
+        <div class="tc-stat"><div class="label">Total recibido</div><div class="valor">${formatPesos(c.recibido_total)}</div></div>
+        <div class="tc-stat"><div class="label">% Completado</div><div class="valor" style="color:var(--verde)">${c.porc_completado}%</div></div>
+      </div>
+
+      ${bloqueContrato}
+
+      <div class="tc-semana-titulo">Últimos pagos semanales</div>
+      <div class="chips-semana">
+        ${(c.ultimos_pagos || []).map(p => `
+          <button type="button" class="chip-sem ${p.estado}" tabindex="0"
+            data-tip="Cuota #${p.num_cuota}&#10;${p.fecha}&#10;${p.dia_nombre}&#10;Recibido: ${formatPesos(p.recibido)}">
+            <span>${p.dia_nombre}</span>
+            <span class="n">${p.mes_dia}</span>
+          </button>`).join("")}
+        ${chipProximo}
+      </div>
+
+      <div class="tc-resumen-frase ${(!fin && dsp > 7) ? 'frase-alerta' : ''}">
+        ${fraseFinal}
+      </div>
+    </div>`;
+  }).join("");
+}
+
+// ---------------------------------------------------------------
+// TENDENCIA MENSUAL (SVG a mano, sin librerías)
+// ---------------------------------------------------------------
+function renderTendencia(tendencia){
+  const cont = document.getElementById("grafico-tendencia");
+  const w = Math.max(320, cont.clientWidth || 900);
+  const h = 250;
+  const mI = 46, mD = 14, mS = 14, mB = 30;
+  const areaW = w - mI - mD, areaH = h - mS - mB;
+  const max = Math.max(1, ...tendencia.map(t => Math.max(t.esperado, t.recibido)));
+  const n = Math.max(1, tendencia.length);
+  const grupoW = areaW / n;
+  const barW = Math.min(20, grupoW * 0.34);
+
+  let svg = `<svg viewBox="0 0 ${w} ${h}" width="100%" height="${h}" role="img" aria-label="Tendencia mensual de cobros">`;
+  const pasos = 4;
+  for (let i=0;i<=pasos;i++){
+    const y = mS + areaH - (areaH*i/pasos);
+    const val = max*i/pasos;
+    svg += `<line x1="${mI}" y1="${y.toFixed(1)}" x2="${w-mD}" y2="${y.toFixed(1)}" stroke="var(--borde)" stroke-width="1"/>`;
+    svg += `<text x="${mI-8}" y="${(y+3.5).toFixed(1)}" text-anchor="end" class="chart-axis">${formatCompacto(val)}</text>`;
+  }
+
+  tendencia.forEach((t,i)=>{
+    const cx = mI + grupoW*i + grupoW/2;
+    const hEsp = (t.esperado/max)*areaH;
+    const hRec = (t.recibido/max)*areaH;
+    const xEsp = cx - barW - 2;
+    const xRec = cx + 2;
+    const yEsp = mS+areaH-hEsp;
+    const yRec = mS+areaH-hRec;
+    svg += `<rect class="barra barra-esperado" data-i="${i}" x="${xEsp.toFixed(1)}" y="${yEsp.toFixed(1)}" width="${barW.toFixed(1)}" height="${Math.max(0,hEsp).toFixed(1)}" rx="3"/>`;
+    svg += `<rect class="barra barra-recibido" data-i="${i}" x="${xRec.toFixed(1)}" y="${yRec.toFixed(1)}" width="${barW.toFixed(1)}" height="${Math.max(0,hRec).toFixed(1)}" rx="3"/>`;
+    svg += `<text x="${cx.toFixed(1)}" y="${h-10}" text-anchor="middle" class="chart-axis">${t.mes_nombre} ${String(t.anio).slice(2)}</text>`;
+  });
+  svg += `</svg>`;
+  cont.innerHTML = svg;
+
+  const tip = document.getElementById("tooltip-chart");
+  cont.querySelectorAll(".barra").forEach(bar=>{
+    bar.addEventListener("mousemove",(e)=>{
+      const t = tendencia[+bar.dataset.i];
+      tip.innerHTML = `<strong>${t.mes_nombre} ${t.anio}</strong><br>Esperado: ${formatPesos(t.esperado)}<br>Recibido: ${formatPesos(t.recibido)}`;
+      tip.style.left = (e.clientX+14)+"px";
+      tip.style.top = (e.clientY+10)+"px";
+      tip.style.opacity = 1;
+    });
+    bar.addEventListener("mouseleave", ()=>{ tip.style.opacity = 0; });
+  });
+}
+
+// ---------------------------------------------------------------
+// GERENCIA
+// ---------------------------------------------------------------
+function renderGerencia(g, clientes){
+  const faltaMeta = Math.max(0, g.esperado_mes_completo - g.recibido_mes);
+  const cont = document.getElementById("tickers-gerencia");
+  cont.innerHTML = `
+    <div class="ticker">
+      <div class="eyebrow">Motos activas</div>
+      <div class="valor">${g.cantidad_motos}</div>
+    </div>
+    <div class="ticker">
+      <div class="eyebrow">Meta del mes (${g.cantidad_motos} motos)</div>
+      <div class="valor" id="tkg-meta"></div>
+    </div>
+    <div class="ticker">
+      <div class="eyebrow">Recibido este mes</div>
+      <div class="valor" id="tkg-recibido"></div>
+    </div>
+    <div class="ticker destacado">
+      <div class="eyebrow">Falta para la meta</div>
+      <div class="valor ${faltaMeta>0?'rojo':'verde'}" id="tkg-falta"></div>
+    </div>
+  `;
+  animarNumero(document.getElementById("tkg-meta"), g.esperado_mes_completo);
+  animarNumero(document.getElementById("tkg-recibido"), g.recibido_mes);
+  animarNumero(document.getElementById("tkg-falta"), faltaMeta);
+
+  const totalDeuda = clientes.reduce((s,c)=>s + c.saldo_atrasado, 0);
+
+  const deAntes = g.atrasado_historico - g.atrasado_mes;
+  const resumenSaldo = document.getElementById("saldo-final-resumen");
+  resumenSaldo.innerHTML = `
+    <div class="ticker destacado" style="margin-bottom:12px;">
+      <div class="eyebrow">Saldo final del negocio (lo que te deben hoy, en total)</div>
+      <div class="valor rojo" id="tkg-saldo-final"></div>
+    </div>
+    <div class="nota-sim">
+      Este saldo final <strong>es aparte de "Atrasado este mes"</strong> de la pestaña Operativo — ahí solo ves
+      lo nuevo que se sumó este mes. El total real es la suma de las dos partes:
+      atrasado de este mes (<strong>${formatPesos(g.atrasado_mes)}</strong>)
+      + lo que venía acumulado de meses anteriores (<strong>${formatPesos(deAntes)}</strong>).
+    </div>
+  `;
+  animarNumero(document.getElementById("tkg-saldo-final"), g.atrasado_historico);
+
+  const listaDeuda = document.getElementById("lista-deuda");
+  listaDeuda.innerHTML = clientes.map(c => `
+    <div class="deuda-fila">
+      <span class="nom">${c.nombre}</span>
+      <span class="monto" style="color:var(--${claseMonto(c.saldo_atrasado)})">${formatPesos(c.saldo_atrasado)}</span>
+    </div>
+  `).join("") + `
+    <div class="deuda-fila total">
+      <span class="nom">Total</span>
+      <span class="monto">${formatPesos(totalDeuda)}</span>
+    </div>
+  `;
+}
+
+function renderDeudaTotal(g, clientes){
+  const cont = document.getElementById("tickers-deuda-total");
+  cont.innerHTML = `
+    <div class="ticker">
+      <div class="eyebrow">Atrasado a hoy (las 3)</div>
+      <div class="valor" id="tkdt-atrasado"></div>
+    </div>
+    <div class="ticker">
+      <div class="eyebrow">Por cobrar hasta fin de contrato</div>
+      <div class="valor" id="tkdt-restante"></div>
+    </div>
+    <div class="ticker destacado">
+      <div class="eyebrow">Total que te deben a la fecha</div>
+      <div class="valor rojo" id="tkdt-total"></div>
+    </div>
+  `;
+  animarNumero(document.getElementById("tkdt-atrasado"), g.atrasado_historico);
+  animarNumero(document.getElementById("tkdt-restante"), g.restante_programado_total);
+  animarNumero(document.getElementById("tkdt-total"), g.deuda_total_con_programado);
+
+  const tbody = document.querySelector("#tabla-deuda-total tbody");
+  tbody.innerHTML = clientes.map(c => `
+    <tr>
+      <td>${c.nombre}</td>
+      <td class="num" style="color:var(--${claseMonto(c.saldo_atrasado)})">${formatPesos(c.saldo_atrasado)}</td>
+      <td class="num">${formatPesos(c.restante_programado)}</td>
+      <td>${c.fecha_fin_contrato_legible}</td>
+      <td class="num" style="font-weight:700;">${formatPesos(c.deuda_total_con_programado)}</td>
+    </tr>
+  `).join("");
+
+  document.getElementById("tabla-deuda-total-pie").innerHTML = `
+    <tr>
+      <td>Total</td>
+      <td class="num">${formatPesos(g.atrasado_historico)}</td>
+      <td class="num">${formatPesos(g.restante_programado_total)}</td>
+      <td>—</td>
+      <td class="num">${formatPesos(g.deuda_total_con_programado)}</td>
+    </tr>
+  `;
+}
+
+function actualizarSimulador(){
+  const objetivo = parseFloat(document.getElementById("sim-objetivo").value) || 0;
+  const yaTienes = parseFloat(document.getElementById("sim-ya-tienes").value) || 0;
+  const resultado = document.getElementById("resultado-simulador");
+  const nota = document.getElementById("nota-simulador");
+  const tarifaDiaria = DATOS.global.tarifa_diaria_combinada || 0;
+  const faltante = objetivo - yaTienes;
+
+  if (objetivo <= 0 || tarifaDiaria <= 0){
+    resultado.innerHTML = "";
+    nota.textContent = "Escribe un monto para simular.";
+    return;
+  }
+  if (faltante <= 0){
+    resultado.innerHTML = `<div class="rs-card"><div class="label">Resultado</div><div class="valor" style="color:var(--verde)">¡Ya la tienes!</div></div>`;
+    nota.textContent = "";
+    return;
+  }
+
+  const dias = Math.ceil(faltante / tarifaDiaria);
+  const fecha = new Date(DATOS.hoy + "T00:00:00");
+  fecha.setDate(fecha.getDate() + dias);
+  const fechaTexto = fecha.toLocaleDateString("es-CO", {weekday:"long", day:"numeric", month:"long", year:"numeric"});
+
+  resultado.innerHTML = `
+    <div class="rs-card"><div class="label">Te faltan</div><div class="valor">${formatPesos(faltante)}</div></div>
+    <div class="rs-card"><div class="label">Días necesarios</div><div class="valor">${dias}</div></div>
+    <div class="rs-card"><div class="label">Fecha estimada</div><div class="valor" style="font-size:1rem;">${fechaTexto}</div></div>
+  `;
+  nota.textContent = `Asumiendo que tus ${DATOS.global.cantidad_motos} motos pagan la tarifa completa todos los días (combinadas: ${formatPesos(tarifaDiaria)} diarios), a partir de mañana.`;
+}
+
+function diasEnMes(fecha){
+  return new Date(fecha.getFullYear(), fecha.getMonth()+1, 0).getDate();
+}
+
+function mismoDia(a, b){
+  return a.getFullYear()===b.getFullYear() && a.getMonth()===b.getMonth() && a.getDate()===b.getDate();
+}
+
+function actualizarProyeccion(){
+  const precio = parseFloat(document.getElementById("proy-precio-moto").value) || 0;
+  const yaTienes = parseFloat(document.getElementById("proy-ya-tienes").value) || 0;
+  const metaMotosInput = Math.floor(parseFloat(document.getElementById("proy-meta-motos").value) || 0);
+  const tbody = document.querySelector("#tabla-proyeccion tbody");
+  const pie = document.getElementById("tabla-proyeccion-pie");
+  const nota = document.getElementById("nota-proyeccion");
+
+  const motosActualesInicio = DATOS.global.cantidad_motos;
+  const tarifaPorMotoNueva = motosActualesInicio > 0 ? (DATOS.global.tarifa_diaria_combinada / motosActualesInicio) : 0;
+
+  if (precio <= 0 || tarifaPorMotoNueva <= 0){
+    tbody.innerHTML = "";
+    pie.innerHTML = "";
+    nota.textContent = "Escribe el precio de la moto nueva para ver la proyección.";
+    return;
+  }
+  if (metaMotosInput <= motosActualesInicio){
+    tbody.innerHTML = "";
+    pie.innerHTML = "";
+    nota.textContent = `Ya tienes ${motosActualesInicio} moto(s) activas — pon una meta mayor a esa cantidad.`;
+    return;
+  }
+
+  const metaMotos = Math.min(metaMotosInput, motosActualesInicio + 60); // límite de seguridad
+
+  // Motos actuales que van a terminar de pagarse (dejan de generar ingreso) durante la proyección
+  const vencimientos = DATOS.clientes
+    .map(c => ({ fecha: new Date(c.fecha_fin_contrato + "T00:00:00"), tarifa: c.tarifa_ref, nombre: c.nombre }))
+    .sort((a,b)=> a.fecha - b.fecha);
+
+  let ingresoDiario = DATOS.global.tarifa_diaria_combinada;
+  let ahorro = yaTienes;
+  let motos = motosActualesInicio;
+  let numeroCompra = 0;
+  const fechaCursor = new Date(DATOS.hoy + "T00:00:00");
+  const fechaLimite = new Date(fechaCursor); fechaLimite.setFullYear(fechaLimite.getFullYear() + 15);
+  let fechaAnterior = new Date(fechaCursor);
+  let idxVenc = 0;
+  const filas = [];
+
+  while (motos < metaMotos && fechaCursor < fechaLimite){
+    fechaCursor.setDate(fechaCursor.getDate() + 1);
+
+    while (idxVenc < vencimientos.length && mismoDia(vencimientos[idxVenc].fecha, fechaCursor)){
+      const v = vencimientos[idxVenc];
+      ingresoDiario = Math.max(0, ingresoDiario - v.tarifa);
+      motos -= 1;
+      filas.push({
+        tipo: "vencimiento",
+        texto: `Fin de contrato: ${v.nombre}`,
+        obs: `La moto pasa a ser de ${v.nombre} — deja de generar ingreso`,
+        fecha: new Date(fechaCursor),
+        dias: Math.round((fechaCursor - fechaAnterior) / 86400000),
+        motos, ingresoDiario,
+      });
+      fechaAnterior = new Date(fechaCursor);
+      idxVenc++;
+    }
+
+    ahorro += ingresoDiario;
+
+    if (motos < metaMotos && ingresoDiario > 0 && ahorro >= precio){
+      ahorro -= precio;
+      motos += 1;
+      numeroCompra += 1;
+      ingresoDiario += tarifaPorMotoNueva;
+      filas.push({
+        tipo: "compra",
+        texto: `Compra #${numeroCompra} (moto nueva)`,
+        obs: "—",
+        fecha: new Date(fechaCursor),
+        dias: Math.round((fechaCursor - fechaAnterior) / 86400000),
+        motos, ingresoDiario,
+      });
+      fechaAnterior = new Date(fechaCursor);
+    }
+  }
+
+  if (!filas.length || motos < metaMotos){
+    tbody.innerHTML = `<tr><td colspan="7"><div class="aviso-vacio">Con estos datos no se alcanza la meta en un tiempo razonable — prueba con un precio menor o una meta más baja.</div></td></tr>`;
+    pie.innerHTML = "";
+    nota.textContent = "";
+    return;
+  }
+
+  tbody.innerHTML = filas.map(f => `
+    <tr${f.tipo === "vencimiento" ? ' class="fila-vencimiento"' : ''}>
+      <td>${f.texto}</td>
+      <td>${f.fecha.toLocaleDateString("es-CO",{day:"numeric",month:"long",year:"numeric"})}</td>
+      <td class="num">${f.dias}</td>
+      <td class="num">${f.motos}</td>
+      <td class="num">${formatPesos(f.ingresoDiario)}</td>
+      <td class="num">${formatPesos(f.ingresoDiario * diasEnMes(f.fecha))}</td>
+      <td class="nota">${f.obs}</td>
+    </tr>`
+  ).join("");
+
+  const ultima = filas[filas.length-1];
+  const totalDias = filas.reduce((s,f)=>s+f.dias,0);
+  pie.innerHTML = `<tr>
+    <td colspan="3">Total · ${totalDias} días desde hoy</td>
+    <td class="num">${ultima.motos}</td>
+    <td class="num">${formatPesos(ultima.ingresoDiario)}</td>
+    <td class="num">${formatPesos(ultima.ingresoDiario * diasEnMes(ultima.fecha))}</td>
+    <td></td>
+  </tr>`;
+
+  const avisoLimite = metaMotosInput > metaMotos ? ` (se limitó a ${metaMotos} motos por seguridad)` : "";
+  const fechaFinal = ultima.fecha.toLocaleDateString("es-CO",{day:"numeric",month:"long",year:"numeric"});
+  nota.textContent = `Llegarías a ${metaMotos} motos el ${fechaFinal}${avisoLimite}. `
+    + `Ya tiene en cuenta que Jean Carlos, Carlos y Francisco dejan de generar ingreso cuando terminen de pagar su moto actual (filas en rojo arriba). `
+    + `Para las motos nuevas que vayas comprando, asume que TODO su ingreso diario (sin descontar gasolina, mantenimiento u otros gastos) se destina a ahorrar para la siguiente, a razón de ${formatPesos(tarifaPorMotoNueva)}/moto/día, y que esas no tienen fecha de vencimiento propia.`;
+}
+
+function calcularSaldoFinalFiltrado(filas){
+  const ultimaPorCliente = {};
+  filas.forEach(r=>{
+    if (!ultimaPorCliente[r.cliente] || r.fecha > ultimaPorCliente[r.cliente].fecha){
+      ultimaPorCliente[r.cliente] = r;
+    }
+  });
+  return Object.values(ultimaPorCliente).reduce((s,r)=>s + (r.saldo || 0), 0);
+}
+
+function iniciarTabs(){
+  document.querySelectorAll(".tab-btn").forEach(btn=>{
+    btn.addEventListener("click", ()=>{
+      document.querySelectorAll(".tab-btn").forEach(b=>b.classList.remove("activo"));
+      document.querySelectorAll(".vista").forEach(v=>v.classList.remove("activa"));
+      btn.classList.add("activo");
+      document.getElementById("vista-"+btn.dataset.vista).classList.add("activa");
+    });
+  });
+}
+
+// ---------------------------------------------------------------
+// TABLA DE DETALLE (con filtros y orden)
+// ---------------------------------------------------------------
+let ordenActual = {campo:"fecha", asc:false};
+
+function estadoFila(row){
+  if (row.esperado === 0 && row.recibido > 0) return "pagado"; // abono sin cargo programado ese día
+  if (row.esperado === 0) return "sin_cobro";
+  if (row.recibido >= row.esperado) return "pagado";
+  if (row.recibido > 0) return "parcial";
+  return "no_pago";
+}
+const ETIQUETA_FILA = {pagado:"Pagó", parcial:"Parcial", no_pago:"No pagó", sin_cobro:"Sin cobro"};
+
+function poblarFiltros(detalle, clientes){
+  const selMes = document.getElementById("f-mes");
+  const meses = [...new Set(detalle.map(r=>r.fecha.slice(0,7)))].sort().reverse();
+  const nombresMes = ["","ene","feb","mar","abr","may","jun","jul","ago","sep","oct","nov","dic"];
+  selMes.innerHTML = `<option value="todos">Todo el historial</option>` + meses.map(m=>{
+    const [a,mm] = m.split("-");
+    return `<option value="${m}">${nombresMes[+mm]} ${a}</option>`;
+  }).join("");
+  const mesHoy = DATOS.hoy.slice(0,7);
+  selMes.value = meses.includes(mesHoy) ? mesHoy : (meses[0] || "todos");
+
+  const selCliente = document.getElementById("f-cliente");
+  selCliente.innerHTML = `<option value="todos">Todos</option>` + clientes.map(c=>`<option value="${c.nombre}">${c.nombre}</option>`).join("");
+
+  const selPlaca = document.getElementById("f-placa");
+  const placas = [...new Set(clientes.map(c=>c.placa).filter(Boolean))];
+  selPlaca.innerHTML = `<option value="todos">Todas</option>` + placas.map(p=>`<option value="${p}">${p}</option>`).join("");
+}
+
+function renderTabla(){
+  const detalle = DATOS.detalle;
+  const mes = document.getElementById("f-mes").value;
+  const cliente = document.getElementById("f-cliente").value;
+  const placaSel = document.getElementById("f-placa").value;
+  const fechaExacta = document.getElementById("f-fecha").value;
+  const soloAtrasos = document.getElementById("f-atrasos").checked;
+
+  let filas = detalle.filter(r=>{
+    if (fechaExacta){
+      if (r.fecha !== fechaExacta) return false;
+    } else if (mes !== "todos" && !r.fecha.startsWith(mes)){
+      return false;
+    }
+    if (cliente !== "todos" && r.cliente !== cliente) return false;
+    if (placaSel !== "todos" && r.placa !== placaSel) return false;
+    if (soloAtrasos && !(r.diferencia > 0)) return false;
+    return true;
+  });
+
+  filas = filas.slice().sort((a,b)=>{
+    let va = a[ordenActual.campo], vb = b[ordenActual.campo];
+    if (typeof va === "string") { va = va.toLowerCase(); vb = (vb||"").toLowerCase(); }
+    if (va < vb) return ordenActual.asc ? -1 : 1;
+    if (va > vb) return ordenActual.asc ? 1 : -1;
+    return 0;
+  });
+
+  const tbody = document.querySelector("#tabla-detalle tbody");
+  const pie = document.getElementById("tabla-detalle-pie");
+  if (!filas.length){
+    tbody.innerHTML = `<tr><td colspan="10"><div class="aviso-vacio">No hay días que coincidan con este filtro.</div></td></tr>`;
+    pie.innerHTML = "";
+    return;
+  }
+
+  tbody.innerHTML = filas.map(r=>{
+    const est = estadoFila(r);
+    return `<tr>
+      <td>${r.fecha}</td>
+      <td>${r.cliente}</td>
+      <td>${r.placa || '—'}</td>
+      <td class="num">${formatPesos(r.esperado)}</td>
+      <td class="num">${formatPesos(r.recibido)}</td>
+      <td class="num">${formatPesos(r.diferencia)}</td>
+      <td class="num">${formatPesos(r.saldo)}</td>
+      <td>${r.medio_pago || '—'}</td>
+      <td><span class="pill ${est}"><span class="dot"></span>${ETIQUETA_FILA[est]}</span></td>
+      <td class="nota">${r.nota || ''}</td>
+    </tr>`;
+  }).join("");
+
+  const sumEsperado = filas.reduce((s,r)=>s+r.esperado,0);
+  const sumRecibido = filas.reduce((s,r)=>s+r.recibido,0);
+  const sumDiferencia = filas.reduce((s,r)=>s+r.diferencia,0);
+  const saldoFinalFiltro = calcularSaldoFinalFiltrado(filas);
+  pie.innerHTML = `<tr>
+    <td colspan="3">Total · ${filas.length} día${filas.length===1?'':'s'}</td>
+    <td class="num">${formatPesos(sumEsperado)}</td>
+    <td class="num">${formatPesos(sumRecibido)}</td>
+    <td class="num">${formatPesos(sumDiferencia)}</td>
+    <td class="num" title="Último saldo de cada cliente dentro del filtro, no una suma">${formatPesos(saldoFinalFiltro)}</td>
+    <td colspan="3"></td>
+  </tr>`;
+
+  document.querySelectorAll("#tabla-detalle th[data-key]").forEach(th=>{
+    const activo = th.dataset.key === ordenActual.campo;
+    th.innerHTML = th.textContent.replace(/ [▲▼]$/,"") + (activo ? (ordenActual.asc?" <span class=\"arrow\">▲</span>":" <span class=\"arrow\">▼</span>") : "");
+  });
+}
+
+function iniciarTabla(){
+  poblarFiltros(DATOS.detalle, DATOS.clientes);
+  document.getElementById("f-mes").addEventListener("change", ()=>{
+    document.getElementById("f-fecha").value = "";
+    renderTabla();
+  });
+  document.getElementById("f-cliente").addEventListener("change", renderTabla);
+  document.getElementById("f-placa").addEventListener("change", renderTabla);
+  document.getElementById("f-fecha").addEventListener("change", (e)=>{
+    if (e.target.value) document.getElementById("f-mes").value = "todos";
+    renderTabla();
+  });
+  document.getElementById("f-atrasos").addEventListener("change", renderTabla);
+  document.getElementById("btn-ayer-sin-pagar").addEventListener("click", ()=>{
+    const ayer = new Date(DATOS.hoy + "T00:00:00");
+    ayer.setDate(ayer.getDate() - 1);
+    const ayerISO = ayer.toISOString().slice(0,10);
+    document.getElementById("f-fecha").value = ayerISO;
+    document.getElementById("f-mes").value = "todos";
+    document.getElementById("f-cliente").value = "todos";
+    document.getElementById("f-placa").value = "todos";
+    document.getElementById("f-atrasos").checked = true;
+    renderTabla();
+  });
+  document.querySelectorAll("#tabla-detalle th[data-key]").forEach(th=>{
+    th.addEventListener("click", ()=>{
+      const key = th.dataset.key;
+      if (ordenActual.campo === key) ordenActual.asc = !ordenActual.asc;
+      else { ordenActual.campo = key; ordenActual.asc = false; }
+      renderTabla();
+    });
+  });
+  renderTabla();
+}
+
+// ---------------------------------------------------------------
+// INICIO
+// ---------------------------------------------------------------
+// POR COBRAR — total pendiente + proyección por mes
+// ---------------------------------------------------------------
+const MESES_NOMBRE = ["","Enero","Febrero","Marzo","Abril","Mayo","Junio",
+                      "Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre"];
+
+function cuotasEnMes(cliente, año, mes){
+  if (cliente.contrato_completo || !cliente.ultimo_pago_fecha) return 0;
+  const pendientes = cliente.pagos_restantes;
+  if (pendientes <= 0) return 0;
+  const MS_SEMANA = 7 * 24 * 60 * 60 * 1000;
+  let ts = new Date(cliente.ultimo_pago_fecha + "T00:00:00").getTime();
+  let count = 0;
+  for (let i = 0; i < pendientes; i++){
+    ts += MS_SEMANA;
+    const d = new Date(ts);
+    const dy = d.getFullYear(), dm = d.getMonth() + 1;
+    if (dy > año || (dy === año && dm > mes)) break;
+    if (dy === año && dm === mes) count++;
+  }
+  return count;
+}
+
+function renderPorCobrar(clientes){
+  const activos = clientes.filter(c => !c.contrato_completo);
+  const totalPorCobrar = activos.reduce((s, c) => s + c.pagos_restantes * c.tarifa_ref, 0);
+  const totalCuotasPend = activos.reduce((s, c) => s + c.pagos_restantes, 0);
+
+  // Tickers superiores
+  const tickersCont = document.getElementById("tickers-por-cobrar");
+  tickersCont.innerHTML = `
+    <div class="ticker destacado">
+      <div class="eyebrow">Total por cobrar — todas las motos</div>
+      <div class="valor verde" id="tkpc-total"></div>
+    </div>
+    <div class="ticker">
+      <div class="eyebrow">Cuotas pendientes (activas)</div>
+      <div class="valor" id="tkpc-cuotas">${totalCuotasPend}</div>
+    </div>
+    <div class="ticker">
+      <div class="eyebrow">Motos activas</div>
+      <div class="valor">${activos.length}</div>
+    </div>
+  `;
+  animarNumero(document.getElementById("tkpc-total"), totalPorCobrar);
+
+  // Selector de mes — inicializar con el mes actual
+  const hoy = new Date(DATOS.hoy + "T00:00:00");
+  const selMes = document.getElementById("pc-mes");
+  const inpAnio = document.getElementById("pc-anio");
+  selMes.value = hoy.getMonth() + 1;
+  inpAnio.value = hoy.getFullYear();
+
+  function calcularProyeccion(){
+    const mes = parseInt(selMes.value);
+    const año = parseInt(inpAnio.value);
+    const cont = document.getElementById("resultado-proyeccion-mes");
+
+    const filas = activos.map(c => {
+      const n = cuotasEnMes(c, año, mes);
+      return { nombre: c.nombre, cuotas: n, monto: n * c.tarifa_ref };
+    }).filter(f => f.cuotas > 0);
+
+    const totalMes = filas.reduce((s, f) => s + f.monto, 0);
+
+    if (filas.length === 0){
+      cont.innerHTML = `<p class="proy-sin-pagos">No hay pagos proyectados en <strong>${MESES_NOMBRE[mes]} ${año}</strong> para ninguna moto activa.<br>
+        Puede ser que los contratos ya terminan antes, o que el mes está fuera del rango del contrato.</p>`;
+      return;
+    }
+
+    cont.innerHTML = `
+      <div style="margin-bottom:10px;font-size:0.82rem;color:var(--ink-soft);">
+        Pagos proyectados en <strong>${MESES_NOMBRE[mes]} ${año}</strong> (si todos pagan):
+      </div>
+      ${filas.map(f => `
+        <div class="proy-fila">
+          <span class="pf-nom">${f.nombre}</span>
+          <span class="pf-cuotas">${f.cuotas} cuota${f.cuotas > 1 ? "s" : ""}</span>
+          <span class="pf-monto" style="color:var(--verde)">${formatPesos(f.monto)}</span>
+        </div>
+      `).join("")}
+      <div class="proy-fila">
+        <span class="pf-nom">Total del mes</span>
+        <span class="pf-cuotas">${filas.reduce((s,f)=>s+f.cuotas,0)} cuotas</span>
+        <span class="pf-monto" style="color:var(--ink);font-size:1.05rem;">${formatPesos(totalMes)}</span>
+      </div>
+    `;
+  }
+
+  calcularProyeccion();
+  selMes.addEventListener("change", calcularProyeccion);
+  inpAnio.addEventListener("input", calcularProyeccion);
+}
+
+// ---------------------------------------------------------------
+document.getElementById("fecha-hoy-legible").textContent = DATOS.hoy_legible;
+document.getElementById("generado-en").textContent = DATOS.generado_en;
+document.getElementById("generado-en-2").textContent = DATOS.generado_en;
+
+renderGlobal(DATOS.global);
+renderClientes(DATOS.clientes);
+renderTendencia(DATOS.tendencia);
+iniciarTabla();
+
+renderGerencia(DATOS.global, DATOS.clientes);
+renderDeudaTotal(DATOS.global, DATOS.clientes);
+renderPorCobrar(DATOS.clientes);
+
+// ── Simulador de crédito ──────────────────────────────────────────────────
+(function(){
+  function pmt(P, r, n){
+    if(n<=0) return 0;
+    if(r===0) return P/n;
+    return P * r * Math.pow(1+r,n) / (Math.pow(1+r,n)-1);
+  }
+
+  function recalcular(){
+    const P  = parseFloat(document.getElementById("cred-valor").value)||0;
+    const rM = parseFloat(document.getElementById("cred-tasa-mes").value)||0;
+    const n  = parseInt(document.getElementById("cred-meses").value)||0;
+    const cuota  = pmt(P, rM/100, n);
+    const total  = cuota * n;
+    const intTot = total - P;
+
+    const div = document.getElementById("cred-resultados");
+    if(P<=0||n<=0){
+      div.innerHTML = '<p style="color:var(--ink-soft);font-size:0.88rem;margin:0;">Ingresa el valor a financiar y el número de cuotas para ver el resultado.</p>';
+      return;
+    }
+
+    div.innerHTML = `
+      <div class="cred-card cred-card-main">
+        <div class="lab">Cuota mensual</div>
+        <div class="val">${formatPesos(Math.round(cuota))}</div>
+      </div>
+      <div class="cred-card">
+        <div class="lab">Total a recibir</div>
+        <div class="val">${formatPesos(Math.round(total))}</div>
+      </div>
+      <div class="cred-card">
+        <div class="lab">Capital financiado</div>
+        <div class="val">${formatPesos(Math.round(P))}</div>
+      </div>
+      <div class="cred-card">
+        <div class="lab">Total de intereses</div>
+        <div class="val" style="color:var(--ambar)">${formatPesos(Math.round(intTot))}</div>
+      </div>`;
+
+    let saldo = P, rows = "", sumInt = 0, sumCap = 0;
+    for(let i=1;i<=n;i++){
+      const intPer = saldo*(rM/100);
+      const capPer = cuota - intPer;
+      const sfin   = Math.max(0, saldo - capPer);
+      sumInt += intPer; sumCap += capPer;
+      rows += `<tr class="${i%2===0?'par':''}">
+        <td style="text-align:center">${i}</td>
+        <td>${formatPesos(Math.round(saldo))}</td>
+        <td style="color:var(--verde)">${formatPesos(Math.round(cuota))}</td>
+        <td style="color:var(--ambar)">${formatPesos(Math.round(intPer))}</td>
+        <td>${formatPesos(Math.round(capPer))}</td>
+        <td>${formatPesos(Math.round(sfin))}</td>
+      </tr>`;
+      saldo = sfin;
+    }
+    document.getElementById("tbody-amort").innerHTML = rows;
+    document.getElementById("tfoot-amort").innerHTML = `
+      <tr>
+        <td colspan="2"><strong>TOTAL</strong></td>
+        <td style="color:var(--verde)"><strong>${formatPesos(Math.round(total))}</strong></td>
+        <td style="color:var(--ambar)"><strong>${formatPesos(Math.round(sumInt))}</strong></td>
+        <td><strong>${formatPesos(Math.round(sumCap))}</strong></td>
+        <td></td>
+      </tr>`;
+  }
+
+  window.toggleAmort = function(){
+    const t = document.getElementById("cred-tabla");
+    const b = document.getElementById("cred-toggle");
+    const vis = t.style.display !== "none";
+    t.style.display = vis ? "none" : "block";
+    b.textContent   = vis ? "▼ Ver tabla de amortización" : "▲ Ocultar tabla";
+  };
+
+  document.getElementById("cred-tasa-mes").addEventListener("input", function(){
+    const m = parseFloat(this.value)||0;
+    document.getElementById("cred-tasa-anio").value = m>0 ? (m*12).toFixed(2) : "";
+    recalcular();
+  });
+  document.getElementById("cred-tasa-anio").addEventListener("input", function(){
+    const a = parseFloat(this.value)||0;
+    document.getElementById("cred-tasa-mes").value = a>0 ? (a/12).toFixed(4) : "";
+    recalcular();
+  });
+  document.getElementById("cred-valor").addEventListener("input", recalcular);
+  document.getElementById("cred-meses").addEventListener("input", recalcular);
+
+  const mInit = parseFloat(document.getElementById("cred-tasa-mes").value)||0;
+  if(mInit>0) document.getElementById("cred-tasa-anio").value = (mInit*12).toFixed(2);
+  recalcular();
+})();
+
+actualizarSimulador();
+document.getElementById("sim-objetivo").addEventListener("input", actualizarSimulador);
+document.getElementById("sim-ya-tienes").addEventListener("input", actualizarSimulador);
+
+actualizarProyeccion();
+document.getElementById("proy-precio-moto").addEventListener("input", actualizarProyeccion);
+document.getElementById("proy-ya-tienes").addEventListener("input", actualizarProyeccion);
+document.getElementById("proy-meta-motos").addEventListener("input", actualizarProyeccion);
+
+iniciarTabs();
+
+window.addEventListener("resize", ()=>{ renderTendencia(DATOS.tendencia); });
+</script>
+</body>
+</html>
