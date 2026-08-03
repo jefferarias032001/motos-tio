@@ -58,6 +58,8 @@ CLIENTES = [
     ("Sr Luis",                      "Bajaj UYZ 32H", "UYZ32H", datetime(2026, 1, 5), "Foto 41 | 14 pagos registrados | nota: calibrar moto", 64),
     ("Manuel Alga",                  "Bajaj UYZ 39H", "UYZ39H", datetime(2026, 2,12), "Foto 42 | 18 meses | 72 cuotas | 18 pagos registrados", 72),
     ("Jorge Estrada",                 "Bajaj BJH 66I", "BJH66I", datetime(2026, 2,16), "Foto 43 | 64 cuotas | 18 meses | 16 pagos | GAP en mayo-2026 sin registro", 64),
+    ("Donita Juan Camilo",           "Bajaj BJK 95I", "BJK95I", datetime(2026, 3, 5), "Foto 44 | 24 meses | 24 cuotas MENSUALES | tarifa 420.000/mes | total 10.080.000", 24),
+    ("Alejandra",                    "Bajaj OKS 30I", "OKS30I", datetime(2026, 4,11), "Foto 45 | 21 meses | 84 cuotas | 13 pagos registrados", 84),
 ]
 
 # Pagos de Dorlys (57 pagos registrados en fotos 1 y 2)
@@ -528,7 +530,22 @@ PAGOS_SR_LUIS = [
     datetime(2026, 4, 3), datetime(2026, 4,11), datetime(2026, 4,19),
 ]
 
-TARIFA_ERZIK = 384_000  # mensual (≠ 240.000 semanal de otros clientes)
+TARIFA_ERZIK  = 384_000  # mensual (≠ 240.000 semanal de otros clientes)
+TARIFA_DONITA = 420_000  # mensual (foto 44 — pago único mensual, 24 cuotas)
+
+# Pagos de Donita Juan Camilo (4 pagos — foto 44, 24 cuotas MENSUALES de 420.000)
+PAGOS_DONITA_JUAN_CAMILO = [
+    datetime(2026, 3, 5), datetime(2026, 4, 5), datetime(2026, 5, 5), datetime(2026, 6, 2),
+]
+
+# Pagos de Alejandra (13 pagos — foto 45, OKS 30I, 21 meses / 84 cuotas)
+PAGOS_ALEJANDRA = [
+    # Foto 45 — abr 2026 a jul 2026, pagos semanales aprox
+    datetime(2026, 4,11), datetime(2026, 4,23),
+    datetime(2026, 5, 2), datetime(2026, 5, 9), datetime(2026, 5,16), datetime(2026, 5,24),
+    datetime(2026, 6, 1), datetime(2026, 6, 9), datetime(2026, 6,16), datetime(2026, 6,24),
+    datetime(2026, 7, 1), datetime(2026, 7, 7), datetime(2026, 7,13),
+]
 
 # Pagos de Erzik (foto 36 — ver fotos 37-38 para pagos restantes hasta completar 36)
 PAGOS_ERZIK = [
@@ -631,6 +648,8 @@ agregar_pagos("Ana Milena Juan Davit",        "Bajaj UPY 65H", "UPY65H", PAGOS_A
 agregar_pagos("Sr Luis",                      "Bajaj UYZ 32H", "UYZ32H", PAGOS_SR_LUIS)
 agregar_pagos("Manuel Alga",                  "Bajaj UYZ 39H", "UYZ39H", PAGOS_MANUEL_ALGA)
 agregar_pagos("Jorge Estrada",                "Bajaj BJH 66I", "BJH66I", PAGOS_CARLOS_HABITE)
+agregar_pagos("Donita Juan Camilo",          "Bajaj BJK 95I", "BJK95I", PAGOS_DONITA_JUAN_CAMILO, tarifa=TARIFA_DONITA)
+agregar_pagos("Alejandra",                   "Bajaj OKS 30I", "OKS30I", PAGOS_ALEJANDRA)
 
 # Formato de fecha en columna A
 for row in ws_reg.iter_rows(min_row=2):
@@ -852,6 +871,12 @@ print(f"  Gustavo      : {len(PAGOS_GUSTAVO)} pagos  → ${len(PAGOS_GUSTAVO) * 
 print(f"  Erzik        : {len(PAGOS_ERZIK)} pagos  → ${len(PAGOS_ERZIK) * TARIFA_ERZIK:,} ({36 - len(PAGOS_ERZIK)} pendientes de 36 | tarifa 384k)".replace(",","."))
 print(f"  Efrain       : {len(PAGOS_EFRAIN)} pagos  → ${len(PAGOS_EFRAIN) * 240_000:,} ({84 - len(PAGOS_EFRAIN)} pend de 84 | subtotal real ≈47 cuotas)".replace(",","."))
 print(f"  Gonzado      : {len(PAGOS_GONZADO)} pagos  → ${len(PAGOS_GONZADO) * 240_000:,} ({84 - len(PAGOS_GONZADO)} pend de 84 | subtotal cuaderno 48 cuotas)".replace(",","."))
+print(f"  Ana Milena   : {len(PAGOS_ANA_MILENA)} pagos  → ${len(PAGOS_ANA_MILENA) * 240_000:,} ({64 - len(PAGOS_ANA_MILENA)} pend de 64)".replace(",","."))
+print(f"  Sr Luis      : {len(PAGOS_SR_LUIS)} pagos  → ${len(PAGOS_SR_LUIS) * 240_000:,} ({64 - len(PAGOS_SR_LUIS)} pend de 64)".replace(",","."))
+print(f"  Manuel Alga  : {len(PAGOS_MANUEL_ALGA)} pagos  → ${len(PAGOS_MANUEL_ALGA) * 240_000:,} ({72 - len(PAGOS_MANUEL_ALGA)} pend de 72)".replace(",","."))
+print(f"  Jorge Estrada: {len(PAGOS_CARLOS_HABITE)} pagos  → ${len(PAGOS_CARLOS_HABITE) * 240_000:,} ({64 - len(PAGOS_CARLOS_HABITE)} pend de 64 | GAP mayo)".replace(",","."))
+print(f"  Donita J.C.  : {len(PAGOS_DONITA_JUAN_CAMILO)} pagos  → ${len(PAGOS_DONITA_JUAN_CAMILO) * TARIFA_DONITA:,} ({24 - len(PAGOS_DONITA_JUAN_CAMILO)} pend de 24 | tarifa 420k/mes)".replace(",","."))
+print(f"  Alejandra    : {len(PAGOS_ALEJANDRA)} pagos  → ${len(PAGOS_ALEJANDRA) * 240_000:,} ({84 - len(PAGOS_ALEJANDRA)} pend de 84)".replace(",","."))
 print()
 print("NOTA: revisa las fechas en el Excel — algunas pueden tener ±1-2 días")
 print("      por la letra manuscrita. Edita directamente si algo no cuadra.")
