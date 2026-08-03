@@ -2534,6 +2534,41 @@ async function cargarCobroDiario(){
       return;
     }
 
+    // ── Mezclar registros del app en DATOS.detalle para que los tickers y la tabla los incluyan ──
+    const claveExistente = new Set(
+      (DATOS.detalle||[]).map(d=>`${d.fecha}|${(d.cliente||'').toLowerCase()}|${d.recibido}`)
+    );
+    const nuevas = filas
+      .map(r=>({
+        fecha:      r.fecha,
+        cliente:    r.cliente,
+        moto:       r.moto||'',
+        placa:      r.placa||'',
+        tarifa:     Number(r.pago_diario)||240000,
+        recibido:   Number(r.pago_recibido)||0,
+        medio_pago: r.medio_pago||'efectivo',
+      }))
+      .filter(r=>r.recibido>0 && !claveExistente.has(`${r.fecha}|${r.cliente.toLowerCase()}|${r.recibido}`));
+
+    if(nuevas.length){
+      DATOS.detalle = [...(DATOS.detalle||[]), ...nuevas].sort((a,b)=>a.fecha.localeCompare(b.fecha));
+      const sumNuevas = nuevas.reduce((s,r)=>s+r.recibido, 0);
+      if(DATOS.global) DATOS.global.recibido_historico = (DATOS.global.recibido_historico||0) + sumNuevas;
+      const tk0 = document.getElementById('tk-0');
+      if(tk0) animarNumero(tk0, DATOS.global.recibido_historico);
+      const fpD = document.getElementById('fp-desde');
+      const fpH = document.getElementById('fp-hasta');
+      const desde = fpD&&fpD.value ? new Date(fpD.value+'T00:00:00') : null;
+      const hasta = fpH&&fpH.value ? new Date(fpH.value+'T00:00:00') : null;
+      const lbl = (document.getElementById('tk-lbl-mes')||{}).textContent||'';
+      actualizarTickersPeriodo(desde, hasta, lbl);
+      if(window._buildTabla){
+        const y = desde ? desde.getFullYear() : new Date().getFullYear();
+        const m = desde ? desde.getMonth()+1  : new Date().getMonth()+1;
+        window._buildTabla(y, m);
+      }
+    }
+
     // Agrupar todos los pagos por cliente en orden cronológico
     const porCliente = {};
     filas.sort((a,b)=>a.fecha.localeCompare(b.fecha)).forEach(r=>{
