@@ -53,7 +53,7 @@ CLIENTES = [
     ("Brayan",                        "Bajaj OUA 19H", "OUA19H", datetime(2025, 7,17), "15360000 total | 64 cuotas | 43 pagos (21 pendientes)", 64),
     ("Gustavo Primo",                "Bajaj OON 66H", "OON66H", datetime(2025, 4, 3), "moto 19 | 17 meses | 16320000 total | 68 cuotas | 68 pagos (0 pendientes)", 68),
     ("Erik",                         "Bajaj OUN 39H", "OUN39H", datetime(2025, 8, 3), "moto 20 | 36 meses | 13968000 total | 36 cuotas | tarifa 384000/mes | ver fotos 37-38 para pagos adicionales", 36),
-    ("Efrain",                       "Bajaj OTZ 01H", "OTZ01H", datetime(2025, 9, 2), "Amigo de Guillo | 21 meses | 20160000 total | 84 cuotas | subtotal cuaderno ~11.280.000 (≈47 cuotas) | algunos pagos son multiples por fila", 84),
+    ("Efrain",                       "Bajaj OTZ 01H", "OTZ01H", datetime(2025, 9, 2), "Amigo de Guillo | 21 meses | 20160000 total | 84 cuotas | subtotal cuaderno ~11.280.000 (~47 cuotas) | algunos pagos son multiples por fila", 84),
     ("Katherine",                    "Bajaj OUB 81H", "OUB81H", datetime(2025, 9,23), "del Choco | Tel: 3205570847 | 21 meses | 20160000 total | 84 cuotas | subtotal cuaderno 11.520.000 (48 cuotas) | 41 registradas fotos 38+39", 84),
     ("Ana Milena-Juan David",        "Bajaj UPY 65H", "UPY65H", datetime(2026, 1,23), "Foto 40 | 25 pagos registrados | cuotas pendientes a confirmar", 64),
     ("Sr Luis",                      "Bajaj UYZ 32H", "UYZ32H", datetime(2026, 1, 5), "Foto 41 | 14 pagos registrados | nota: calibrar moto", 64),
@@ -182,7 +182,7 @@ PAGOS_LUIS_GABRIEL = [
 ]
 
 # Pagos de Osmed Brenda (54 pagos — fotos 16 y 17, OSZ46H, 64 cuotas)
-# Último pago: 30/06/2026 — 21 días sin pagar al 28/07/2026 → atraso_alto
+# Último pago: 30/06/2026 — 21 días sin pagar al 28/07/2026 -> atraso_alto
 PAGOS_OSMED = [
     # Foto 16 (1-30) — may 2025 a dic 2025
     datetime(2025, 5,15), datetime(2025, 5,22), datetime(2025, 5,29),
@@ -481,7 +481,7 @@ PAGOS_GUSTAVO = [
     datetime(2026, 7, 2), datetime(2026, 7, 9), datetime(2026, 7,16),
 ]
 
-# Pagos de Efrain (foto 37 — 22 fechas; subtotal cuaderno ≈11.280.000 = 47 cuotas reales)
+# Pagos de Efrain (foto 37 — 22 fechas; subtotal cuaderno ~11.280.000 = 47 cuotas reales)
 # Varios renglones tienen pagos múltiples (480k/600k = 2-3 cuotas). Fecha registrada = 1 entrada.
 PAGOS_EFRAIN = [
     # Foto 37 — sep 2025 a jul 2026
@@ -888,7 +888,7 @@ for _n in range(1, 85):
 _nota_row = 102
 ws_sim.merge_cells(f"A{_nota_row}:F{_nota_row}")
 c = ws_sim[f"A{_nota_row}"]
-c.value = "  Celdas amarillas → entrada manual  |  Celdas verdes → calculadas automáticamente"
+c.value = "  Celdas amarillas -> entrada manual  |  Celdas verdes -> calculadas automáticamente"
 c.font  = Font(italic=True, size=9, color="555555")
 c.alignment = Alignment(horizontal="left", vertical="center")
 
@@ -903,40 +903,156 @@ ws_sim.column_dimensions["F"].width = 18
 # Congelar filas superiores para navegar la tabla sin perder los datos
 ws_sim.freeze_panes = "A17"
 
+# ─────────────────────────────────────────────────────────────────────────────
+# CALCULADORA INVERSA — ¿Qué interés le estoy cobrando al cliente?
+# ─────────────────────────────────────────────────────────────────────────────
+
+ws_sim.row_dimensions[104].height = 16  # spacer
+
+ws_sim.merge_cells("A105:F105")
+ws_sim.row_dimensions[105].height = 34
+c = ws_sim["A105"]
+c.value = "  CALCULADORA INVERSA  —  ¿Qué interés le estoy cobrando al cliente?"
+c.font  = Font(bold=True, size=14, color="F4EFE2")
+c.fill  = PatternFill("solid", fgColor="7B3F00")
+c.alignment = Alignment(horizontal="left", vertical="center")
+
+ws_sim.row_dimensions[106].height = 8  # spacer
+
+# ── Modo A: entras el TOTAL a cobrar ────────────────────────────────────────
+ws_sim.merge_cells("A107:F107")
+ws_sim.row_dimensions[107].height = 22
+c = ws_sim["A107"]
+c.value = "  Modo A · Conozco el TOTAL que quiero cobrar"
+c.font  = Font(bold=True, size=11, color="F4EFE2")
+c.fill  = PatternFill("solid", fgColor="3B3028")
+c.alignment = Alignment(horizontal="left", vertical="center")
+
+for _row, _label, _hint, _fmt in [
+    (108, "Valor de la moto  (lo que presté)",  "← capital prestado al cliente",   "#,##0"),
+    (109, "Total que quiero cobrar  ($)",        "← suma total que quieres recibir", "#,##0"),
+    (110, "Número de meses",                     "← duración del crédito",           "0"),
+]:
+    ws_sim.row_dimensions[_row].height = 24
+    c = ws_sim[f"A{_row}"]
+    c.value = _label; c.font = Font(bold=True, size=10)
+    c.fill = PatternFill("solid", fgColor="EAE7E4"); c.border = _brd
+    c.alignment = Alignment(horizontal="left", vertical="center")
+    b = ws_sim[f"B{_row}"]
+    b.value = 0; b.fill = PatternFill("solid", fgColor="FFF3CD")
+    b.font = Font(bold=True, size=11); b.border = _brd
+    b.number_format = _fmt
+    b.alignment = Alignment(horizontal="center", vertical="center")
+    h = ws_sim[f"C{_row}"]
+    h.value = _hint; h.font = Font(italic=True, size=9, color="888888")
+    h.alignment = Alignment(horizontal="left", vertical="center")
+
+ws_sim.row_dimensions[111].height = 8  # spacer
+
+for _row, _label, _formula, _fmt, _color in [
+    (112, "Cuota mensual",        "=IFERROR(B109/B110,0)",            "#,##0",    "1B4332"),
+    (113, "Interés mensual  (%)", "=IFERROR(RATE(B110,-B112,B108)*100,0)", "0.00 \"%\"", "7B3F00"),
+    (114, "Interés anual  (%)",   "=IFERROR(B113*12,0)",              "0.00 \"%\"", "7B3F00"),
+]:
+    ws_sim.row_dimensions[_row].height = 26
+    c = ws_sim[f"A{_row}"]
+    c.value = _label; c.font = Font(bold=True, size=11)
+    c.fill = PatternFill("solid", fgColor="EAE7E4"); c.border = _brd
+    c.alignment = Alignment(horizontal="left", vertical="center")
+    b = ws_sim[f"B{_row}"]
+    b.value = _formula; b.fill = PatternFill("solid", fgColor="D4EDDA")
+    b.border = _brd; b.number_format = _fmt
+    b.font = Font(bold=True, size=12, color=_color)
+    b.alignment = Alignment(horizontal="center", vertical="center")
+
+ws_sim.row_dimensions[115].height = 14  # spacer
+
+# ── Modo B: entras la CUOTA mensual ─────────────────────────────────────────
+ws_sim.merge_cells("A116:F116")
+ws_sim.row_dimensions[116].height = 22
+c = ws_sim["A116"]
+c.value = "  Modo B · Conozco la CUOTA mensual que le voy a cobrar"
+c.font  = Font(bold=True, size=11, color="F4EFE2")
+c.fill  = PatternFill("solid", fgColor="3B3028")
+c.alignment = Alignment(horizontal="left", vertical="center")
+
+for _row, _label, _hint, _fmt in [
+    (117, "Valor de la moto  (lo que presté)", "← capital prestado al cliente",   "#,##0"),
+    (118, "Cuota mensual  ($)",                "← cuánto va a pagar cada mes",     "#,##0"),
+    (119, "Número de meses",                   "← duración del crédito",           "0"),
+]:
+    ws_sim.row_dimensions[_row].height = 24
+    c = ws_sim[f"A{_row}"]
+    c.value = _label; c.font = Font(bold=True, size=10)
+    c.fill = PatternFill("solid", fgColor="EAE7E4"); c.border = _brd
+    c.alignment = Alignment(horizontal="left", vertical="center")
+    b = ws_sim[f"B{_row}"]
+    b.value = 0; b.fill = PatternFill("solid", fgColor="FFF3CD")
+    b.font = Font(bold=True, size=11); b.border = _brd
+    b.number_format = _fmt
+    b.alignment = Alignment(horizontal="center", vertical="center")
+    h = ws_sim[f"C{_row}"]
+    h.value = _hint; h.font = Font(italic=True, size=9, color="888888")
+    h.alignment = Alignment(horizontal="left", vertical="center")
+
+ws_sim.row_dimensions[120].height = 8  # spacer
+
+for _row, _label, _formula, _fmt, _color in [
+    (121, "Total a cobrar  ($)",  "=IFERROR(B118*B119,0)",             "#,##0",    "1B4332"),
+    (122, "Interés mensual  (%)", "=IFERROR(RATE(B119,-B118,B117)*100,0)", "0.00 \"%\"", "7B3F00"),
+    (123, "Interés anual  (%)",   "=IFERROR(B122*12,0)",               "0.00 \"%\"", "7B3F00"),
+]:
+    ws_sim.row_dimensions[_row].height = 26
+    c = ws_sim[f"A{_row}"]
+    c.value = _label; c.font = Font(bold=True, size=11)
+    c.fill = PatternFill("solid", fgColor="EAE7E4"); c.border = _brd
+    c.alignment = Alignment(horizontal="left", vertical="center")
+    b = ws_sim[f"B{_row}"]
+    b.value = _formula; b.fill = PatternFill("solid", fgColor="D4EDDA")
+    b.border = _brd; b.number_format = _fmt
+    b.font = Font(bold=True, size=12, color=_color)
+    b.alignment = Alignment(horizontal="center", vertical="center")
+
+ws_sim.merge_cells("A125:F125")
+c = ws_sim["A125"]
+c.value = "  Celdas amarillas -> entrada manual  |  Celdas verdes -> calculadas  |  Interés usa fórmula compuesta (RATE de Excel)"
+c.font  = Font(italic=True, size=9, color="555555")
+c.alignment = Alignment(horizontal="left", vertical="center")
+
 wb.save(SALIDA)
 print(f"Excel creado en: {SALIDA}")
-print(f"  Dorlys       : {len(PAGOS_DORLYS)} pagos  → ${len(PAGOS_DORLYS) * 240_000:,}".replace(",","."))
-print(f"  Elkin        : {len(PAGOS_ELKIN)} pagos  → ${len(PAGOS_ELKIN) * 240_000:,}".replace(",","."))
-print(f"  Juan Andres  : {len(PAGOS_JUAN_ANDRES)} pagos  → ${len(PAGOS_JUAN_ANDRES) * 240_000:,} (1 pendiente)".replace(",","."))
-print(f"  Jorge Luis   : {len(PAGOS_JORGE_LUIS)} pagos  → ${len(PAGOS_JORGE_LUIS) * 240_000:,} (FINALIZADO)".replace(",","."))
-print(f"  Engelo Junior: {len(PAGOS_LUIS_GABRIEL)} pagos  → ${len(PAGOS_LUIS_GABRIEL) * 240_000:,} ({72 - len(PAGOS_LUIS_GABRIEL)} pendientes de 72)".replace(",","."))
-print(f"  Duvon        : {len(PAGOS_DUVON)} pagos  → ${len(PAGOS_DUVON) * 240_000:,} (1 pendiente de 64)".replace(",","."))
-print(f"  Wilmer       : {len(PAGOS_WILMER)} pagos  → ${len(PAGOS_WILMER) * 240_000:,} (5 pendientes de 64)".replace(",","."))
-print(f"  Jesus/Yuliana: {len(PAGOS_JESUS)} pagos  → ${len(PAGOS_JESUS) * 240_000:,} (20 pendientes de 72)".replace(",","."))
-print(f"  Osmed        : {len(PAGOS_OSMED)} pagos  → ${len(PAGOS_OSMED) * 240_000:,} (10 pendientes de 64)".replace(",","."))
-print(f"  Chacal       : {len(PAGOS_CHACAL)} pagos  → ${len(PAGOS_CHACAL) * 240_000:,} (22 pendientes de 72)".replace(",","."))
-print(f"  Wilian Jr    : {len(PAGOS_WILIAN_JR)} pagos  → ${len(PAGOS_WILIAN_JR) * 240_000:,} (26 pendientes de 60)".replace(",","."))
-print(f"  Darwin       : {len(PAGOS_DARWIN)} pagos  → ${len(PAGOS_DARWIN) * 240_000:,} (10 pendientes de 64)".replace(",","."))
-print(f"  Kevin        : {len(PAGOS_KEVIN)} pagos  → ${len(PAGOS_KEVIN) * 240_000:,} (55 pendientes de 84)".replace(",","."))
-print(f"  Negro Maria  : {len(PAGOS_NABRO)} pagos  → ${len(PAGOS_NABRO) * 240_000:,} (13 pendientes de 64)".replace(",","."))
-print(f"  Sr Pedro     : {len(PAGOS_LUIS_KATHERIN)} pagos  → ${len(PAGOS_LUIS_KATHERIN) * 240_000:,} ({69 - len(PAGOS_LUIS_KATHERIN)} pendientes de 69)".replace(",","."))
-print(f"  Lucho        : {len(PAGOS_LUCHO)} pagos  → ${len(PAGOS_LUCHO) * 240_000:,} (13 pendientes de 64)".replace(",","."))
-print(f"  Roberto      : {len(PAGOS_ROBERTO)} pagos  → ${len(PAGOS_ROBERTO) * 240_000:,} ({64 - len(PAGOS_ROBERTO)} pendientes de 64)".replace(",","."))
-print(f"  Braillon     : {len(PAGOS_BRAILLON)} pagos  → ${len(PAGOS_BRAILLON) * 240_000:,} ({64 - len(PAGOS_BRAILLON)} pendientes de 64)".replace(",","."))
-print(f"  Gustavo      : {len(PAGOS_GUSTAVO)} pagos  → ${len(PAGOS_GUSTAVO) * 240_000:,} ({68 - len(PAGOS_GUSTAVO)} pendientes de 68)".replace(",","."))
-print(f"  Erzik        : {len(PAGOS_ERZIK)} pagos  → ${len(PAGOS_ERZIK) * TARIFA_ERZIK:,} ({36 - len(PAGOS_ERZIK)} pendientes de 36 | tarifa 384k)".replace(",","."))
-print(f"  Efrain       : {len(PAGOS_EFRAIN)} pagos  → ${len(PAGOS_EFRAIN) * 240_000:,} ({84 - len(PAGOS_EFRAIN)} pend de 84 | subtotal real ≈47 cuotas)".replace(",","."))
-print(f"  Gonzado      : {len(PAGOS_GONZADO)} pagos  → ${len(PAGOS_GONZADO) * 240_000:,} ({84 - len(PAGOS_GONZADO)} pend de 84 | subtotal cuaderno 48 cuotas)".replace(",","."))
-print(f"  Ana Milena   : {len(PAGOS_ANA_MILENA)} pagos  → ${len(PAGOS_ANA_MILENA) * 240_000:,} ({64 - len(PAGOS_ANA_MILENA)} pend de 64)".replace(",","."))
-print(f"  Sr Luis      : {len(PAGOS_SR_LUIS)} pagos  → ${len(PAGOS_SR_LUIS) * 240_000:,} ({64 - len(PAGOS_SR_LUIS)} pend de 64)".replace(",","."))
-print(f"  Manuel Alga  : {len(PAGOS_MANUEL_ALGA)} pagos  → ${len(PAGOS_MANUEL_ALGA) * 240_000:,} ({72 - len(PAGOS_MANUEL_ALGA)} pend de 72)".replace(",","."))
-print(f"  Jorge Estrada: {len(PAGOS_CARLOS_HABITE)} pagos  → ${len(PAGOS_CARLOS_HABITE) * 240_000:,} ({64 - len(PAGOS_CARLOS_HABITE)} pend de 64 | GAP mayo)".replace(",","."))
-print(f"  Donita J.C.  : {len(PAGOS_DONITA_JUAN_CAMILO)} pagos  → ${len(PAGOS_DONITA_JUAN_CAMILO) * TARIFA_DONITA:,} ({24 - len(PAGOS_DONITA_JUAN_CAMILO)} pend de 24 | tarifa 420k/mes)".replace(",","."))
-print(f"  Alejandra    : {len(PAGOS_ALEJANDRA)} pagos  → ${len(PAGOS_ALEJANDRA) * 240_000:,} ({84 - len(PAGOS_ALEJANDRA)} pend de 84)".replace(",","."))
-print(f"  Carlos       : {len(PAGOS_CARLOS)} pagos  → ${len(PAGOS_CARLOS) * 240_000:,} ({72 - len(PAGOS_CARLOS)} pend de 72)".replace(",","."))
-print(f"  Francisco    : {len(PAGOS_FRANCISCO)} pagos  → ${len(PAGOS_FRANCISCO) * TARIFA_FRANCISCO:,} ({48 - len(PAGOS_FRANCISCO)} pend de 48 | tarifa 190k bisemanal)".replace(",","."))
-print(f"  Yesenia      : {len(PAGOS_YESENIA)} pagos  → ${len(PAGOS_YESENIA) * 240_000:,} ({72 - len(PAGOS_YESENIA)} pend de 72)".replace(",","."))
-print(f"  Alvania      : {len(PAGOS_ALVANIA)} pagos  → ${len(PAGOS_ALVANIA) * 240_000:,} ({72 - len(PAGOS_ALVANIA)} pend de 72)".replace(",","."))
+print(f"  Dorlys       : {len(PAGOS_DORLYS)} pagos  -> ${len(PAGOS_DORLYS) * 240_000:,}".replace(",","."))
+print(f"  Elkin        : {len(PAGOS_ELKIN)} pagos  -> ${len(PAGOS_ELKIN) * 240_000:,}".replace(",","."))
+print(f"  Juan Andres  : {len(PAGOS_JUAN_ANDRES)} pagos  -> ${len(PAGOS_JUAN_ANDRES) * 240_000:,} (1 pendiente)".replace(",","."))
+print(f"  Jorge Luis   : {len(PAGOS_JORGE_LUIS)} pagos  -> ${len(PAGOS_JORGE_LUIS) * 240_000:,} (FINALIZADO)".replace(",","."))
+print(f"  Engelo Junior: {len(PAGOS_LUIS_GABRIEL)} pagos  -> ${len(PAGOS_LUIS_GABRIEL) * 240_000:,} ({72 - len(PAGOS_LUIS_GABRIEL)} pendientes de 72)".replace(",","."))
+print(f"  Duvon        : {len(PAGOS_DUVON)} pagos  -> ${len(PAGOS_DUVON) * 240_000:,} (1 pendiente de 64)".replace(",","."))
+print(f"  Wilmer       : {len(PAGOS_WILMER)} pagos  -> ${len(PAGOS_WILMER) * 240_000:,} (5 pendientes de 64)".replace(",","."))
+print(f"  Jesus/Yuliana: {len(PAGOS_JESUS)} pagos  -> ${len(PAGOS_JESUS) * 240_000:,} (20 pendientes de 72)".replace(",","."))
+print(f"  Osmed        : {len(PAGOS_OSMED)} pagos  -> ${len(PAGOS_OSMED) * 240_000:,} (10 pendientes de 64)".replace(",","."))
+print(f"  Chacal       : {len(PAGOS_CHACAL)} pagos  -> ${len(PAGOS_CHACAL) * 240_000:,} (22 pendientes de 72)".replace(",","."))
+print(f"  Wilian Jr    : {len(PAGOS_WILIAN_JR)} pagos  -> ${len(PAGOS_WILIAN_JR) * 240_000:,} (26 pendientes de 60)".replace(",","."))
+print(f"  Darwin       : {len(PAGOS_DARWIN)} pagos  -> ${len(PAGOS_DARWIN) * 240_000:,} (10 pendientes de 64)".replace(",","."))
+print(f"  Kevin        : {len(PAGOS_KEVIN)} pagos  -> ${len(PAGOS_KEVIN) * 240_000:,} (55 pendientes de 84)".replace(",","."))
+print(f"  Negro Maria  : {len(PAGOS_NABRO)} pagos  -> ${len(PAGOS_NABRO) * 240_000:,} (13 pendientes de 64)".replace(",","."))
+print(f"  Sr Pedro     : {len(PAGOS_LUIS_KATHERIN)} pagos  -> ${len(PAGOS_LUIS_KATHERIN) * 240_000:,} ({69 - len(PAGOS_LUIS_KATHERIN)} pendientes de 69)".replace(",","."))
+print(f"  Lucho        : {len(PAGOS_LUCHO)} pagos  -> ${len(PAGOS_LUCHO) * 240_000:,} (13 pendientes de 64)".replace(",","."))
+print(f"  Roberto      : {len(PAGOS_ROBERTO)} pagos  -> ${len(PAGOS_ROBERTO) * 240_000:,} ({64 - len(PAGOS_ROBERTO)} pendientes de 64)".replace(",","."))
+print(f"  Braillon     : {len(PAGOS_BRAILLON)} pagos  -> ${len(PAGOS_BRAILLON) * 240_000:,} ({64 - len(PAGOS_BRAILLON)} pendientes de 64)".replace(",","."))
+print(f"  Gustavo      : {len(PAGOS_GUSTAVO)} pagos  -> ${len(PAGOS_GUSTAVO) * 240_000:,} ({68 - len(PAGOS_GUSTAVO)} pendientes de 68)".replace(",","."))
+print(f"  Erzik        : {len(PAGOS_ERZIK)} pagos  -> ${len(PAGOS_ERZIK) * TARIFA_ERZIK:,} ({36 - len(PAGOS_ERZIK)} pendientes de 36 | tarifa 384k)".replace(",","."))
+print(f"  Efrain       : {len(PAGOS_EFRAIN)} pagos  -> ${len(PAGOS_EFRAIN) * 240_000:,} ({84 - len(PAGOS_EFRAIN)} pend de 84 | subtotal real ~47 cuotas)".replace(",","."))
+print(f"  Gonzado      : {len(PAGOS_GONZADO)} pagos  -> ${len(PAGOS_GONZADO) * 240_000:,} ({84 - len(PAGOS_GONZADO)} pend de 84 | subtotal cuaderno 48 cuotas)".replace(",","."))
+print(f"  Ana Milena   : {len(PAGOS_ANA_MILENA)} pagos  -> ${len(PAGOS_ANA_MILENA) * 240_000:,} ({64 - len(PAGOS_ANA_MILENA)} pend de 64)".replace(",","."))
+print(f"  Sr Luis      : {len(PAGOS_SR_LUIS)} pagos  -> ${len(PAGOS_SR_LUIS) * 240_000:,} ({64 - len(PAGOS_SR_LUIS)} pend de 64)".replace(",","."))
+print(f"  Manuel Alga  : {len(PAGOS_MANUEL_ALGA)} pagos  -> ${len(PAGOS_MANUEL_ALGA) * 240_000:,} ({72 - len(PAGOS_MANUEL_ALGA)} pend de 72)".replace(",","."))
+print(f"  Jorge Estrada: {len(PAGOS_CARLOS_HABITE)} pagos  -> ${len(PAGOS_CARLOS_HABITE) * 240_000:,} ({64 - len(PAGOS_CARLOS_HABITE)} pend de 64 | GAP mayo)".replace(",","."))
+print(f"  Donita J.C.  : {len(PAGOS_DONITA_JUAN_CAMILO)} pagos  -> ${len(PAGOS_DONITA_JUAN_CAMILO) * TARIFA_DONITA:,} ({24 - len(PAGOS_DONITA_JUAN_CAMILO)} pend de 24 | tarifa 420k/mes)".replace(",","."))
+print(f"  Alejandra    : {len(PAGOS_ALEJANDRA)} pagos  -> ${len(PAGOS_ALEJANDRA) * 240_000:,} ({84 - len(PAGOS_ALEJANDRA)} pend de 84)".replace(",","."))
+print(f"  Carlos       : {len(PAGOS_CARLOS)} pagos  -> ${len(PAGOS_CARLOS) * 240_000:,} ({72 - len(PAGOS_CARLOS)} pend de 72)".replace(",","."))
+print(f"  Francisco    : {len(PAGOS_FRANCISCO)} pagos  -> ${len(PAGOS_FRANCISCO) * TARIFA_FRANCISCO:,} ({48 - len(PAGOS_FRANCISCO)} pend de 48 | tarifa 190k bisemanal)".replace(",","."))
+print(f"  Yesenia      : {len(PAGOS_YESENIA)} pagos  -> ${len(PAGOS_YESENIA) * 240_000:,} ({72 - len(PAGOS_YESENIA)} pend de 72)".replace(",","."))
+print(f"  Alvania      : {len(PAGOS_ALVANIA)} pagos  -> ${len(PAGOS_ALVANIA) * 240_000:,} ({72 - len(PAGOS_ALVANIA)} pend de 72)".replace(",","."))
 print()
 print("NOTA: revisa las fechas en el Excel — algunas pueden tener ±1-2 días")
 print("      por la letra manuscrita. Edita directamente si algo no cuadra.")

@@ -502,6 +502,22 @@
   @media(max-width:900px){.cred-resultados{grid-template-columns:1fr 1fr;}.cred-card-main{grid-column:span 2;}}
   @media(max-width:640px){.cred-campo input[type=number]{width:100%;}.cred-resultados{grid-template-columns:1fr;}.cred-card-main{grid-column:span 1;}}
 
+  /* --- Calculadora Inversa --- */
+  .inv-header{margin:28px 0 6px;font-size:1rem;font-weight:700;letter-spacing:0.06em;color:var(--ink);}
+  .inv-sub{margin:0 0 18px;font-size:0.82rem;color:var(--ink-soft);line-height:1.5;}
+  .inv-tabs{display:flex;border-radius:10px;overflow:hidden;border:1px solid var(--borde);margin-bottom:22px;}
+  .inv-tab{flex:1;padding:10px 16px;cursor:pointer;font-size:0.75rem;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;background:var(--card-soft);color:var(--ink-soft);border:none;transition:all .2s;}
+  .inv-tab.activo{background:var(--plate);color:#1A1714;}
+  .inv-panel{display:none;}
+  .inv-panel.activo{display:block;}
+  .inv-resultado{margin-top:18px;display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;}
+  .inv-card{background:var(--card-soft);border-radius:10px;padding:14px 18px;border:1px solid var(--borde);}
+  .inv-card.destacada{background:var(--asphalt);border-color:rgba(232,169,58,0.35);}
+  .inv-card .lab{font-size:0.67rem;text-transform:uppercase;letter-spacing:0.07em;color:var(--ink-soft);font-weight:600;margin-bottom:6px;}
+  .inv-card .val{font-family:var(--font-mono);font-size:1.35rem;font-weight:700;color:var(--ink);}
+  .inv-card.destacada .val{color:var(--plate);font-size:1.6rem;}
+  @media(max-width:640px){.inv-resultado{grid-template-columns:1fr 1fr;}.inv-card.destacada:last-child{grid-column:span 2;}}
+
   footer{
     margin-top:40px;padding:22px 0 34px;border-top:1px solid var(--borde);
     color:var(--ink-soft);font-size:0.78rem;
@@ -621,6 +637,44 @@
     font-family:var(--font-mono); font-size:0.82rem;
   }
   .tm-total-fila td:first-child { color:#F4EFE2; }
+
+  /* ── COBRO DIARIO ───────────────────────────────────────────────── */
+  .cobro-controles{display:flex;align-items:center;gap:16px;margin:0 0 20px;}
+  .cobro-ultima-actualizacion{font-size:0.8rem;color:var(--ink-soft);}
+  .cobro-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px;margin-bottom:32px;}
+  .cobro-card{background:var(--card);border:2px solid var(--borde);border-radius:var(--radio);padding:18px 18px 14px;position:relative;box-shadow:var(--sombra);}
+  .cobro-card.completo{border-color:var(--verde);background:var(--verde-bg);}
+  .cobro-badge{display:inline-block;background:var(--verde);color:#fff;font-size:0.72rem;font-weight:700;letter-spacing:0.05em;padding:3px 10px;border-radius:20px;margin-bottom:8px;}
+  .cobro-nombre{font-family:var(--font-display);font-size:1.4rem;letter-spacing:0.03em;line-height:1;margin-bottom:3px;}
+  .cobro-moto{font-size:0.8rem;color:var(--ink-soft);margin-bottom:12px;}
+  .cobro-barra-fondo{height:10px;background:var(--borde);border-radius:6px;overflow:hidden;margin-bottom:8px;}
+  .cobro-barra{height:100%;border-radius:6px;transition:width .4s ease;}
+  .cobro-montos{display:flex;align-items:baseline;gap:6px;margin-bottom:8px;}
+  .cobro-acumulado{font-size:1.3rem;font-weight:700;color:var(--ink);}
+  .cobro-meta{font-size:0.85rem;color:var(--ink-soft);}
+  .cobro-pct{margin-left:auto;font-family:var(--font-mono);font-size:0.9rem;font-weight:600;color:var(--ink-soft);}
+  .cobro-dias{display:flex;flex-wrap:wrap;gap:5px;margin-top:8px;border-top:1px dashed var(--borde);padding-top:8px;}
+  .cobro-dia{font-size:0.75rem;background:var(--card-soft);border:1px solid var(--borde);border-radius:6px;padding:2px 8px;color:var(--ink-soft);}
+  .cobro-cuotas-app{font-size:0.8rem;color:var(--verde);font-weight:600;margin-bottom:4px;display:flex;align-items:center;gap:6px;}
+  .cobro-badge-n{background:var(--verde);color:#fff;font-size:0.72rem;font-weight:700;padding:2px 8px;border-radius:20px;}
+  .cobro-ultima-cuota{font-size:0.78rem;color:var(--ink-soft);margin-bottom:10px;}
+  .cobro-ciclo-titulo{font-size:0.7rem;text-transform:uppercase;letter-spacing:0.07em;color:var(--ink-soft);font-weight:600;margin:10px 0 6px;}
+  .cobro-sin-cobro h3{font-size:0.75rem;text-transform:uppercase;letter-spacing:0.07em;color:var(--ink-soft);margin:0 0 12px;font-weight:600;}
+  .cobro-sin-cobro-grid{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:24px;}
+  .cobro-chip-pendiente{font-size:0.8rem;padding:4px 12px;background:var(--card);border:1px solid var(--borde);border-radius:20px;color:var(--ink-soft);}
+
+  /* Cobro en curso – bloque dentro de cada tarjeta en Operativo */
+  .cobro-op-wrap{margin-top:12px;padding-top:10px;border-top:1px dashed var(--borde);}
+  .cobro-op-titulo{font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--ink-soft);margin-bottom:7px;}
+  .cobro-op-barra-fondo{background:var(--gris-bg);border-radius:4px;height:7px;overflow:hidden;margin-bottom:5px;}
+  .cobro-op-barra-fill{height:100%;border-radius:4px;transition:width .4s;background:var(--ambar);}
+  .cobro-op-barra-fill.alto{background:var(--verde);}
+  .cobro-op-montos{font-size:.82rem;color:var(--ink);margin-bottom:5px;}
+  .cobro-op-de{color:var(--ink-soft);}
+  .cobro-op-dias{display:flex;flex-wrap:wrap;gap:4px;}
+  .cobro-op-dia{font-size:.71rem;background:var(--gris-bg);border-radius:4px;padding:2px 6px;color:var(--ink-soft);}
+  .cobro-op-nulo{font-size:.75rem;color:var(--ink-soft);margin-top:10px;padding-top:10px;border-top:1px dashed var(--borde);font-style:italic;}
+  .cobro-op-completo{font-size:.8rem;color:var(--verde);margin-top:5px;}
 </style>
 </head>
 <body>
@@ -704,6 +758,7 @@
 
   <div class="tabs-nav">
     <button type="button" class="tab-btn activo" data-vista="operativo">Operativo</button>
+    <button type="button" class="tab-btn" data-vista="cobro">Cobro Diario</button>
     <button type="button" class="tab-btn" data-vista="gerencia">Gerencia</button>
     <button type="button" class="tab-btn tab-btn-credito" data-vista="simulador">⚡ Créditos</button>
   </div>
@@ -786,6 +841,20 @@
     </div>
   </section>
 
+  </div>
+
+  <div id="vista-cobro" class="vista">
+  <section id="seccion-cobro-diario">
+    <h2 class="titulo-seccion">Cobro diario · Semana en curso</h2>
+    <div class="tickers" id="tickers-cobro"></div>
+    <div class="cobro-controles">
+      <button type="button" class="btn-filtro-rapido" id="btn-cobro-refrescar">↻ Actualizar</button>
+      <span class="cobro-ultima-actualizacion" id="cobro-ultima-act"></span>
+    </div>
+    <div id="cobro-estado-carga" style="padding:24px 0;color:var(--ink-soft)">Cargando datos del cobrador…</div>
+    <div class="cobro-grid" id="cobro-diario-grid"></div>
+    <div class="cobro-sin-cobro" id="cobro-sin-cobro"></div>
+  </section>
   </div>
 
   <div id="vista-gerencia" class="vista">
@@ -967,6 +1036,55 @@
       </div>
     </div>
 
+    <!-- ── Calculadora Inversa ── -->
+    <div class="panel simulador" style="margin-top:22px;">
+      <p class="inv-header">¿QUÉ INTERÉS LE ESTOY COBRANDO?</p>
+      <p class="inv-sub">Entra los datos del crédito y descubre el interés real que le estás cobrando al cliente.</p>
+
+      <div class="inv-tabs">
+        <button class="inv-tab activo" id="inv-btn-a" onclick="invTab('a')">Modo A · Conozco el total a cobrar</button>
+        <button class="inv-tab"        id="inv-btn-b" onclick="invTab('b')">Modo B · Conozco la cuota mensual</button>
+      </div>
+
+      <!-- Modo A: total a cobrar -->
+      <div class="inv-panel activo" id="inv-panel-a">
+        <div class="cred-inputs">
+          <div class="cred-campo">
+            <label for="inv-a-capital">Valor de la moto (lo que presté)</label>
+            <input type="number" id="inv-a-capital" placeholder="Ej: 5000000" min="0" step="100000" oninput="calcInverso('a')">
+          </div>
+          <div class="cred-campo">
+            <label for="inv-a-total">Total que quiero cobrar</label>
+            <input type="number" id="inv-a-total" placeholder="Ej: 8640000" min="0" step="100000" oninput="calcInverso('a')">
+          </div>
+          <div class="cred-campo">
+            <label for="inv-a-meses">Número de meses</label>
+            <input type="number" id="inv-a-meses" placeholder="Ej: 18" min="1" max="120" step="1" oninput="calcInverso('a')">
+          </div>
+        </div>
+        <div class="inv-resultado" id="inv-a-res" style="display:none;"></div>
+      </div>
+
+      <!-- Modo B: cuota mensual -->
+      <div class="inv-panel" id="inv-panel-b">
+        <div class="cred-inputs">
+          <div class="cred-campo">
+            <label for="inv-b-capital">Valor de la moto (lo que presté)</label>
+            <input type="number" id="inv-b-capital" placeholder="Ej: 5000000" min="0" step="100000" oninput="calcInverso('b')">
+          </div>
+          <div class="cred-campo">
+            <label for="inv-b-cuota">Cuota mensual</label>
+            <input type="number" id="inv-b-cuota" placeholder="Ej: 480000" min="0" step="10000" oninput="calcInverso('b')">
+          </div>
+          <div class="cred-campo">
+            <label for="inv-b-meses">Número de meses</label>
+            <input type="number" id="inv-b-meses" placeholder="Ej: 18" min="1" max="120" step="1" oninput="calcInverso('b')">
+          </div>
+        </div>
+        <div class="inv-resultado" id="inv-b-res" style="display:none;"></div>
+      </div>
+    </div>
+
   </section>
   </div>
 
@@ -981,6 +1099,7 @@
 
 <script>
 const DATOS = __DATOS_JSON_AQUI__;
+let COBRO_POR_CLIENTE = {};
 
 function formatPesos(n){
   n = Math.round(n || 0);
@@ -1251,6 +1370,18 @@ function renderTablaMobil(clientes){
         <td class="tm-num ${espCls}">${formatPesos(espMes)}</td>
         <td class="tm-num">${formatPesos(histTot)}</td>
         <td class="tm-num ${pendCls}">${formatPesos(pendiente)}</td>
+        ${(()=>{
+          const ci = COBRO_POR_CLIENTE[c.nombre.toLowerCase()];
+          if(!ci) return `<td class="tm-num soft" style="font-size:.7rem">—</td>`;
+          const acum = ci.cicloActual.acumulado;
+          const nComp = ci.cuotasCompletadas.length;
+          if(acum > 0){
+            const pct = Math.min(100,Math.round(acum/ci.tarifa*100));
+            return `<td class="tm-num"><div style="font-size:.75rem;font-weight:600;color:${pct>=75?'var(--verde)':'var(--ambar)'}">${formatCompacto(acum)}</div><div style="font-size:.6rem;color:var(--ink-soft)">${pct}%</div></td>`;
+          }
+          if(nComp>0) return `<td class="tm-num verde" style="font-size:.75rem;">✓</td>`;
+          return `<td class="tm-num soft" style="font-size:.7rem">—</td>`;
+        })()}
       </tr>`;
     });
 
@@ -1276,6 +1407,7 @@ function renderTablaMobil(clientes){
               <th class="num">Esperado<br><span style="font-weight:400;font-size:0.6rem;">${labelCorte}</span></th>
               <th class="num">Total<br><span style="font-weight:400;font-size:0.6rem;">histórico</span></th>
               <th class="num">Pendiente<br><span style="font-weight:400;font-size:0.6rem;">por cobrar</span></th>
+              <th class="num">Cobro<br><span style="font-weight:400;font-size:0.6rem;">app hoy</span></th>
             </tr>
           </thead>
           <tbody>${filas.join("")}</tbody>
@@ -1395,6 +1527,7 @@ function renderClientes(clientes){
       <div class="tc-resumen-frase ${(!fin && dsp > 7) ? 'frase-alerta' : ''}">
         ${fraseFinal}
       </div>
+      ${cobroSeccionHtml(c)}
     </div>`;
   }).join("");
 }
@@ -1782,6 +1915,7 @@ function iniciarTabs(){
       document.querySelectorAll(".vista").forEach(v=>v.classList.remove("activa"));
       btn.classList.add("activo");
       document.getElementById("vista-"+btn.dataset.vista).classList.add("activa");
+      if(btn.dataset.vista === "cobro") cargarCobroDiario();
     });
   });
 }
@@ -2196,6 +2330,76 @@ iniciarFiltroPeriodo();
   recalcular();
 })();
 
+// ── CALCULADORA INVERSA ──────────────────────────────────────────────
+function calcRate(nper, pmt, pv) {
+  if (!pmt || !pv || !nper || pmt <= 0 || pv <= 0 || nper <= 0) return null;
+  if (pmt * nper <= pv) return 0;
+  const f = r => pmt * (1 - Math.pow(1 + r, -nper)) / r - pv;
+  let lo = 1e-9, hi = 10;
+  for (let i = 0; i < 300; i++) {
+    const mid = (lo + hi) / 2;
+    if (f(mid) > 0) lo = mid; else hi = mid;
+  }
+  return (lo + hi) / 2;
+}
+
+window.invTab = function(modo) {
+  document.getElementById('inv-btn-a').classList.toggle('activo', modo === 'a');
+  document.getElementById('inv-btn-b').classList.toggle('activo', modo === 'b');
+  document.getElementById('inv-panel-a').classList.toggle('activo', modo === 'a');
+  document.getElementById('inv-panel-b').classList.toggle('activo', modo === 'b');
+};
+
+window.calcInverso = function(modo) {
+  const fmt = n => '$' + Math.round(n).toLocaleString('es-CO');
+  const pct = n => n.toFixed(2) + '%';
+  if (modo === 'a') {
+    const capital = +document.getElementById('inv-a-capital').value;
+    const total   = +document.getElementById('inv-a-total').value;
+    const meses   = +document.getElementById('inv-a-meses').value;
+    const res = document.getElementById('inv-a-res');
+    if (!capital || !total || !meses) { res.style.display = 'none'; return; }
+    const cuota = total / meses;
+    const r = calcRate(meses, cuota, capital);
+    res.style.display = 'grid';
+    res.innerHTML = `
+      <div class="inv-card">
+        <div class="lab">Cuota mensual</div>
+        <div class="val">${fmt(cuota)}</div>
+      </div>
+      <div class="inv-card destacada">
+        <div class="lab">Interés mensual</div>
+        <div class="val">${r !== null ? pct(r * 100) : '—'}</div>
+      </div>
+      <div class="inv-card destacada">
+        <div class="lab">Interés anual</div>
+        <div class="val">${r !== null ? pct(r * 100 * 12) : '—'}</div>
+      </div>`;
+  } else {
+    const capital = +document.getElementById('inv-b-capital').value;
+    const cuota   = +document.getElementById('inv-b-cuota').value;
+    const meses   = +document.getElementById('inv-b-meses').value;
+    const res = document.getElementById('inv-b-res');
+    if (!capital || !cuota || !meses) { res.style.display = 'none'; return; }
+    const total = cuota * meses;
+    const r = calcRate(meses, cuota, capital);
+    res.style.display = 'grid';
+    res.innerHTML = `
+      <div class="inv-card">
+        <div class="lab">Total a cobrar</div>
+        <div class="val">${fmt(total)}</div>
+      </div>
+      <div class="inv-card destacada">
+        <div class="lab">Interés mensual</div>
+        <div class="val">${r !== null ? pct(r * 100) : '—'}</div>
+      </div>
+      <div class="inv-card destacada">
+        <div class="lab">Interés anual</div>
+        <div class="val">${r !== null ? pct(r * 100 * 12) : '—'}</div>
+      </div>`;
+  }
+};
+
 actualizarSimulador();
 document.getElementById("sim-objetivo").addEventListener("input", actualizarSimulador);
 document.getElementById("sim-ya-tienes").addEventListener("input", actualizarSimulador);
@@ -2208,6 +2412,231 @@ document.getElementById("proy-meta-motos").addEventListener("input", actualizarP
 iniciarTabs();
 
 window.addEventListener("resize", ()=>{ renderTendencia(DATOS.tendencia); });
+
+// ── COBRO DIARIO · Apps Script proxy (sin CORS) ──
+// ⚠ Reemplaza esta URL con la URL de tu Google Apps Script desplegado
+const COBRO_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzWqPn2DyU_mW2-NwEUTQRzFfntXCdY0nqvIXqN3O3ievkgm7ihbvxow5JxqJhtJko/exec";
+
+const TARIFA_SEMANAL_MAP = {};
+DATOS.clientes.forEach(c => {
+  TARIFA_SEMANAL_MAP[c.nombre.toLowerCase()] = c.tarifa_ref || 240000;
+});
+
+// Datos de cobro globales — declarado al inicio del script, se llena en cargarCobroDiario
+
+// Genera HTML del bloque "Cobro app" dentro de cada tarjeta de Operativo
+function cobroSeccionHtml(c) {
+  if (!Object.keys(COBRO_POR_CLIENTE).length) return '';
+  const info = COBRO_POR_CLIENTE[c.nombre.toLowerCase()];
+  if (!info) return `<div class="cobro-op-nulo">Sin cobros en app</div>`;
+
+  const { cuotasCompletadas, cicloActual, tarifa } = info;
+  const nComp = cuotasCompletadas.length;
+  const acum  = cicloActual.acumulado;
+  const pct   = Math.min(100, Math.round(acum / tarifa * 100));
+
+  let html = `<div class="cobro-op-wrap">
+    <div class="cobro-op-titulo">Cobro app${nComp > 0
+      ? ` &middot; <span style="color:var(--verde)">${nComp} cuota${nComp>1?'s':''} ✓</span>`
+      : ''}</div>`;
+
+  if (acum > 0) {
+    html += `
+    <div class="cobro-op-barra-fondo">
+      <div class="cobro-op-barra-fill${pct>=75?' alto':''}" style="width:${pct}%"></div>
+    </div>
+    <div class="cobro-op-montos">
+      ${formatPesos(acum)} <span class="cobro-op-de">/ ${formatPesos(tarifa)}</span> · <strong>${pct}%</strong>
+    </div>
+    <div class="cobro-op-dias">
+      ${cicloActual.pagos.map(p=>`<span class="cobro-op-dia">${diaCorto(p.fecha)}: ${formatCompacto(p.valor)}</span>`).join('')}
+    </div>`;
+  } else if (nComp > 0) {
+    const ul = cuotasCompletadas[nComp-1];
+    html += `<div class="cobro-op-completo">✓ Última cuota completada · ${ul.fecha}</div>`;
+  }
+
+  return html + `</div>`;
+}
+
+async function fetchCobroFilas(){
+  const resp = await fetch(COBRO_SCRIPT_URL + "?action=data&t=" + Date.now());
+  if(!resp.ok) throw new Error("HTTP " + resp.status + " al consultar el script");
+  const filas = await resp.json();
+  return filas
+    .map(r => ({
+      fecha:         String(r.fecha         || ""),
+      cliente:       String(r.cliente       || "").trim(),
+      moto:          String(r.moto          || ""),
+      placa:         String(r.placa         || ""),
+      pago_diario:   Number(r.pago_diario)  || 0,
+      pago_recibido: Number(r.pago_recibido)|| 0,
+      medio_pago:    String(r.medio_pago    || ""),
+    }))
+    .filter(r => r.fecha && r.cliente);
+}
+
+function diaCorto(fechaISO){
+  const dias=["dom","lun","mar","mié","jue","vie","sáb"];
+  const d=new Date(fechaISO+"T00:00:00");
+  return dias[d.getDay()]+" "+d.getDate();
+}
+
+// Agrupa los pagos de un cliente y detecta cuotas completadas.
+// Devuelve: { cuotasCompletadas: [{fecha, total, dias}], cicloActual: {pagos, acumulado, inicio} }
+function analizarPagosCliente(pagos, tarifa){
+  const cuotas = [];
+  let acum = 0;
+  let inicioCiclo = null;
+  let pagosCiclo = [];
+
+  pagos.forEach(p => {
+    if(!inicioCiclo) inicioCiclo = p.fecha;
+    acum += p.valor;
+    pagosCiclo.push(p);
+
+    if(acum >= tarifa){
+      cuotas.push({
+        fecha: p.fecha,       // día en que se completó
+        total: acum,
+        inicio: inicioCiclo,
+        dias: pagosCiclo.length
+      });
+      // Reiniciar ciclo
+      acum = 0;
+      inicioCiclo = null;
+      pagosCiclo = [];
+    }
+  });
+
+  return {
+    cuotasCompletadas: cuotas,
+    cicloActual: { acumulado: acum, inicio: inicioCiclo, pagos: pagosCiclo }
+  };
+}
+
+async function cargarCobroDiario(){
+  const estadoEl = document.getElementById("cobro-estado-carga");
+  const gridEl   = document.getElementById("cobro-diario-grid");
+  const sinEl    = document.getElementById("cobro-sin-cobro");
+  const actEl    = document.getElementById("cobro-ultima-act");
+  const tickEl   = document.getElementById("tickers-cobro");
+
+  estadoEl.textContent = "Cargando datos del cobrador…";
+  gridEl.innerHTML = ""; sinEl.innerHTML = ""; tickEl.innerHTML = "";
+
+  try{
+    const filas = await fetchCobroFilas();
+    const hoy   = DATOS.hoy;
+
+    if(!filas.length){
+      estadoEl.innerHTML = `<p>No hay cobros registrados todavía.</p>`;
+      return;
+    }
+
+    // Agrupar todos los pagos por cliente en orden cronológico
+    const porCliente = {};
+    filas.sort((a,b)=>a.fecha.localeCompare(b.fecha)).forEach(r=>{
+      const key = r.cliente.trim();
+      if(!porCliente[key]){
+        const tarifa = TARIFA_SEMANAL_MAP[key.toLowerCase()] || 240000;
+        porCliente[key] = { cliente:key, moto:r.moto, placa:r.placa, tarifa, pagos:[] };
+      }
+      porCliente[key].pagos.push({ fecha:r.fecha, valor:Number(r.pago_recibido)||0 });
+    });
+
+    // Analizar cada cliente
+    const analisis = Object.values(porCliente).map(c => {
+      const res = analizarPagosCliente(c.pagos, c.tarifa);
+      return { ...c, ...res };
+    });
+
+    // Actualizar estado global y re-renderizar tarjetas en Operativo
+    COBRO_POR_CLIENTE = {};
+    analisis.forEach(c => {
+      COBRO_POR_CLIENTE[c.cliente.toLowerCase()] = {
+        cuotasCompletadas: c.cuotasCompletadas,
+        cicloActual:       c.cicloActual,
+        tarifa:            c.tarifa,
+      };
+    });
+    renderClientes(DATOS.clientes);
+
+    // Tickers globales
+    const totalHoy      = filas.filter(r=>r.fecha===hoy).reduce((s,r)=>s+(Number(r.pago_recibido)||0),0);
+    const cuotasHoy     = analisis.filter(c=>c.cuotasCompletadas.some(q=>q.fecha===hoy)).length;
+    const cuotasTotales = analisis.reduce((s,c)=>s+c.cuotasCompletadas.length,0);
+
+    tickEl.innerHTML = `
+      <div class="ticker"><div class="label">Cobrado hoy</div><div class="valor">${formatPesos(totalHoy)}</div></div>
+      <div class="ticker"><div class="label">Cuotas completadas hoy</div><div class="valor">${cuotasHoy}</div></div>
+      <div class="ticker"><div class="label">Total cuotas vía cobro app</div><div class="valor">${cuotasTotales}</div></div>`;
+
+    estadoEl.textContent = "";
+
+    // Renderizar tarjetas — primero los que tienen ciclo activo, luego los completos
+    const conActividad = analisis.filter(c => c.cicloActual.acumulado > 0 || c.cuotasCompletadas.length > 0);
+    conActividad.sort((a,b) => {
+      // Primero los que tienen ciclo activo, dentro de esos por % desc
+      const aActivo = a.cicloActual.acumulado > 0 ? 1 : 0;
+      const bActivo = b.cicloActual.acumulado > 0 ? 1 : 0;
+      if(aActivo !== bActivo) return bActivo - aActivo;
+      return (b.cicloActual.acumulado/b.tarifa) - (a.cicloActual.acumulado/a.tarifa);
+    });
+
+    gridEl.innerHTML = conActividad.map(c => {
+      const ciclo   = c.cicloActual;
+      const pct     = Math.min(100, Math.round(ciclo.acumulado / c.tarifa * 100));
+      const color   = pct >= 100 ? "var(--verde)" : pct >= 60 ? "var(--plate)" : "var(--ambar)";
+      const nCuotas = c.cuotasCompletadas.length;
+      const ultimaCuota = nCuotas > 0 ? c.cuotasCompletadas[nCuotas-1] : null;
+
+      const diasHtml = ciclo.pagos.map(p=>
+        `<span class="cobro-dia">${diaCorto(p.fecha)}: ${formatCompacto(p.valor)}</span>`
+      ).join("");
+
+      const ultimaCuotaHtml = ultimaCuota
+        ? `<div class="cobro-ultima-cuota">Última cuota: ${diaCorto(ultimaCuota.fecha)} · ${formatPesos(ultimaCuota.total)}</div>`
+        : "";
+
+      return `<div class="cobro-card">
+        <div class="cobro-nombre">${c.cliente}</div>
+        <div class="cobro-moto">${c.moto||""} · ${c.placa||""}</div>
+        ${nCuotas > 0 ? `<div class="cobro-cuotas-app"><span class="cobro-badge-n">${nCuotas}</span> cuota${nCuotas>1?"s":""} completada${nCuotas>1?"s":""} vía cobro app</div>` : ""}
+        ${ultimaCuotaHtml}
+        <div class="cobro-ciclo-titulo">Ciclo en curso</div>
+        <div class="cobro-barra-fondo"><div class="cobro-barra" style="width:${pct}%;background:${color}"></div></div>
+        <div class="cobro-montos">
+          <span class="cobro-acumulado">${formatPesos(ciclo.acumulado)}</span>
+          <span class="cobro-meta">/ ${formatPesos(c.tarifa)}</span>
+          <span class="cobro-pct">${pct}%</span>
+        </div>
+        ${diasHtml ? `<div class="cobro-dias">${diasHtml}</div>` : ""}
+      </div>`;
+    }).join("");
+
+    // Clientes sin actividad en la app
+    const conActividad_set = new Set(conActividad.map(c=>c.cliente.toLowerCase()));
+    const sinActividad = DATOS.clientes.filter(c=>!conActividad_set.has(c.nombre.toLowerCase()));
+    if(sinActividad.length){
+      sinEl.innerHTML = `<h3>Sin cobros registrados en la app (${sinActividad.length})</h3>
+        <div class="cobro-sin-cobro-grid">
+          ${sinActividad.map(c=>`<span class="cobro-chip-pendiente">${c.nombre}</span>`).join("")}
+        </div>`;
+    }
+
+    actEl.textContent = "Actualizado: " + new Date().toLocaleTimeString("es-CO",{hour:"2-digit",minute:"2-digit"});
+
+  } catch(e){
+    estadoEl.innerHTML = `<p style="color:var(--rojo)">Error: ${e.message}</p>`;
+    console.error("cobro diario:", e);
+  }
+}
+
+document.getElementById("btn-cobro-refrescar").addEventListener("click", cargarCobroDiario);
+
+// Carga cobro al abrir la página para que Operativo ya tenga los datos
+cargarCobroDiario().catch(()=>{});
 </script>
 </body>
 </html>
