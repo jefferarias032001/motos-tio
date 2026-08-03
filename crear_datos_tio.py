@@ -64,6 +64,7 @@ CLIENTES = [
     ("Francisco (Buñuelo)",          "Bajaj BLG 78I", "BLG78I", datetime(2026, 5, 3), "Foto 47 | 24 meses | 48 cuotas bisemanales | tarifa 190.000 | 4 pagos | moto #30", 48),
     ("Yesenia",                      "Bajaj HWO 62I", "HWO62I", datetime(2026, 7, 8), "Foto 48 | 18 meses | 72 cuotas | 3 pagos registrados | moto #31", 72),
     ("Alvania",                      "Bajaj HWD 78I", "HWD78I", datetime(2026, 7,10), "Foto 49 | 18 meses | 72 cuotas | 2 pagos registrados | moto #32", 72),
+    ("Yurais Polo",                  "Bajaj HWM 11I", "HWM11I", datetime(2026, 8, 1), "Foto 50 | 18 meses | 72 cuotas | moto #33 | SIN PAGOS aun — cliente nuevo", 72),
 ]
 
 # Pagos de Dorlys (57 pagos registrados en fotos 1 y 2)
