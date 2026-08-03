@@ -33,7 +33,7 @@ TARIFA = 240_000  # cuota semanal fija (pesos)
 
 CLIENTES = [
     # nombre, moto, placa, fecha_inicio, observaciones, total_cuotas
-    ("Dorlys Jose Julio",     "Bajaj EYO 114", "EYO114", datetime(2024,12,18), "Tel: 3205376845 | 595000 inicial", 64),
+    ("Dorlys Jose Julio",     "Bajaj EYO 11H", "EYO11H", datetime(2024,12,18), "Tel: 3205376845 | 595000 inicial", 64),
     ("Elkin Espitia Payares", "Bajaj EYO 06H", "EYO06H", datetime(2024,12,26), "Tel: 3003xx | 5980000",           64),
     ("Juan Andres De Arco",   "Bajaj KOO 16H", "KOO16H", datetime(2025, 1, 5), "Tel: 3202386294 | 5950000 inicial | 63 pagos (1 pendiente)", 64),
     ("Jorge Luis Reyes",      "Bajaj KOO B1H", "KOOB1H", datetime(2025, 1,10), "Tel: 3202841723 / 3005685892 | 5950000 inicial | CONTRATO FINALIZADO", 64),
@@ -673,7 +673,7 @@ def agregar_pagos(nombre, moto, placa, pagos, tarifa=TARIFA):
         row[10] = None           # K: Saldo (el script lo calcula)
         ws_reg.append(row)
 
-agregar_pagos("Dorlys Jose Julio",     "Bajaj EYO 114", "EYO114", PAGOS_DORLYS)
+agregar_pagos("Dorlys Jose Julio",     "Bajaj EYO 11H", "EYO11H", PAGOS_DORLYS)
 agregar_pagos("Elkin Espitia Payares", "Bajaj EYO 06H", "EYO06H", PAGOS_ELKIN)
 agregar_pagos("Juan Andres De Arco",   "Bajaj KOO 16H", "KOO16H", PAGOS_JUAN_ANDRES)
 agregar_pagos("Jorge Luis Reyes",      "Bajaj KOO B1H", "KOOB1H", PAGOS_JORGE_LUIS)
