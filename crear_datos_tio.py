@@ -47,6 +47,7 @@ CLIENTES = [
     ("Darwin Yaimis Ysabel",          "Bajaj OTE 80H", "OTE80H", datetime(2025, 5,25), "15360000 total | 64 cuotas | 54 pagos (10 pendientes)", 64),
     ("Kevin Rodriguez",               "Bajaj OXO 04H", "OXO04H", datetime(2025, 5,27), "20160000 total | 84 cuotas/21 meses | pagos bisemanales | 29 pagos (55 pendientes)", 84),
     ("Nabro Maria Jesse",             "Bajaj OTE 68H", "OTE68H", datetime(2025, 4,22), "15360000 total | 64 cuotas | 51 pagos (13 pendientes)", 64),
+    ("Luis Katherin Estor",           "Bajaj OTG 82H", "OTG82H", datetime(2025, 6, 4), "Fotos 27-28 | Ref: Katherin Estor 3137781909 | 69 cuotas | 54 pagos (15 pendientes)", 69),
     ("Lucho Laura Nosu",             "Bajaj OTF 59H", "OTF59H", datetime(2025, 5,31), "Tel: 3147356412 | 15360000 total | 64 cuotas | 51 pagos (13 pendientes)", 64),
     ("Roberto",                      "Bajaj OTR 29H", "OTR29H", datetime(2025, 6,24), "Ref: Nik amigo De Guillermo / Flaco Hobiter Edinson | 15360000 total | 64 cuotas | 43 pagos (21 pendientes)", 64),
     ("Braillon",                     "Bajaj OUA 19H", "OUA19H", datetime(2025, 7,17), "15360000 total | 64 cuotas | 43 pagos (21 pendientes)", 64),
@@ -338,6 +339,29 @@ PAGOS_NABRO = [
     # Foto 26 (45-51) — abr-jul 2026
     datetime(2026, 4,21), datetime(2026, 5, 1), datetime(2026, 5,22),
     datetime(2026, 6, 8), datetime(2026, 6,22), datetime(2026, 7, 2), datetime(2026, 7,20),
+]
+
+# Pagos de Luis Katherin Estor (54 pagos — fotos 27-28, OTG 82H, 69 cuotas)
+# Foto 28 = pagos 1-30 (jun 2025 – ene 2026); foto 27 = pagos 31-54 (ene-jul 2026)
+PAGOS_LUIS_KATHERIN = [
+    # Foto 28 (1-30) — jun 2025 a ene 2026
+    datetime(2025, 6, 4), datetime(2025, 6,11), datetime(2025, 6,18), datetime(2025, 6,25),
+    datetime(2025, 7, 2), datetime(2025, 7, 9), datetime(2025, 7,16), datetime(2025, 7,23),
+    datetime(2025, 7,30), datetime(2025, 8, 6), datetime(2025, 8,13), datetime(2025, 8,20),
+    datetime(2025, 8,27), datetime(2025, 9, 3), datetime(2025, 9,10),
+    datetime(2025,10, 1), datetime(2025,10,17), datetime(2025,10,20), datetime(2025,10,24),
+    datetime(2025,10,25), datetime(2025,10,29),
+    datetime(2025,11, 7), datetime(2025,11,17), datetime(2025,11,17),
+    datetime(2025,11,26), datetime(2025,11,26), datetime(2025,11,26), datetime(2025,11,26),
+    datetime(2025,12,24), datetime(2026, 1,14),
+    # Foto 27 (31-54) — ene 2026 a jul 2026
+    datetime(2026, 1,29), datetime(2026, 2, 8), datetime(2026, 2,16),
+    datetime(2026, 3,15), datetime(2026, 3,15), datetime(2026, 3,19), datetime(2026, 3,23),
+    datetime(2026, 4, 1), datetime(2026, 4, 1), datetime(2026, 4, 9), datetime(2026, 4,16),
+    datetime(2026, 4,22), datetime(2026, 4,30),
+    datetime(2026, 5,13), datetime(2026, 5,21), datetime(2026, 5,28),
+    datetime(2026, 6, 9), datetime(2026, 6,11), datetime(2026, 6,18), datetime(2026, 6,25),
+    datetime(2026, 7, 3), datetime(2026, 7,10), datetime(2026, 7,16), datetime(2026, 7,23),
 ]
 
 # Pagos de Elkin (58 pagos registrados en fotos 3 y 4)
@@ -663,6 +687,7 @@ agregar_pagos("Wilian Junior Darlis Esther",   "Bajaj OTE 02H", "OTE02H", PAGOS_
 agregar_pagos("Darwin Yaimis Ysabel",          "Bajaj OTE 80H", "OTE80H", PAGOS_DARWIN)
 agregar_pagos("Kevin Rodriguez",               "Bajaj OXO 04H", "OXO04H", PAGOS_KEVIN)
 agregar_pagos("Nabro Maria Jesse",             "Bajaj OTE 68H", "OTE68H", PAGOS_NABRO)
+agregar_pagos("Luis Katherin Estor",           "Bajaj OTG 82H", "OTG82H", PAGOS_LUIS_KATHERIN)
 agregar_pagos("Lucho Laura Nosu",             "Bajaj OTF 59H", "OTF59H", PAGOS_LUCHO)
 agregar_pagos("Roberto",                      "Bajaj OTR 29H", "OTR29H", PAGOS_ROBERTO)
 agregar_pagos("Braillon",                     "Bajaj OUA 19H", "OUA19H", PAGOS_BRAILLON)
@@ -894,6 +919,7 @@ print(f"  Wilian Jr    : {len(PAGOS_WILIAN_JR)} pagos  → ${len(PAGOS_WILIAN_JR
 print(f"  Darwin       : {len(PAGOS_DARWIN)} pagos  → ${len(PAGOS_DARWIN) * 240_000:,} (10 pendientes de 64)".replace(",","."))
 print(f"  Kevin        : {len(PAGOS_KEVIN)} pagos  → ${len(PAGOS_KEVIN) * 240_000:,} (55 pendientes de 84)".replace(",","."))
 print(f"  Nabro        : {len(PAGOS_NABRO)} pagos  → ${len(PAGOS_NABRO) * 240_000:,} (13 pendientes de 64)".replace(",","."))
+print(f"  Luis Katherin: {len(PAGOS_LUIS_KATHERIN)} pagos  → ${len(PAGOS_LUIS_KATHERIN) * 240_000:,} ({69 - len(PAGOS_LUIS_KATHERIN)} pendientes de 69)".replace(",","."))
 print(f"  Lucho        : {len(PAGOS_LUCHO)} pagos  → ${len(PAGOS_LUCHO) * 240_000:,} (13 pendientes de 64)".replace(",","."))
 print(f"  Roberto      : {len(PAGOS_ROBERTO)} pagos  → ${len(PAGOS_ROBERTO) * 240_000:,} ({64 - len(PAGOS_ROBERTO)} pendientes de 64)".replace(",","."))
 print(f"  Braillon     : {len(PAGOS_BRAILLON)} pagos  → ${len(PAGOS_BRAILLON) * 240_000:,} ({64 - len(PAGOS_BRAILLON)} pendientes de 64)".replace(",","."))
