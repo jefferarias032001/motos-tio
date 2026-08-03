@@ -17,7 +17,7 @@
 //
 // ═══════════════════════════════════════════════════════════════════════════
 
-const SHEET_ID   = "PEGA_TU_GOOGLE_SHEET_ID_AQUI"; // ← CAMBIA ESTO
+const SHEET_ID   = "1b_d0lDAYCnPfbcCKRxzPuWN4NOS75Yw0VorFXUBOSPU";
 const SHEET_NAME = "Registro Diario";
 
 // ─── Sirve el formulario HTML ───────────────────────────────────────────────

@@ -54,6 +54,10 @@ CLIENTES = [
     ("Erzik",                        "Bajaj OUN 39H", "OUN39H", datetime(2025, 8, 3), "moto 20 | 36 meses | 13968000 total | 36 cuotas | tarifa 384000/mes | ver fotos 37-38 para pagos adicionales", 36),
     ("Efrain",                       "Bajaj OTZ 01H", "OTZ01H", datetime(2025, 9, 2), "Amigo de Guillo | 21 meses | 20160000 total | 84 cuotas | subtotal cuaderno ~11.280.000 (≈47 cuotas) | algunos pagos son multiples por fila", 84),
     ("Gonzado Estherline",           "Bajaj OUB 81H", "OUB81H", datetime(2025, 9,23), "Cuñado de Katherine | del Choco | Tel: 3205570847 | 21 meses | 20160000 total | 84 cuotas | subtotal cuaderno 11.520.000 (48 cuotas) | 41 registradas fotos 38+39", 84),
+    ("Ana Milena Juan Davit",        "Bajaj UPY 65H", "UPY65H", datetime(2026, 1,23), "Foto 40 | 25 pagos registrados | cuotas pendientes a confirmar", 64),
+    ("Sr Luis",                      "Bajaj UYZ 32H", "UYZ32H", datetime(2026, 1, 5), "Foto 41 | 14 pagos registrados | nota: calibrar moto", 64),
+    ("Manuel Alga",                  "Bajaj UYZ 39H", "UYZ39H", datetime(2026, 2,12), "Foto 42 | 18 meses | 72 cuotas | 18 pagos registrados", 72),
+    ("Jorge Estrada",                 "Bajaj BJH 66I", "BJH66I", datetime(2026, 2,16), "Foto 43 | 64 cuotas | 18 meses | 16 pagos | GAP en mayo-2026 sin registro", 64),
 ]
 
 # Pagos de Dorlys (57 pagos registrados en fotos 1 y 2)
@@ -481,6 +485,49 @@ PAGOS_GONZADO = [
     datetime(2026, 8, 1),
 ]
 
+# Pagos de Manuel Alga (18 pagos — foto 42)
+PAGOS_MANUEL_ALGA = [
+    # Foto 42 — feb 2026 a jul 2026
+    datetime(2026, 2,12), datetime(2026, 2,24),
+    datetime(2026, 3, 5), datetime(2026, 3, 9), datetime(2026, 3,16), datetime(2026, 3,25),
+    datetime(2026, 4, 6), datetime(2026, 4,14), datetime(2026, 4,25),
+    datetime(2026, 5, 4), datetime(2026, 5,19), datetime(2026, 5,29),
+    datetime(2026, 6, 8), datetime(2026, 6,17), datetime(2026, 6,25),
+    datetime(2026, 7, 5), datetime(2026, 7, 8), datetime(2026, 7,21),
+]
+
+# Pagos de Carlos Habite (16 pagos — foto 43, dos columnas de fechas)
+PAGOS_CARLOS_HABITE = [
+    # Columna izquierda — feb a abr 2026
+    datetime(2026, 2,16), datetime(2026, 2,24),
+    datetime(2026, 3, 1), datetime(2026, 3, 9), datetime(2026, 3,17), datetime(2026, 3,24),
+    datetime(2026, 4, 3), datetime(2026, 4,14), datetime(2026, 4,21),
+    # Columna derecha — jun a jul 2026 (sin registros en mayo)
+    datetime(2026, 6, 1), datetime(2026, 6, 9), datetime(2026, 6,16), datetime(2026, 6,24),
+    datetime(2026, 7, 1), datetime(2026, 7,10), datetime(2026, 7,21),
+]
+
+# Pagos de Ana Milena / Juan Davit (25 pagos — foto 40)
+PAGOS_ANA_MILENA = [
+    # Foto 40 — ene 2026 a jul 2026, pagos semanales aprox
+    datetime(2026, 1,23), datetime(2026, 2, 1),
+    datetime(2026, 2,11), datetime(2026, 2,18), datetime(2026, 2,26),
+    datetime(2026, 3, 5), datetime(2026, 3,12), datetime(2026, 3,19), datetime(2026, 3,26),
+    datetime(2026, 4, 2), datetime(2026, 4, 9), datetime(2026, 4,16), datetime(2026, 4,23), datetime(2026, 4,30),
+    datetime(2026, 5, 7), datetime(2026, 5,14), datetime(2026, 5,21), datetime(2026, 5,28),
+    datetime(2026, 6, 4), datetime(2026, 6,11), datetime(2026, 6,18), datetime(2026, 6,25),
+    datetime(2026, 7, 2), datetime(2026, 7, 9), datetime(2026, 7,16),
+]
+
+# Pagos de Sr Luis (14 pagos — foto 41)
+PAGOS_SR_LUIS = [
+    # Foto 41 — ene 2026 a abr 2026, pagos semanales aprox
+    datetime(2026, 1, 5), datetime(2026, 1,13), datetime(2026, 1,21), datetime(2026, 1,29),
+    datetime(2026, 2, 6), datetime(2026, 2,14), datetime(2026, 2,22),
+    datetime(2026, 3, 2), datetime(2026, 3,10), datetime(2026, 3,18), datetime(2026, 3,26),
+    datetime(2026, 4, 3), datetime(2026, 4,11), datetime(2026, 4,19),
+]
+
 TARIFA_ERZIK = 384_000  # mensual (≠ 240.000 semanal de otros clientes)
 
 # Pagos de Erzik (foto 36 — ver fotos 37-38 para pagos restantes hasta completar 36)
@@ -580,6 +627,10 @@ agregar_pagos("Gustavo Primo",                "Bajaj OON 66H", "OON66H", PAGOS_G
 agregar_pagos("Erzik",                        "Bajaj OUN 39H", "OUN39H", PAGOS_ERZIK, tarifa=TARIFA_ERZIK)
 agregar_pagos("Efrain",                       "Bajaj OTZ 01H", "OTZ01H", PAGOS_EFRAIN)
 agregar_pagos("Gonzado Estherline",           "Bajaj OUB 81H", "OUB81H", PAGOS_GONZADO)
+agregar_pagos("Ana Milena Juan Davit",        "Bajaj UPY 65H", "UPY65H", PAGOS_ANA_MILENA)
+agregar_pagos("Sr Luis",                      "Bajaj UYZ 32H", "UYZ32H", PAGOS_SR_LUIS)
+agregar_pagos("Manuel Alga",                  "Bajaj UYZ 39H", "UYZ39H", PAGOS_MANUEL_ALGA)
+agregar_pagos("Jorge Estrada",                "Bajaj BJH 66I", "BJH66I", PAGOS_CARLOS_HABITE)
 
 # Formato de fecha en columna A
 for row in ws_reg.iter_rows(min_row=2):

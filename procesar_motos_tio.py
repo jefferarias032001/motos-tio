@@ -53,7 +53,7 @@ UMBRAL_ATRASO_LEVE = 2
 #   3. Pega el ID del Sheet en GOOGLE_SHEET_ID  (está en la URL del sheet)
 #   4. Vuelve a correr: python procesar_motos_tio.py
 # Si GOOGLE_SHEET_ID está vacío, el script solo usa el Excel local.
-GOOGLE_SHEET_ID  = ""   # ← pega aquí el ID de tu Google Sheet
+GOOGLE_SHEET_ID  = "1b_d0lDAYCnPfbcCKRxzPuWN4NOS75Yw0VorFXUBOSPU"
 GOOGLE_SHEET_GID = "0"  # ← GID de la pestaña "Registro Diario" (normalmente 0)
 
 MESES_ES = ["", "enero","febrero","marzo","abril","mayo","junio",

@@ -44,6 +44,7 @@ body{
 .campo select,
 .campo input[type=number],
 .campo input[type=date],
+.campo input[type=text],
 .campo textarea{
   width:100%;padding:14px 16px;
   border:2px solid var(--borde);border-radius:var(--radio);
@@ -58,6 +59,22 @@ body{
   box-shadow:0 0 0 3px rgba(232,169,58,.2);
 }
 .campo textarea{resize:none;height:72px;font-size:.95rem;}
+
+/* ── Doble buscador ─────────────────────────────────────────────────── */
+.doble-busca{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+
+/* ── Resultados de búsqueda ─────────────────────────────────────────── */
+.resultados{display:flex;flex-direction:column;gap:6px;}
+.res-item{
+  display:flex;align-items:center;gap:12px;
+  padding:12px 14px;background:var(--card);
+  border:2px solid var(--borde);border-radius:var(--radio);
+  cursor:pointer;-webkit-tap-highlight-color:transparent;transition:border-color .15s;
+}
+.res-item:active{background:var(--verde-bg);border-color:var(--verde);}
+.res-nombre{font-size:.9rem;font-weight:700;color:var(--ink);}
+.res-moto{font-size:.75rem;color:var(--ink-soft);margin-top:2px;}
+.res-vacio{color:var(--ink-soft);font-size:.85rem;padding:6px 2px;}
 
 /* ── Tarjeta moto (auto-fill) ────────────────────────────────────────── */
 .moto-card{
@@ -165,12 +182,23 @@ body{
 <main>
 <form class="form-wrap" id="frm" onsubmit="return false">
 
-  <div class="campo">
-    <label>Cliente</label>
-    <select id="sel-cliente" onchange="onCliente()">
-      <option value="">— Seleccionar cliente —</option>
-    </select>
+  <div class="doble-busca">
+    <div class="campo">
+      <label>Buscar por placa</label>
+      <input type="text" id="busca-placa" placeholder="OUA 19H"
+        oninput="buscar('placa')" onfocus="buscar('placa')"
+        autocomplete="off" autocorrect="off"
+        autocapitalize="characters" spellcheck="false">
+    </div>
+    <div class="campo">
+      <label>Buscar por nombre</label>
+      <input type="text" id="busca-nombre" placeholder="Braillon"
+        oninput="buscar('nombre')" onfocus="buscar('nombre')"
+        autocomplete="off" autocorrect="off"
+        autocapitalize="words" spellcheck="false">
+    </div>
   </div>
+  <div id="resultados" class="resultados"></div>
 
   <div class="moto-card" id="moto-card">
     <span class="placa-badge" id="card-placa">—</span>
@@ -238,55 +266,85 @@ body{
 <script>
 // ── Clientes (placa, moto, tarifa) ─────────────────────────────────────
 const CLIENTES = [
-  {n:"Braillon",                          m:"Bajaj OUA 19H", p:"OUA19H", t:240000},
-  {n:"Chacal / Caterine",                 m:"Bajaj OSZ 43H", p:"OSZ43H", t:240000},
-  {n:"Darwin / Yaimis / Ysabel",          m:"Bajaj OTE 80H", p:"OTE80H", t:240000},
-  {n:"Dorlys Jose Julio",                 m:"Bajaj EYO 114",  p:"EYO114",  t:240000},
-  {n:"Duvon Enrique",                     m:"Bajaj KEB 58H", p:"KEB58H", t:240000},
-  {n:"Efrain",                            m:"Bajaj OTZ 01H", p:"OTZ01H", t:240000},
-  {n:"Elkin Espitia Payares",             m:"Bajaj EYO 06H", p:"EYO06H", t:240000},
+  {n:"Braillon",                          m:"Bajaj OUA 19H", p:"OUA19H", t:30000},
+  {n:"Chacal / Caterine",                 m:"Bajaj OSZ 43H", p:"OSZ43H", t:30000},
+  {n:"Darwin / Yaimis / Ysabel",          m:"Bajaj OTE 80H", p:"OTE80H", t:30000},
+  {n:"Dorlys Jose Julio",                 m:"Bajaj EYO 114",  p:"EYO114",  t:30000},
+  {n:"Duvon Enrique",                     m:"Bajaj KEB 58H", p:"KEB58H", t:30000},
+  {n:"Efrain",                            m:"Bajaj OTZ 01H", p:"OTZ01H", t:30000},
+  {n:"Elkin Espitia Payares",             m:"Bajaj EYO 06H", p:"EYO06H", t:30000},
   {n:"Erzik",                             m:"Bajaj OUN 39H", p:"OUN39H", t:384000},
-  {n:"Gonzado Estherline",                m:"Bajaj OUB 81H", p:"OUB81H", t:240000},
-  {n:"Gustavo Primo",                     m:"Bajaj OON 66H", p:"OON66H", t:240000},
-  {n:"Jesus Morales / Yuliana Olivares",  m:"Bajaj KFK 1AH", p:"KFK1AH", t:240000},
-  {n:"Jorge Luis Reyes",                  m:"Bajaj KOO B1H", p:"KOOB1H", t:240000},
-  {n:"Juan Andres De Arco",               m:"Bajaj KOO 16H", p:"KOO16H", t:240000},
-  {n:"Kevin Rodriguez",                   m:"Bajaj OXO 04H", p:"OXO04H", t:240000},
-  {n:"Lucho / Laura Nosu",                m:"Bajaj OTF 59H", p:"OTF59H", t:240000},
-  {n:"Luis Gabriel Polo",                 m:"Bajaj KOM 89H", p:"KOM89H", t:240000},
-  {n:"Nabro / Maria / Jesse",             m:"Bajaj OTE 68H", p:"OTE68H", t:240000},
-  {n:"Osmed / Brenda",                    m:"Bajaj OSZ 46H", p:"OSZ46H", t:240000},
-  {n:"Roberto",                           m:"Bajaj OTR 29H", p:"OTR29H", t:240000},
-  {n:"Wilian Junior / Darlis Esther",     m:"Bajaj OTE 02H", p:"OTE02H", t:240000},
-  {n:"Wilmer Ivis",                       m:"Bajaj KEW 23H", p:"KEW23H", t:240000},
+  {n:"Gonzado Estherline",                m:"Bajaj OUB 81H", p:"OUB81H", t:30000},
+  {n:"Gustavo Primo",                     m:"Bajaj OON 66H", p:"OON66H", t:30000},
+  {n:"Jesus Morales / Yuliana Olivares",  m:"Bajaj KFK 1AH", p:"KFK1AH", t:30000},
+  {n:"Jorge Luis Reyes",                  m:"Bajaj KOO B1H", p:"KOOB1H", t:30000},
+  {n:"Juan Andres De Arco",               m:"Bajaj KOO 16H", p:"KOO16H", t:30000},
+  {n:"Kevin Rodriguez",                   m:"Bajaj OXO 04H", p:"OXO04H", t:30000},
+  {n:"Lucho / Laura Nosu",                m:"Bajaj OTF 59H", p:"OTF59H", t:30000},
+  {n:"Luis Gabriel Polo",                 m:"Bajaj KOM 89H", p:"KOM89H", t:30000},
+  {n:"Nabro / Maria / Jesse",             m:"Bajaj OTE 68H", p:"OTE68H", t:30000},
+  {n:"Osmed / Brenda",                    m:"Bajaj OSZ 46H", p:"OSZ46H", t:30000},
+  {n:"Roberto",                           m:"Bajaj OTR 29H", p:"OTR29H", t:30000},
+  {n:"Wilian Junior / Darlis Esther",     m:"Bajaj OTE 02H", p:"OTE02H", t:30000},
+  {n:"Wilmer Ivis",                       m:"Bajaj KEW 23H", p:"KEW23H", t:30000},
+  {n:"Ana Milena / Juan Davit",           m:"Bajaj UPY 65H", p:"UPY65H", t:30000},
+  {n:"Sr Luis",                           m:"Bajaj UYZ 32H", p:"UYZ32H", t:30000},
+  {n:"Manuel Alga",                       m:"Bajaj UYZ 39H", p:"UYZ39H", t:30000},
+  {n:"Jorge Estrada",                      m:"Bajaj BJH 66I", p:"BJH66I", t:30000},
 ];
 
 // ── Init ────────────────────────────────────────────────────────────────
-const sel = document.getElementById("sel-cliente");
-CLIENTES.forEach((c,i)=>{
-  const o = document.createElement("option");
-  o.value = i; o.textContent = c.n;
-  sel.appendChild(o);
-});
 const hoy = new Date();
 const yyyymmdd = hoy.getFullYear()+"-"+String(hoy.getMonth()+1).padStart(2,"0")+"-"+String(hoy.getDate()).padStart(2,"0");
 document.getElementById("inp-fecha").value = yyyymmdd;
 
 let medioSel = "";
+let clienteIdx = null;
 
-// ── Funciones ────────────────────────────────────────────────────────────
-function onCliente(){
-  const idx = sel.value;
-  const card = document.getElementById("moto-card");
-  if(idx===""){card.classList.remove("visible");return;}
-  const c = CLIENTES[idx];
-  document.getElementById("card-placa").textContent   = c.p;
-  document.getElementById("card-moto").textContent    = c.m;
-  document.getElementById("card-tarifa").textContent  = "Cuota: $"+c.t.toLocaleString("es-CO");
-  document.getElementById("inp-valor").value = c.t;
-  card.classList.add("visible");
+// ── Buscadores ───────────────────────────────────────────────────────────
+function buscar(tipo){
+  const esPlaca = tipo === 'placa';
+  const q = document.getElementById(esPlaca ? 'busca-placa' : 'busca-nombre')
+    .value.trim().toUpperCase().replace(/\s/g,"");
+  document.getElementById(esPlaca ? 'busca-nombre' : 'busca-placa').value = "";
+  const div = document.getElementById("resultados");
+  if(clienteIdx !== null){
+    clienteIdx = null;
+    document.getElementById("moto-card").classList.remove("visible");
+    document.getElementById("inp-valor").value = "";
+  }
+  const matches = q
+    ? CLIENTES.map((c,i)=>({c,i})).filter(({c})=>
+        esPlaca
+          ? c.p.replace(/\s/g,"").toUpperCase().includes(q)
+          : c.n.toUpperCase().replace(/\s/g,"").includes(q)
+      )
+    : CLIENTES.map((c,i)=>({c,i}));
+  if(!matches.length){
+    div.innerHTML='<p class="res-vacio">Sin resultados</p>';
+    return;
+  }
+  div.innerHTML = matches.map(({c,i})=>`
+    <div class="res-item" onclick="seleccionarCliente(${i})">
+      <span class="placa-badge">${c.p}</span>
+      <div><div class="res-nombre">${c.n}</div><div class="res-moto">${c.m}</div></div>
+    </div>`).join("");
 }
 
+function seleccionarCliente(idx){
+  clienteIdx = idx;
+  const c = CLIENTES[idx];
+  document.getElementById("busca-placa").value  = c.p;
+  document.getElementById("busca-nombre").value = c.n;
+  document.getElementById("resultados").innerHTML = "";
+  document.getElementById("card-placa").textContent  = c.p;
+  document.getElementById("card-moto").textContent   = c.m;
+  document.getElementById("card-tarifa").textContent = "Cuota: $"+c.t.toLocaleString("es-CO");
+  document.getElementById("inp-valor").value = 30000;
+  document.getElementById("moto-card").classList.add("visible");
+}
+
+// ── Medio de pago ─────────────────────────────────────────────────────────
 function selMedio(el, medio){
   document.querySelectorAll(".medio-btn").forEach(b=>b.classList.remove("activo"));
   el.classList.add("activo");
@@ -302,15 +360,14 @@ function toast(msg){
 function pesos(n){return "$"+Number(n).toLocaleString("es-CO");}
 
 function enviar(){
-  const idx   = document.getElementById("sel-cliente").value;
   const fecha = document.getElementById("inp-fecha").value;
   const valor = Number(document.getElementById("inp-valor").value);
   const obs   = document.getElementById("inp-obs").value.trim();
-  if(idx==="")       return toast("⚠️ Selecciona un cliente.");
-  if(!fecha)         return toast("⚠️ Ingresa la fecha del cobro.");
-  if(valor<=0)       return toast("⚠️ Ingresa el valor recibido.");
-  if(!medioSel)      return toast("⚠️ Selecciona el medio de pago.");
-  const c = CLIENTES[idx];
+  if(clienteIdx===null) return toast("⚠️ Selecciona un cliente.");
+  if(!fecha)            return toast("⚠️ Ingresa la fecha del cobro.");
+  if(valor<=0)          return toast("⚠️ Ingresa el valor recibido.");
+  if(!medioSel)         return toast("⚠️ Selecciona el medio de pago.");
+  const c = CLIENTES[clienteIdx];
   const btn = document.getElementById("btn-enviar");
   btn.disabled = true; btn.textContent = "Guardando…";
   google.script.run
@@ -335,13 +392,16 @@ function enviar(){
 
 function resetForm(){
   document.getElementById("success").classList.remove("visible");
-  document.getElementById("sel-cliente").value="";
+  clienteIdx = null;
+  document.getElementById("busca-placa").value = "";
+  document.getElementById("busca-nombre").value = "";
+  document.getElementById("resultados").innerHTML = "";
   document.getElementById("moto-card").classList.remove("visible");
-  document.getElementById("inp-valor").value="";
-  document.getElementById("inp-obs").value="";
-  medioSel="";
+  document.getElementById("inp-valor").value = "";
+  document.getElementById("inp-obs").value = "";
+  medioSel = "";
   document.querySelectorAll(".medio-btn").forEach(b=>b.classList.remove("activo"));
-  document.getElementById("inp-fecha").value=yyyymmdd;
+  document.getElementById("inp-fecha").value = yyyymmdd;
 }
 </script>
 </body>
