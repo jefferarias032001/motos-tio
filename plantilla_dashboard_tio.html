@@ -2563,20 +2563,27 @@ async function cargarCobroDiario(){
     renderClientes(DATOS.clientes);
 
     // Tickers globales
-    const totalHoy      = filas.filter(r=>r.fecha===hoy).reduce((s,r)=>s+(Number(r.pago_recibido)||0),0);
-    const cuotasHoy     = analisis.filter(c=>c.cuotasCompletadas.some(q=>q.fecha===hoy)).length;
-    const cuotasTotales = analisis.reduce((s,c)=>s+c.cuotasCompletadas.length,0);
+    const filasHoy      = filas.filter(r=>r.fecha===hoy);
+    const cobrosHoy     = filasHoy.length;
+    const totalHoy      = filasHoy.reduce((s,r)=>s+(Number(r.pago_recibido)||0),0);
+    const cobrosTotal   = filas.length;
 
     const esNequi = r => (r.medio_pago||"").toLowerCase().includes("nequi");
-    const nequiHoy      = filas.filter(r=>r.fecha===hoy && esNequi(r)).reduce((s,r)=>s+(Number(r.pago_recibido)||0),0);
-    const efectivoHoy   = filas.filter(r=>r.fecha===hoy && !esNequi(r)).reduce((s,r)=>s+(Number(r.pago_recibido)||0),0);
+    const nequiHoy      = filasHoy.filter(r=>esNequi(r)).reduce((s,r)=>s+(Number(r.pago_recibido)||0),0);
+    const efectivoHoy   = filasHoy.filter(r=>!esNequi(r)).reduce((s,r)=>s+(Number(r.pago_recibido)||0),0);
     const nequiTotal    = filas.filter(r=>esNequi(r)).reduce((s,r)=>s+(Number(r.pago_recibido)||0),0);
     const efectivoTotal = filas.filter(r=>!esNequi(r)).reduce((s,r)=>s+(Number(r.pago_recibido)||0),0);
 
     tickEl.innerHTML = `
-      <div class="ticker"><div class="eyebrow">Cobrado hoy</div><div class="valor">${formatPesos(totalHoy)}</div></div>
-      <div class="ticker"><div class="eyebrow">Cuotas completadas hoy</div><div class="valor">${cuotasHoy}</div></div>
-      <div class="ticker"><div class="eyebrow">Total cuotas app</div><div class="valor">${cuotasTotales}</div></div>
+      <div class="ticker destacado">
+        <div class="eyebrow">Cobros hoy</div>
+        <div class="valor">${cobrosHoy}</div>
+        <div style="font-size:0.78rem;color:var(--ink-soft);margin-top:2px;">${cobrosTotal} registros totales</div>
+      </div>
+      <div class="ticker">
+        <div class="eyebrow">Cobrado hoy</div>
+        <div class="valor">${formatPesos(totalHoy)}</div>
+      </div>
       <div class="ticker" style="border-left:3px solid #3B82F6;">
         <div class="eyebrow">Nequi hoy / total</div>
         <div class="valor" style="color:#3B82F6;">${formatPesos(nequiHoy)}</div>
