@@ -192,7 +192,7 @@ body{
     </div>
     <div class="campo">
       <label>Buscar por nombre</label>
-      <input type="text" id="busca-nombre" placeholder="Braillon"
+      <input type="text" id="busca-nombre" placeholder="Brayan"
         oninput="buscar('nombre')" onfocus="buscar('nombre')"
         autocomplete="off" autocorrect="off"
         autocapitalize="words" spellcheck="false">
@@ -266,39 +266,39 @@ body{
 <script>
 // ── Clientes (placa, moto, tarifa) ─────────────────────────────────────
 const CLIENTES = [
-  {n:"Braillon",                          m:"Bajaj OUA 19H", p:"OUA19H", t:30000},
+  {n:"Brayan",                            m:"Bajaj OUA 19H", p:"OUA19H", t:30000},
   {n:"Chacal / Caterine",                 m:"Bajaj OSZ 43H", p:"OSZ43H", t:30000},
   {n:"Darwin / Yaimis / Ysabel",          m:"Bajaj OTE 80H", p:"OTE80H", t:30000},
   {n:"Dorlys Jose Julio",                 m:"Bajaj EYO 11H",  p:"EYO11H",  t:30000},
   {n:"Duvon Enrique",                     m:"Bajaj KEB 58H", p:"KEB58H", t:30000},
   {n:"Efrain",                            m:"Bajaj OTZ 01H", p:"OTZ01H", t:30000},
   {n:"Elkin Espitia Payares",             m:"Bajaj EYO 06H", p:"EYO06H", t:30000},
-  {n:"Erzik",                             m:"Bajaj OUN 39H", p:"OUN39H", t:384000},
-  {n:"Gonzado Estherline",                m:"Bajaj OUB 81H", p:"OUB81H", t:30000},
+  {n:"Erik",                              m:"Bajaj OUN 39H", p:"OUN39H", t:384000},
+  {n:"Katherine",                         m:"Bajaj OUB 81H", p:"OUB81H", t:30000},
   {n:"Gustavo Primo",                     m:"Bajaj OON 66H", p:"OON66H", t:30000},
   {n:"Jesus Morales / Yuliana Olivares",  m:"Bajaj KFK 1AH", p:"KFK1AH", t:30000},
   {n:"Jorge Luis Reyes",                  m:"Bajaj KOO B1H", p:"KOOB1H", t:30000},
   {n:"Juan Andres De Arco",               m:"Bajaj KOO 16H", p:"KOO16H", t:30000},
   {n:"Kevin Rodriguez",                   m:"Bajaj OXO 04H", p:"OXO04H", t:30000},
   {n:"Lucho / Laura Nosu",                m:"Bajaj OTF 59H", p:"OTF59H", t:30000},
-  {n:"Luis Gabriel Polo",                 m:"Bajaj KOM 89H", p:"KOM89H", t:30000},
-  {n:"Nabro / Maria / Jesse",             m:"Bajaj OTE 68H", p:"OTE68H", t:30000},
-  {n:"Luis Katherin Estor",              m:"Bajaj OTG 82H", p:"OTG82H", t:30000},
+  {n:"Engelo Junior",                     m:"Bajaj UYL 39H", p:"UYL39H", t:30000},
+  {n:"Negro / Maria / Jose",             m:"Bajaj OTE 68H", p:"OTE68H", t:30000},
+  {n:"Sr Pedro",                         m:"Bajaj OTG 82H", p:"OTG82H", t:30000},
   {n:"Osmed / Brenda",                    m:"Bajaj OSZ 46H", p:"OSZ46H", t:30000},
   {n:"Roberto",                           m:"Bajaj OTR 29H", p:"OTR29H", t:30000},
   {n:"Wilian Junior / Darlis Esther",     m:"Bajaj OTE 02H", p:"OTE02H", t:30000},
   {n:"Wilmer Ivis",                       m:"Bajaj KEW 23H", p:"KEW23H", t:30000},
-  {n:"Ana Milena / Juan Davit",           m:"Bajaj UPY 65H", p:"UPY65H", t:30000},
+  {n:"Ana Milena-Juan David",             m:"Bajaj UPY 65H", p:"UPY65H", t:30000},
   {n:"Sr Luis",                           m:"Bajaj UYZ 32H", p:"UYZ32H", t:30000},
-  {n:"Manuel Alga",                       m:"Bajaj UYZ 39H", p:"UYZ39H", t:30000},
+  {n:"Manuel Olga",                       m:"Bajaj UYZ 39H", p:"UYZ39H", t:30000},
   {n:"Jorge Estrada",                      m:"Bajaj BJH 66I", p:"BJH66I", t:30000},
-  {n:"Donita Juan Camilo",                m:"Bajaj BJK 95I", p:"BJK95I", t:420000},
-  {n:"Alejandra",                         m:"Bajaj OKS 30I", p:"OKS30I", t:30000},
-  {n:"Carlos",                            m:"Bajaj BLB 45I", p:"BLB45I", t:30000},
+  {n:"Daniela Nuñez",                     m:"Bajaj BJK 95I", p:"BJK95I", t:420000},
+  {n:"Alejandro",                         m:"Bajaj OKS 30I", p:"OKS30I", t:30000},
+  {n:"Karluis",                           m:"Bajaj BLB 45I", p:"BLB45I", t:30000},
   {n:"Francisco (Buñuelo)",               m:"Bajaj BLG 78I", p:"BLG78I", t:190000},
   {n:"Yesenia",                           m:"Bajaj HWO 62I", p:"HWO62I", t:30000},
   {n:"Alvania",                           m:"Bajaj HWD 78I", p:"HWD78I", t:30000},
-  {n:"Yurais Polo",                       m:"Bajaj HWM 11I", p:"HWM11I", t:30000},
+  {n:"Yuranis Polo",                      m:"Bajaj HWM 11I", p:"HWM11I", t:30000},
 ];
 
 // ── Init ────────────────────────────────────────────────────────────────

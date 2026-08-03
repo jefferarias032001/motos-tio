@@ -522,6 +522,105 @@
   @media (prefers-reduced-motion: reduce){
     *{transition:none !important; scroll-behavior:auto !important;}
   }
+
+  /* ══════════════════════════════════════════════════════
+     PREMIUM UPGRADE — Severa Motos
+  ══════════════════════════════════════════════════════ */
+
+  /* Tickers: franja dorada superior + números más grandes */
+  .ticker { position:relative; overflow:hidden; }
+  .ticker::before {
+    content:"";
+    position:absolute; top:0; left:0; right:0; height:3px;
+    background:linear-gradient(90deg, var(--plate) 0%, #F2C660 100%);
+    border-radius:3px 3px 0 0;
+  }
+  .ticker .valor { font-size:1.72rem; font-weight:700; letter-spacing:-0.02em; }
+  .tickers { gap:16px; }
+
+  /* Tab nav: estilo cápsula/píldora */
+  .tabs-nav {
+    margin-top:24px; gap:5px; padding:5px;
+    background:var(--card); border:1px solid var(--borde);
+    border-radius:16px; width:fit-content;
+    box-shadow:0 2px 12px rgba(36,31,26,0.08);
+  }
+  .tab-btn {
+    border:none; border-radius:11px; padding:9px 24px 10px;
+    transition:all 0.2s ease;
+  }
+  .tab-btn:hover { color:var(--ink); background:rgba(36,31,26,0.05); }
+  .tab-btn.activo {
+    background:var(--asphalt); color:var(--plate);
+    box-shadow:0 3px 12px rgba(36,31,26,0.28);
+  }
+
+  /* ── Filtro de periodo ── */
+  .filtro-periodo-wrap {
+    background:var(--asphalt);
+    border:1px solid rgba(232,169,58,0.18);
+    border-radius:16px;
+    padding:18px 24px;
+    margin:22px 0 30px;
+    display:flex; align-items:flex-end; gap:18px; flex-wrap:wrap;
+    box-shadow:0 8px 32px rgba(20,17,14,0.24);
+  }
+  .filtro-periodo-campo { display:flex; flex-direction:column; gap:5px; }
+  .fp-label {
+    font-size:0.58rem; text-transform:uppercase; letter-spacing:0.12em;
+    color:#706850; font-weight:700; display:block;
+  }
+  .filtro-periodo-campo input[type=date] {
+    background:rgba(255,255,255,0.06);
+    border:1px solid rgba(232,169,58,0.28);
+    border-radius:9px; color:#F4EFE2;
+    font-family:var(--font-mono); font-size:0.88rem;
+    padding:9px 12px; min-width:150px; cursor:pointer;
+    transition:border-color 0.2s, box-shadow 0.2s;
+  }
+  .filtro-periodo-campo input[type=date]::-webkit-calendar-picker-indicator{
+    filter:opacity(0.5) sepia(1) saturate(2) hue-rotate(10deg); cursor:pointer;
+  }
+  .filtro-periodo-campo input[type=date]:focus {
+    outline:none; border-color:var(--plate);
+    box-shadow:0 0 0 3px rgba(232,169,58,0.18);
+  }
+  .fp-flecha { color:#3E3830; font-size:1.4rem; flex-shrink:0; padding-bottom:9px; }
+  .fp-divider {
+    width:1px; height:42px; background:rgba(255,255,255,0.07);
+    margin:0 4px; align-self:flex-end; margin-bottom:2px;
+  }
+  @media(max-width:580px){ .fp-divider{display:none;} }
+  .fp-botones { display:flex; gap:8px; flex-wrap:wrap; align-items:flex-end; padding-bottom:1px; }
+  .btn-periodo {
+    font-family:var(--font-body); font-size:0.78rem; font-weight:600;
+    padding:9px 18px; border:1.5px solid rgba(232,169,58,0.22);
+    border-radius:50px; background:transparent; color:#7A7260;
+    cursor:pointer; transition:all 0.18s ease; white-space:nowrap; letter-spacing:0.02em;
+  }
+  .btn-periodo:hover { border-color:rgba(232,169,58,0.55); color:#C8BEA0; }
+  .btn-periodo.activo {
+    background:var(--plate); color:#18140E; border-color:var(--plate);
+    font-weight:700; box-shadow:0 3px 14px rgba(232,169,58,0.38);
+  }
+
+  /* Cabecera de sección más refinada */
+  h2.titulo-seccion {
+    font-size:1.4rem; letter-spacing:0.06em; margin:0 0 18px;
+  }
+
+  /* Tabla: cabecera con gradiente más sofisticado */
+  .tm-tabla th {
+    background:var(--asphalt); color:#D4CDBB;
+    font-size:0.61rem; letter-spacing:0.08em;
+    padding:10px 10px; border-bottom:2px solid var(--plate);
+  }
+  .tm-fila:hover { background:rgba(232,169,58,0.04); }
+  .tm-total-fila td {
+    background:var(--asphalt); color:#F4EFE2;
+    font-family:var(--font-mono); font-size:0.82rem;
+  }
+  .tm-total-fila td:first-child { color:#F4EFE2; }
 </style>
 </head>
 <body>
@@ -611,6 +710,26 @@
 
   <div id="vista-operativo" class="vista activa">
 
+  <!-- ── Filtro de periodo global ── -->
+  <div class="filtro-periodo-wrap" id="filtro-periodo-wrap">
+    <div class="filtro-periodo-campo">
+      <span class="fp-label">Desde</span>
+      <input type="date" id="fp-desde">
+    </div>
+    <span class="fp-flecha">→</span>
+    <div class="filtro-periodo-campo">
+      <span class="fp-label">Hasta</span>
+      <input type="date" id="fp-hasta">
+    </div>
+    <div class="fp-divider"></div>
+    <div class="fp-botones">
+      <button class="btn-periodo" data-rango="ayer">Ayer</button>
+      <button class="btn-periodo" data-rango="semana">Esta semana</button>
+      <button class="btn-periodo activo" data-rango="mes">Este mes</button>
+      <button class="btn-periodo" data-rango="historico">Todo el histórico</button>
+    </div>
+  </div>
+
   <section id="seccion-global">
     <h2 class="titulo-seccion">Resumen general</h2>
     <div class="tickers" id="tickers-globales"></div>
@@ -677,28 +796,31 @@
   </section>
 
   <section id="seccion-gerencia-deuda">
-    <h2 class="titulo-seccion">Cuánto me deben — saldo final</h2>
+    <h2 class="titulo-seccion">Cuánto me falta por cobrar</h2>
     <div id="saldo-final-resumen"></div>
     <div class="deuda-lista" id="lista-deuda"></div>
   </section>
 
   <section id="seccion-gerencia-deuda-total">
-    <h2 class="titulo-seccion">Lo que me deben a la fecha (con lo que falta del cronograma)</h2>
-    <div class="nota-sim" style="margin-top:0;margin-bottom:16px;">
-      Esto es <strong>aparte del saldo final de arriba</strong>. Cada moto tiene una fecha en la que termina
-      de pagarse — después de esa fecha la moto pasa a ser del cliente y ya no te genera más ingreso. Aquí se
-      suma lo atrasado a hoy + lo que aún falta por cobrar hasta esa fecha, moto por moto.
-    </div>
+    <h2 class="titulo-seccion">Detalle por moto — cuotas y montos pendientes</h2>
     <div class="tickers" id="tickers-deuda-total"></div>
     <div class="tabla-scroll" style="margin-top:16px;">
       <table class="detalle" id="tabla-deuda-total">
         <thead>
-          <tr><th>Cliente</th><th>Atrasado hoy</th><th>Por cobrar hasta fin de contrato</th><th>Fin de contrato</th><th>Total a la fecha</th></tr>
+          <tr><th>Cliente</th><th>Cuotas restantes</th><th>Por cobrar</th><th>Fin estimado contrato</th><th>Total pendiente</th></tr>
         </thead>
         <tbody></tbody>
         <tfoot id="tabla-deuda-total-pie"></tfoot>
       </table>
     </div>
+  </section>
+
+  <section id="seccion-gerencia-vencimientos">
+    <h2 class="titulo-seccion">Contratos que terminan — por mes</h2>
+    <div class="nota-sim" style="margin-top:0;margin-bottom:16px;">
+      Cuando un contrato termina, esa moto deja de generar ingreso semanal. Aquí ves en qué mes vence cada una.
+    </div>
+    <div id="vencimientos-lista"></div>
   </section>
 
   <section id="seccion-gerencia-simulador">
@@ -894,24 +1016,121 @@ function claseMonto(v){ return v > 0 ? "rojo" : "verde"; }
 // ---------------------------------------------------------------
 function renderGlobal(g){
   const cont = document.getElementById("tickers-globales");
-  const items = [
-    {label:"Recibido histórico", valor:g.recibido_historico, clase:""},
-    {label:"Recibido este mes", valor:g.recibido_mes, clase:""},
-    {label:"Atrasado total", valor:g.atrasado_historico, clase: g.atrasado_historico>0 ? "rojo":"verde"},
-    {label:"Atrasado este mes", valor:g.atrasado_mes, clase: g.atrasado_mes>0 ? "rojo":"verde"},
-  ];
-  cont.innerHTML = items.map((it,i)=>`
-    <div class="ticker ${i>=2?'destacado':''}">
-      <div class="eyebrow">${it.label}</div>
-      <div class="valor ${it.clase}" id="tk-${i}"></div>
+  const hoy0  = new Date(DATOS.hoy + "T00:00:00");
+  const mlbl  = MESES_NOMBRE[hoy0.getMonth()+1] + " " + hoy0.getFullYear();
+  cont.innerHTML = `
+    <div class="ticker">
+      <div class="eyebrow">Recibido histórico</div>
+      <div class="valor" id="tk-0"></div>
     </div>
-  `).join("") + `
+    <div class="ticker">
+      <div class="eyebrow">Recibido · <span id="tk-lbl-mes">${mlbl}</span></div>
+      <div class="valor" id="tk-1"></div>
+    </div>
+    <div class="ticker destacado">
+      <div class="eyebrow">Esperado · <span id="tk-lbl-mes2">${mlbl}</span></div>
+      <div class="valor" id="tk-2"></div>
+    </div>
+    <div class="ticker destacado">
+      <div class="eyebrow">Motos activas</div>
+      <div class="valor" id="tk-3">${DATOS.clientes.filter(c=>!c.contrato_completo).length}</div>
+    </div>
     <div class="ticker destacado">
       <div class="eyebrow">Cumplimiento global</div>
       <div class="valor">${g.cumplimiento}%</div>
     </div>
   `;
-  items.forEach((it,i)=> animarNumero(document.getElementById("tk-"+i), it.valor));
+  animarNumero(document.getElementById("tk-0"), g.recibido_historico);
+  animarNumero(document.getElementById("tk-1"), g.recibido_mes);
+  animarNumero(document.getElementById("tk-2"), g.esperado_mes);
+}
+
+function calcularEsperadoMesClientes(year, month){
+  const targetStart = new Date(year, month - 1, 1);
+  const targetEnd   = new Date(year, month, 0);
+  let total = 0;
+  (DATOS.clientes || []).forEach(c => {
+    if (c.contrato_completo || c.pagos_restantes <= 0) return;
+    if (c.fecha_fin_prevista) {
+      const fin = new Date(c.fecha_fin_prevista + "T00:00:00");
+      if (fin < targetStart) return;
+    }
+    let refDate = null;
+    if (c.proximo_pago_esperado)
+      refDate = new Date(c.proximo_pago_esperado + "T00:00:00");
+    else if (c.ultimo_pago_fecha) {
+      refDate = new Date(c.ultimo_pago_fecha + "T00:00:00");
+      refDate.setDate(refDate.getDate() + 7);
+    }
+    if (!refDate) return;
+    const weekday = refDate.getDay();
+    let d = new Date(year, month - 1, 1);
+    while (d.getDay() !== weekday) d.setDate(d.getDate() + 1);
+    let count = 0;
+    while (d <= targetEnd) { count++; d.setDate(d.getDate() + 7); }
+    total += Math.min(count, c.pagos_restantes) * c.tarifa_ref;
+  });
+  return total;
+}
+
+function actualizarTickersMes(year, month){
+  const prefix = year + "-" + String(month).padStart(2,"0");
+  const label  = MESES_NOMBRE[month] + " " + year;
+  const filasMes = DATOS.detalle.filter(d => d.fecha.startsWith(prefix));
+  const recibido = filasMes.reduce((s,d)=>s+(d.recibido||0), 0);
+  const esperado = calcularEsperadoMesClientes(year, month);
+  const lbl1 = document.getElementById("tk-lbl-mes");
+  const lbl2 = document.getElementById("tk-lbl-mes2");
+  if(lbl1) lbl1.textContent = label;
+  if(lbl2) lbl2.textContent = label;
+  const el1 = document.getElementById("tk-1");
+  const el2 = document.getElementById("tk-2");
+  if(el1) animarNumero(el1, recibido);
+  if(el2) animarNumero(el2, esperado);
+}
+
+// ── Utilidades de periodo ────────────────────────────────────
+function recibidoEnPeriodo(desde, hasta){
+  const d0 = desde ? desde.toISOString().slice(0,10) : null;
+  const d1 = hasta ? hasta.toISOString().slice(0,10) : null;
+  return (DATOS.detalle||[]).reduce((s,d)=>{
+    if(d0 && d.fecha < d0) return s;
+    if(d1 && d.fecha > d1) return s;
+    return s + (d.recibido||0);
+  }, 0);
+}
+
+function calcularEsperadoPeriodo(desde, hasta){
+  if(!desde || !hasta)
+    return (DATOS.clientes||[]).filter(c=>!c.contrato_completo)
+            .reduce((s,c)=>s+c.pagos_restantes*c.tarifa_ref, 0);
+  let total = 0;
+  (DATOS.clientes||[]).forEach(c=>{
+    if(c.contrato_completo || c.pagos_restantes<=0) return;
+    if(c.fecha_fin_prevista && new Date(c.fecha_fin_prevista+"T00:00:00") < desde) return;
+    let ref = null;
+    if(c.proximo_pago_esperado) ref = new Date(c.proximo_pago_esperado+"T00:00:00");
+    else if(c.ultimo_pago_fecha){ ref = new Date(c.ultimo_pago_fecha+"T00:00:00"); ref.setDate(ref.getDate()+7); }
+    if(!ref) return;
+    const wd = ref.getDay();
+    let d = new Date(desde);
+    while(d.getDay()!==wd) d.setDate(d.getDate()+1);
+    let cnt=0, rem=c.pagos_restantes;
+    while(d<=hasta && rem>0){ cnt++; rem--; d.setDate(d.getDate()+7); }
+    total += cnt * c.tarifa_ref;
+  });
+  return total;
+}
+
+function actualizarTickersPeriodo(desde, hasta, label){
+  const lbl1 = document.getElementById("tk-lbl-mes");
+  const lbl2 = document.getElementById("tk-lbl-mes2");
+  if(lbl1) lbl1.textContent = label;
+  if(lbl2) lbl2.textContent = label;
+  const el1 = document.getElementById("tk-1");
+  const el2 = document.getElementById("tk-2");
+  if(el1) animarNumero(el1, recibidoEnPeriodo(desde, hasta));
+  if(el2) animarNumero(el2, calcularEsperadoPeriodo(desde, hasta));
 }
 
 // ---------------------------------------------------------------
@@ -986,7 +1205,7 @@ function renderTablaMobil(clientes){
       ? "a hoy " + hoy.getDate() + "/" + (hoy.getMonth()+1)
       : (new Date(year, month - 1, 1) > hoy ? "proyectado" : "al " + new Date(year, month, 0).getDate() + "/" + month);
 
-    const filas = clientes.map(c => {
+    const filas = clientes.map((c, idx) => {
       const dsp = c.dias_sin_pagar || 0;
       const pct = Math.min(100, c.porc_completado || 0);
       const fin = c.contrato_completo;
@@ -1014,10 +1233,11 @@ function renderTablaMobil(clientes){
       return `
       <tr class="tm-fila">
         <td class="tm-barra ${est}"></td>
+        <td class="tm-num" style="font-size:0.75rem;color:var(--ink-soft);min-width:24px;">${idx+1}</td>
         <td>
           <div class="tm-cliente">${c.nombre.split(" ").slice(0,2).join(" ")}</div>
-          <div class="tm-placa">${c.placa || "—"}</div>
         </td>
+        <td class="tm-placa">${c.placa || "—"}</td>
         <td><span class="tm-badge ${est}">${ETIQUETA[est]}</span></td>
         <td>
           <div class="tm-dias ${diasClase}">${diasHtml}</div>
@@ -1046,7 +1266,9 @@ function renderTablaMobil(clientes){
           <thead>
             <tr>
               <th style="width:4px;padding:8px 0;"></th>
+              <th class="num" style="min-width:24px;">#</th>
               <th>Cliente</th>
+              <th>Placa</th>
               <th>Estado</th>
               <th>Días</th>
               <th>Cuotas</th>
@@ -1060,7 +1282,7 @@ function renderTablaMobil(clientes){
           <tfoot>
             <tr class="tm-total-fila">
               <td></td>
-              <td colspan="4" style="font-size:0.75rem;text-transform:uppercase;letter-spacing:0.06em;">Total</td>
+              <td colspan="6" style="font-size:0.75rem;text-transform:uppercase;letter-spacing:0.06em;">Total</td>
               <td class="tm-num verde">${formatPesos(totRecib)}</td>
               <td class="tm-num">${formatPesos(totEsp)}</td>
               <td class="tm-num">${formatPesos(totHist)}</td>
@@ -1071,30 +1293,15 @@ function renderTablaMobil(clientes){
       </div>`;
   }
 
-  // Render filtro + tabla
-  const opcionesMes = MESES_NOMBRE.slice(1).map((n, i) =>
-    `<option value="${i+1}"${hoy.getMonth()+1 === i+1 ? " selected" : ""}>${n}</option>`
-  ).join("");
+  // Tabla sin filtro propio — el filtro global lo controla
+  wrap.innerHTML = `<div id="tm-tabla-cont"></div>`;
 
-  wrap.innerHTML = `
-    <div class="tm-filtro">
-      <span class="tm-filtro-label">Filtrar mes:</span>
-      <select id="tm-sel-mes" class="tm-sel">${opcionesMes}</select>
-      <input type="number" id="tm-sel-anio" class="tm-sel" min="2024" max="2032" value="${hoy.getFullYear()}">
-    </div>
-    <div id="tm-tabla-cont"></div>`;
-
-  // Render inicial
+  // Render inicial (el filtro global sobreescribirá luego)
   buildTabla(hoy.getFullYear(), hoy.getMonth() + 1);
+  actualizarTickersMes(hoy.getFullYear(), hoy.getMonth() + 1);
 
-  // Eventos del filtro
-  function onFiltroChange() {
-    const y = parseInt(document.getElementById("tm-sel-anio").value) || hoy.getFullYear();
-    const m = parseInt(document.getElementById("tm-sel-mes").value)  || hoy.getMonth() + 1;
-    if (y >= 2024 && y <= 2032 && m >= 1 && m <= 12) buildTabla(y, m);
-  }
-  document.getElementById("tm-sel-mes").addEventListener("change", onFiltroChange);
-  document.getElementById("tm-sel-anio").addEventListener("input",  onFiltroChange);
+  // Exponer para el filtro global
+  window._buildTabla = buildTabla;
 }
 
 function renderClientes(clientes){
@@ -1247,15 +1454,19 @@ function renderTendencia(tendencia){
 // GERENCIA
 // ---------------------------------------------------------------
 function renderGerencia(g, clientes){
+  const activos = clientes.filter(c=>!c.contrato_completo);
   const faltaMeta = Math.max(0, g.esperado_mes_completo - g.recibido_mes);
+  const totalPendiente = activos.reduce((s,c)=>s + c.pagos_restantes * c.tarifa_ref, 0);
+  const totalCuotas   = activos.reduce((s,c)=>s + c.pagos_restantes, 0);
+
   const cont = document.getElementById("tickers-gerencia");
   cont.innerHTML = `
     <div class="ticker">
       <div class="eyebrow">Motos activas</div>
-      <div class="valor">${g.cantidad_motos}</div>
+      <div class="valor">${activos.length}</div>
     </div>
     <div class="ticker">
-      <div class="eyebrow">Meta del mes (${g.cantidad_motos} motos)</div>
+      <div class="eyebrow">Meta del mes (${activos.length} motos)</div>
       <div class="valor" id="tkg-meta"></div>
     </div>
     <div class="ticker">
@@ -1271,76 +1482,86 @@ function renderGerencia(g, clientes){
   animarNumero(document.getElementById("tkg-recibido"), g.recibido_mes);
   animarNumero(document.getElementById("tkg-falta"), faltaMeta);
 
-  const totalDeuda = clientes.reduce((s,c)=>s + c.saldo_atrasado, 0);
-
-  const deAntes = g.atrasado_historico - g.atrasado_mes;
   const resumenSaldo = document.getElementById("saldo-final-resumen");
   resumenSaldo.innerHTML = `
-    <div class="ticker destacado" style="margin-bottom:12px;">
-      <div class="eyebrow">Saldo final del negocio (lo que te deben hoy, en total)</div>
-      <div class="valor rojo" id="tkg-saldo-final"></div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px;margin-bottom:12px;">
+      <div class="ticker destacado">
+        <div class="eyebrow">Total por cobrar (todas las motos)</div>
+        <div class="valor verde" id="tkg-pendiente-total"></div>
+      </div>
+      <div class="ticker">
+        <div class="eyebrow">Cuotas pendientes</div>
+        <div class="valor">${totalCuotas}</div>
+      </div>
+      <div class="ticker">
+        <div class="eyebrow">Motos activas</div>
+        <div class="valor">${activos.length}</div>
+      </div>
     </div>
     <div class="nota-sim">
-      Este saldo final <strong>es aparte de "Atrasado este mes"</strong> de la pestaña Operativo — ahí solo ves
-      lo nuevo que se sumó este mes. El total real es la suma de las dos partes:
-      atrasado de este mes (<strong>${formatPesos(g.atrasado_mes)}</strong>)
-      + lo que venía acumulado de meses anteriores (<strong>${formatPesos(deAntes)}</strong>).
+      Suma de <strong>cuotas restantes × tarifa</strong> por cada moto. Es todo el ingreso que recibirás
+      desde hoy hasta que cada contrato se complete.
     </div>
   `;
-  animarNumero(document.getElementById("tkg-saldo-final"), g.atrasado_historico);
+  animarNumero(document.getElementById("tkg-pendiente-total"), totalPendiente);
 
   const listaDeuda = document.getElementById("lista-deuda");
-  listaDeuda.innerHTML = clientes.map(c => `
+  listaDeuda.innerHTML = activos.map(c => {
+    const pend = c.pagos_restantes * c.tarifa_ref;
+    return `
     <div class="deuda-fila">
-      <span class="nom">${c.nombre}</span>
-      <span class="monto" style="color:var(--${claseMonto(c.saldo_atrasado)})">${formatPesos(c.saldo_atrasado)}</span>
-    </div>
-  `).join("") + `
+      <span class="nom">${c.nombre} <span style="font-size:0.76rem;color:var(--ink-soft);font-weight:400;">${c.pagos_restantes} cuotas</span></span>
+      <span class="monto" style="color:var(--verde)">${formatPesos(pend)}</span>
+    </div>`;
+  }).join("") + `
     <div class="deuda-fila total">
-      <span class="nom">Total</span>
-      <span class="monto">${formatPesos(totalDeuda)}</span>
+      <span class="nom">Total · ${totalCuotas} cuotas</span>
+      <span class="monto">${formatPesos(totalPendiente)}</span>
     </div>
   `;
 }
 
 function renderDeudaTotal(g, clientes){
+  const activos = clientes.filter(c=>!c.contrato_completo);
+  const totalPendiente = activos.reduce((s,c)=>s + c.pagos_restantes * c.tarifa_ref, 0);
+  const totalCuotas   = activos.reduce((s,c)=>s + c.pagos_restantes, 0);
+
   const cont = document.getElementById("tickers-deuda-total");
   cont.innerHTML = `
     <div class="ticker">
-      <div class="eyebrow">Atrasado a hoy (las 3)</div>
-      <div class="valor" id="tkdt-atrasado"></div>
+      <div class="eyebrow">Motos activas</div>
+      <div class="valor">${activos.length}</div>
     </div>
     <div class="ticker">
-      <div class="eyebrow">Por cobrar hasta fin de contrato</div>
-      <div class="valor" id="tkdt-restante"></div>
+      <div class="eyebrow">Cuotas pendientes</div>
+      <div class="valor">${totalCuotas}</div>
     </div>
     <div class="ticker destacado">
-      <div class="eyebrow">Total que te deben a la fecha</div>
-      <div class="valor rojo" id="tkdt-total"></div>
+      <div class="eyebrow">Total por cobrar hasta fin de contratos</div>
+      <div class="valor verde" id="tkdt-total"></div>
     </div>
   `;
-  animarNumero(document.getElementById("tkdt-atrasado"), g.atrasado_historico);
-  animarNumero(document.getElementById("tkdt-restante"), g.restante_programado_total);
-  animarNumero(document.getElementById("tkdt-total"), g.deuda_total_con_programado);
+  animarNumero(document.getElementById("tkdt-total"), totalPendiente);
 
   const tbody = document.querySelector("#tabla-deuda-total tbody");
-  tbody.innerHTML = clientes.map(c => `
-    <tr>
+  tbody.innerHTML = activos.map(c => {
+    const pend = c.pagos_restantes * c.tarifa_ref;
+    return `<tr>
       <td>${c.nombre}</td>
-      <td class="num" style="color:var(--${claseMonto(c.saldo_atrasado)})">${formatPesos(c.saldo_atrasado)}</td>
-      <td class="num">${formatPesos(c.restante_programado)}</td>
-      <td>${c.fecha_fin_contrato_legible}</td>
-      <td class="num" style="font-weight:700;">${formatPesos(c.deuda_total_con_programado)}</td>
-    </tr>
-  `).join("");
+      <td class="num">${c.pagos_restantes}</td>
+      <td class="num" style="color:var(--verde)">${formatPesos(pend)}</td>
+      <td>${c.fecha_fin_prevista_legible}</td>
+      <td class="num" style="font-weight:700;color:var(--verde)">${formatPesos(pend)}</td>
+    </tr>`;
+  }).join("");
 
   document.getElementById("tabla-deuda-total-pie").innerHTML = `
     <tr>
       <td>Total</td>
-      <td class="num">${formatPesos(g.atrasado_historico)}</td>
-      <td class="num">${formatPesos(g.restante_programado_total)}</td>
+      <td class="num">${totalCuotas} cuotas</td>
+      <td class="num">${formatPesos(totalPendiente)}</td>
       <td>—</td>
-      <td class="num">${formatPesos(g.deuda_total_con_programado)}</td>
+      <td class="num">${formatPesos(totalPendiente)}</td>
     </tr>
   `;
 }
@@ -1508,6 +1729,50 @@ function calcularSaldoFinalFiltrado(filas){
     }
   });
   return Object.values(ultimaPorCliente).reduce((s,r)=>s + (r.saldo || 0), 0);
+}
+
+// ---------------------------------------------------------------
+// VENCIMIENTOS POR MES
+// ---------------------------------------------------------------
+function renderVencimientos(clientes){
+  const hoy0   = new Date(DATOS.hoy + "T00:00:00");
+  const activos = clientes.filter(c=>!c.contrato_completo);
+  const porMes  = {};
+  activos.forEach(c=>{
+    const fin = new Date(c.fecha_fin_prevista + "T00:00:00");
+    const y=fin.getFullYear(), m=fin.getMonth()+1;
+    const key = y+"-"+String(m).padStart(2,"0");
+    if(!porMes[key]) porMes[key]={key, label:MESES_NOMBRE[m]+" "+y, clientes:[], esPasado: fin < hoy0};
+    porMes[key].clientes.push(c);
+  });
+  const meses = Object.values(porMes).sort((a,b)=>a.key.localeCompare(b.key));
+  const cont  = document.getElementById("vencimientos-lista");
+  if(!meses.length){ cont.innerHTML='<p style="color:var(--ink-soft)">No hay contratos activos.</p>'; return; }
+
+  cont.innerHTML = meses.map(mes=>{
+    const esPas = mes.esPasado;
+    const bg    = esPas ? "var(--gris-bg)" : "var(--card)";
+    const clr   = esPas ? "var(--gris)"   : "var(--ambar)";
+    const clrBg = esPas ? "var(--gris-bg)": "var(--ambar-bg)";
+    const titClr= esPas ? "var(--gris)"   : "var(--ink)";
+    const totalPend = mes.clientes.reduce((s,c)=>s+c.pagos_restantes*c.tarifa_ref, 0);
+    return `
+    <div style="margin-bottom:10px;background:${bg};border:1px solid var(--borde);border-radius:var(--radio);padding:13px 16px;">
+      <div style="display:flex;justify-content:space-between;align-items:baseline;flex-wrap:wrap;gap:6px;margin-bottom:8px;">
+        <strong style="font-family:var(--font-display);font-size:1.15rem;letter-spacing:0.04em;color:${titClr}">${mes.label}</strong>
+        <span style="display:flex;gap:8px;align-items:center;">
+          <span style="font-size:0.73rem;font-weight:700;background:${clrBg};color:${clr};padding:3px 9px;border-radius:20px;">${mes.clientes.length} moto${mes.clientes.length>1?'s':''}</span>
+          <span style="font-size:0.73rem;color:var(--ink-soft);">${formatPesos(totalPend)} pendiente</span>
+        </span>
+      </div>
+      <div style="display:flex;flex-wrap:wrap;gap:6px;">
+        ${mes.clientes.map(c=>`
+          <span style="background:${clrBg};color:${clr};font-size:0.76rem;font-weight:600;padding:4px 10px;border-radius:20px;">
+            ${c.nombre.split(" ").slice(0,2).join(" ")} · ${c.pagos_restantes} cuotas
+          </span>`).join("")}
+      </div>
+    </div>`;
+  }).join("");
 }
 
 function iniciarTabs(){
@@ -1757,6 +2022,71 @@ function renderPorCobrar(clientes){
   inpAnio.addEventListener("input", calcularProyeccion);
 }
 
+// ── Filtro de periodo global ─────────────────────────────────
+function iniciarFiltroPeriodo(){
+  const hoy0 = new Date(DATOS.hoy+"T00:00:00");
+
+  function iso(d){
+    return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");
+  }
+  function lunes(d){
+    const day=d.getDay(), diff=d.getDate()-day+(day===0?-6:1);
+    return new Date(d.getFullYear(),d.getMonth(),diff);
+  }
+  function corto(d){ return d.getDate()+"/"+(d.getMonth()+1); }
+
+  function aplicar(desde, hasta, label, tipo){
+    const elD=document.getElementById("fp-desde"), elH=document.getElementById("fp-hasta");
+    if(elD) elD.value = desde ? iso(desde) : "";
+    if(elH) elH.value = hasta ? iso(hasta) : "";
+    document.querySelectorAll(".btn-periodo").forEach(b=>b.classList.toggle("activo",b.dataset.rango===tipo));
+    const y = desde ? desde.getFullYear() : hoy0.getFullYear();
+    const m = desde ? desde.getMonth()+1  : hoy0.getMonth()+1;
+    if(window._buildTabla) window._buildTabla(y, m);
+    actualizarTickersPeriodo(desde, hasta, label);
+  }
+
+  document.querySelectorAll(".btn-periodo").forEach(btn=>{
+    btn.addEventListener("click",()=>{
+      const t = btn.dataset.rango;
+      if(t==="mes"){
+        aplicar(new Date(hoy0.getFullYear(),hoy0.getMonth(),1),
+                new Date(hoy0.getFullYear(),hoy0.getMonth()+1,0),
+                MESES_NOMBRE[hoy0.getMonth()+1]+" "+hoy0.getFullYear(), "mes");
+      } else if(t==="semana"){
+        const l=lunes(hoy0), s=new Date(l); s.setDate(s.getDate()+6);
+        aplicar(l, s, "Esta semana · "+corto(l)+" – "+corto(s), "semana");
+      } else if(t==="ayer"){
+        const ay=new Date(hoy0); ay.setDate(ay.getDate()-1);
+        aplicar(ay, ay, "Ayer · "+corto(ay)+"/"+ay.getFullYear(), "ayer");
+      } else if(t==="historico"){
+        aplicar(null, null, "Todo el histórico", "historico");
+      }
+    });
+  });
+
+  function onFechaManual(){
+    const elD=document.getElementById("fp-desde"), elH=document.getElementById("fp-hasta");
+    if(!elD||!elH||!elD.value||!elH.value) return;
+    const d0=new Date(elD.value+"T00:00:00"), d1=new Date(elH.value+"T00:00:00");
+    if(isNaN(d0)||isNaN(d1)||d0>d1) return;
+    const lbl = corto(d0)===(corto(d1)+"/"+d1.getFullYear())
+      ? corto(d0)+"/"+d1.getFullYear()
+      : corto(d0)+" – "+corto(d1)+"/"+d1.getFullYear();
+    document.querySelectorAll(".btn-periodo").forEach(b=>b.classList.remove("activo"));
+    if(window._buildTabla) window._buildTabla(d0.getFullYear(),d0.getMonth()+1);
+    actualizarTickersPeriodo(d0, d1, lbl);
+  }
+  const elD2=document.getElementById("fp-desde"), elH2=document.getElementById("fp-hasta");
+  if(elD2) elD2.addEventListener("change", onFechaManual);
+  if(elH2) elH2.addEventListener("change", onFechaManual);
+
+  // Iniciar con "Este mes"
+  aplicar(new Date(hoy0.getFullYear(),hoy0.getMonth(),1),
+          new Date(hoy0.getFullYear(),hoy0.getMonth()+1,0),
+          MESES_NOMBRE[hoy0.getMonth()+1]+" "+hoy0.getFullYear(), "mes");
+}
+
 // ---------------------------------------------------------------
 document.getElementById("fecha-hoy-legible").textContent = DATOS.hoy_legible;
 document.getElementById("generado-en").textContent = DATOS.generado_en;
@@ -1769,7 +2099,9 @@ iniciarTabla();
 
 renderGerencia(DATOS.global, DATOS.clientes);
 renderDeudaTotal(DATOS.global, DATOS.clientes);
+renderVencimientos(DATOS.clientes);
 renderPorCobrar(DATOS.clientes);
+iniciarFiltroPeriodo();
 
 // ── Simulador de crédito ──────────────────────────────────────────────────
 (function(){

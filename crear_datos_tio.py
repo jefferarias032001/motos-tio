@@ -37,7 +37,7 @@ CLIENTES = [
     ("Elkin Espitia Payares", "Bajaj EYO 06H", "EYO06H", datetime(2024,12,26), "Tel: 3003xx | 5980000",           64),
     ("Juan Andres De Arco",   "Bajaj KOO 16H", "KOO16H", datetime(2025, 1, 5), "Tel: 3202386294 | 5950000 inicial | 63 pagos (1 pendiente)", 64),
     ("Jorge Luis Reyes",      "Bajaj KOO B1H", "KOOB1H", datetime(2025, 1,10), "Tel: 3202841723 / 3005685892 | 5950000 inicial | CONTRATO FINALIZADO", 64),
-    ("Luis Gabriel Polo",     "Bajaj KOM 89H", "KOM89H", datetime(2025,12,23), "Tel: 3005685892 | 6806000 inicial | 72 cuotas/18 meses | Moto anterior OYL39H robada, repuesta dic-2025", 72),
+    ("Engelo Junior",         "Bajaj UYL 39H", "UYL39H", datetime(2025,12,23), "Tel: 3005685892 | 6806000 inicial | 72 cuotas/18 meses | Moto anterior OYL39H robada, repuesta dic-2025", 72),
     ("Duvon Enrique",         "Bajaj KEB 58H", "KEB58H", datetime(2025, 2,17), "Tel: 3126959090 | 15360000 total | 16 meses | 63 pagos (1 pendiente)", 64),
     ("Wilmer Ivis",           "Bajaj KEW 23H", "KEW23H", datetime(2025, 4, 4), "Tel: 3233311964 | 15360000 total | 64 cuotas | 59 pagos (5 pendientes)", 64),
     ("Jesus Morales Yuliana Olivares", "Bajaj KFK 1AH", "KFK1AH", datetime(2025, 5, 8), "Tel: 3465625710 | 17280000 total | 18 meses | 52 pagos (20 pendientes)", 72),
@@ -46,26 +46,26 @@ CLIENTES = [
     ("Wilian Junior Darlis Esther",   "Bajaj OTE 02H", "OTE02H", datetime(2025, 5,22), "Tel: 3239896985 | 14400000 total | 60 cuotas | 34 pagos (26 pendientes)", 60),
     ("Darwin Yaimis Ysabel",          "Bajaj OTE 80H", "OTE80H", datetime(2025, 5,25), "15360000 total | 64 cuotas | 54 pagos (10 pendientes)", 64),
     ("Kevin Rodriguez",               "Bajaj OXO 04H", "OXO04H", datetime(2025, 5,27), "20160000 total | 84 cuotas/21 meses | pagos bisemanales | 29 pagos (55 pendientes)", 84),
-    ("Nabro Maria Jesse",             "Bajaj OTE 68H", "OTE68H", datetime(2025, 4,22), "15360000 total | 64 cuotas | 51 pagos (13 pendientes)", 64),
-    ("Luis Katherin Estor",           "Bajaj OTG 82H", "OTG82H", datetime(2025, 6, 4), "Fotos 27-28 | Ref: Katherin Estor 3137781909 | 69 cuotas | 54 pagos (15 pendientes)", 69),
+    ("Negro Maria Jose",              "Bajaj OTE 68H", "OTE68H", datetime(2025, 4,22), "15360000 total | 64 cuotas | 51 pagos (13 pendientes)", 64),
+    ("Sr Pedro",                      "Bajaj OTG 82H", "OTG82H", datetime(2025, 6, 4), "Fotos 27-28 | Ref: Katherin Estor 3137781909 | 69 cuotas | 54 pagos (15 pendientes)", 69),
     ("Lucho Laura Nosu",             "Bajaj OTF 59H", "OTF59H", datetime(2025, 5,31), "Tel: 3147356412 | 15360000 total | 64 cuotas | 51 pagos (13 pendientes)", 64),
     ("Roberto",                      "Bajaj OTR 29H", "OTR29H", datetime(2025, 6,24), "Ref: Nik amigo De Guillermo / Flaco Hobiter Edinson | 15360000 total | 64 cuotas | 43 pagos (21 pendientes)", 64),
-    ("Braillon",                     "Bajaj OUA 19H", "OUA19H", datetime(2025, 7,17), "15360000 total | 64 cuotas | 43 pagos (21 pendientes)", 64),
+    ("Brayan",                        "Bajaj OUA 19H", "OUA19H", datetime(2025, 7,17), "15360000 total | 64 cuotas | 43 pagos (21 pendientes)", 64),
     ("Gustavo Primo",                "Bajaj OON 66H", "OON66H", datetime(2025, 4, 3), "moto 19 | 17 meses | 16320000 total | 68 cuotas | 68 pagos (0 pendientes)", 68),
-    ("Erzik",                        "Bajaj OUN 39H", "OUN39H", datetime(2025, 8, 3), "moto 20 | 36 meses | 13968000 total | 36 cuotas | tarifa 384000/mes | ver fotos 37-38 para pagos adicionales", 36),
+    ("Erik",                         "Bajaj OUN 39H", "OUN39H", datetime(2025, 8, 3), "moto 20 | 36 meses | 13968000 total | 36 cuotas | tarifa 384000/mes | ver fotos 37-38 para pagos adicionales", 36),
     ("Efrain",                       "Bajaj OTZ 01H", "OTZ01H", datetime(2025, 9, 2), "Amigo de Guillo | 21 meses | 20160000 total | 84 cuotas | subtotal cuaderno ~11.280.000 (≈47 cuotas) | algunos pagos son multiples por fila", 84),
-    ("Gonzado Estherline",           "Bajaj OUB 81H", "OUB81H", datetime(2025, 9,23), "Cuñado de Katherine | del Choco | Tel: 3205570847 | 21 meses | 20160000 total | 84 cuotas | subtotal cuaderno 11.520.000 (48 cuotas) | 41 registradas fotos 38+39", 84),
-    ("Ana Milena Juan Davit",        "Bajaj UPY 65H", "UPY65H", datetime(2026, 1,23), "Foto 40 | 25 pagos registrados | cuotas pendientes a confirmar", 64),
+    ("Katherine",                    "Bajaj OUB 81H", "OUB81H", datetime(2025, 9,23), "del Choco | Tel: 3205570847 | 21 meses | 20160000 total | 84 cuotas | subtotal cuaderno 11.520.000 (48 cuotas) | 41 registradas fotos 38+39", 84),
+    ("Ana Milena-Juan David",        "Bajaj UPY 65H", "UPY65H", datetime(2026, 1,23), "Foto 40 | 25 pagos registrados | cuotas pendientes a confirmar", 64),
     ("Sr Luis",                      "Bajaj UYZ 32H", "UYZ32H", datetime(2026, 1, 5), "Foto 41 | 14 pagos registrados | nota: calibrar moto", 64),
-    ("Manuel Alga",                  "Bajaj UYZ 39H", "UYZ39H", datetime(2026, 2,12), "Foto 42 | 18 meses | 72 cuotas | 18 pagos registrados", 72),
+    ("Manuel Olga",                  "Bajaj UYZ 39H", "UYZ39H", datetime(2026, 2,12), "Foto 42 | 18 meses | 72 cuotas | 18 pagos registrados", 72),
     ("Jorge Estrada",                 "Bajaj BJH 66I", "BJH66I", datetime(2026, 2,16), "Foto 43 | 64 cuotas | 18 meses | 16 pagos | GAP en mayo-2026 sin registro", 64),
-    ("Donita Juan Camilo",           "Bajaj BJK 95I", "BJK95I", datetime(2026, 3, 5), "Foto 44 | 24 meses | 24 cuotas MENSUALES | tarifa 420.000/mes | total 10.080.000", 24),
-    ("Alejandra",                    "Bajaj OKS 30I", "OKS30I", datetime(2026, 4,11), "Foto 45 | 21 meses | 84 cuotas | 13 pagos registrados", 84),
-    ("Carlos",                       "Bajaj BLB 45I", "BLB45I", datetime(2026, 5,16), "Foto 46 | 18 meses | 72 cuotas | 4 pagos registrados | moto #29", 72),
+    ("Daniela Nuñez",                "Bajaj BJK 95I", "BJK95I", datetime(2026, 3, 5), "Foto 44 | 24 meses | 24 cuotas MENSUALES | tarifa 420.000/mes | total 10.080.000", 24),
+    ("Alejandro",                    "Bajaj OKS 30I", "OKS30I", datetime(2026, 4,11), "Foto 45 | 21 meses | 84 cuotas | 13 pagos registrados", 84),
+    ("Karluis",                      "Bajaj BLB 45I", "BLB45I", datetime(2026, 5,16), "Foto 46 | 18 meses | 72 cuotas | 4 pagos registrados | moto #29", 72),
     ("Francisco (Buñuelo)",          "Bajaj BLG 78I", "BLG78I", datetime(2026, 5, 3), "Foto 47 | 24 meses | 48 cuotas bisemanales | tarifa 190.000 | 4 pagos | moto #30", 48),
     ("Yesenia",                      "Bajaj HWO 62I", "HWO62I", datetime(2026, 7, 8), "Foto 48 | 18 meses | 72 cuotas | 3 pagos registrados | moto #31", 72),
     ("Alvania",                      "Bajaj HWD 78I", "HWD78I", datetime(2026, 7,10), "Foto 49 | 18 meses | 72 cuotas | 2 pagos registrados | moto #32", 72),
-    ("Yurais Polo",                  "Bajaj HWM 11I", "HWM11I", datetime(2026, 8, 1), "Foto 50 | 18 meses | 72 cuotas | moto #33 | SIN PAGOS aun — cliente nuevo", 72),
+    ("Yuranis Polo",                 "Bajaj HWM 11I", "HWM11I", datetime(2026, 8, 1), "Foto 50 | 18 meses | 72 cuotas | moto #33 | SIN PAGOS aun — cliente nuevo", 72),
 ]
 
 # Pagos de Dorlys (57 pagos registrados en fotos 1 y 2)
@@ -677,7 +677,7 @@ agregar_pagos("Dorlys Jose Julio",     "Bajaj EYO 11H", "EYO11H", PAGOS_DORLYS)
 agregar_pagos("Elkin Espitia Payares", "Bajaj EYO 06H", "EYO06H", PAGOS_ELKIN)
 agregar_pagos("Juan Andres De Arco",   "Bajaj KOO 16H", "KOO16H", PAGOS_JUAN_ANDRES)
 agregar_pagos("Jorge Luis Reyes",      "Bajaj KOO B1H", "KOOB1H", PAGOS_JORGE_LUIS)
-agregar_pagos("Luis Gabriel Polo",     "Bajaj KOM 89H", "KOM89H", PAGOS_LUIS_GABRIEL)
+agregar_pagos("Engelo Junior",         "Bajaj UYL 39H", "UYL39H", PAGOS_LUIS_GABRIEL)
 agregar_pagos("Duvon Enrique",         "Bajaj KEB 58H", "KEB58H", PAGOS_DUVON)
 agregar_pagos("Wilmer Ivis",           "Bajaj KEW 23H", "KEW23H", PAGOS_WILMER)
 agregar_pagos("Jesus Morales Yuliana Olivares", "Bajaj KFK 1AH", "KFK1AH", PAGOS_JESUS)
@@ -686,22 +686,22 @@ agregar_pagos("Chacal Caterine",               "Bajaj OSZ 43H", "OSZ43H", PAGOS_
 agregar_pagos("Wilian Junior Darlis Esther",   "Bajaj OTE 02H", "OTE02H", PAGOS_WILIAN_JR)
 agregar_pagos("Darwin Yaimis Ysabel",          "Bajaj OTE 80H", "OTE80H", PAGOS_DARWIN)
 agregar_pagos("Kevin Rodriguez",               "Bajaj OXO 04H", "OXO04H", PAGOS_KEVIN)
-agregar_pagos("Nabro Maria Jesse",             "Bajaj OTE 68H", "OTE68H", PAGOS_NABRO)
-agregar_pagos("Luis Katherin Estor",           "Bajaj OTG 82H", "OTG82H", PAGOS_LUIS_KATHERIN)
+agregar_pagos("Negro Maria Jose",             "Bajaj OTE 68H", "OTE68H", PAGOS_NABRO)
+agregar_pagos("Sr Pedro",                      "Bajaj OTG 82H", "OTG82H", PAGOS_LUIS_KATHERIN)
 agregar_pagos("Lucho Laura Nosu",             "Bajaj OTF 59H", "OTF59H", PAGOS_LUCHO)
 agregar_pagos("Roberto",                      "Bajaj OTR 29H", "OTR29H", PAGOS_ROBERTO)
-agregar_pagos("Braillon",                     "Bajaj OUA 19H", "OUA19H", PAGOS_BRAILLON)
+agregar_pagos("Brayan",                       "Bajaj OUA 19H", "OUA19H", PAGOS_BRAILLON)
 agregar_pagos("Gustavo Primo",                "Bajaj OON 66H", "OON66H", PAGOS_GUSTAVO)
-agregar_pagos("Erzik",                        "Bajaj OUN 39H", "OUN39H", PAGOS_ERZIK, tarifa=TARIFA_ERZIK)
+agregar_pagos("Erik",                         "Bajaj OUN 39H", "OUN39H", PAGOS_ERZIK, tarifa=TARIFA_ERZIK)
 agregar_pagos("Efrain",                       "Bajaj OTZ 01H", "OTZ01H", PAGOS_EFRAIN)
-agregar_pagos("Gonzado Estherline",           "Bajaj OUB 81H", "OUB81H", PAGOS_GONZADO)
-agregar_pagos("Ana Milena Juan Davit",        "Bajaj UPY 65H", "UPY65H", PAGOS_ANA_MILENA)
+agregar_pagos("Katherine",                    "Bajaj OUB 81H", "OUB81H", PAGOS_GONZADO)
+agregar_pagos("Ana Milena-Juan David",        "Bajaj UPY 65H", "UPY65H", PAGOS_ANA_MILENA)
 agregar_pagos("Sr Luis",                      "Bajaj UYZ 32H", "UYZ32H", PAGOS_SR_LUIS)
-agregar_pagos("Manuel Alga",                  "Bajaj UYZ 39H", "UYZ39H", PAGOS_MANUEL_ALGA)
+agregar_pagos("Manuel Olga",                  "Bajaj UYZ 39H", "UYZ39H", PAGOS_MANUEL_ALGA)
 agregar_pagos("Jorge Estrada",                "Bajaj BJH 66I", "BJH66I", PAGOS_CARLOS_HABITE)
-agregar_pagos("Donita Juan Camilo",          "Bajaj BJK 95I", "BJK95I", PAGOS_DONITA_JUAN_CAMILO, tarifa=TARIFA_DONITA)
-agregar_pagos("Alejandra",                   "Bajaj OKS 30I", "OKS30I", PAGOS_ALEJANDRA)
-agregar_pagos("Carlos",                      "Bajaj BLB 45I", "BLB45I", PAGOS_CARLOS)
+agregar_pagos("Daniela Nuñez",               "Bajaj BJK 95I", "BJK95I", PAGOS_DONITA_JUAN_CAMILO, tarifa=TARIFA_DONITA)
+agregar_pagos("Alejandro",                   "Bajaj OKS 30I", "OKS30I", PAGOS_ALEJANDRA)
+agregar_pagos("Karluis",                     "Bajaj BLB 45I", "BLB45I", PAGOS_CARLOS)
 agregar_pagos("Francisco (Buñuelo)",         "Bajaj BLG 78I", "BLG78I", PAGOS_FRANCISCO, tarifa=TARIFA_FRANCISCO)
 agregar_pagos("Yesenia",                     "Bajaj HWO 62I", "HWO62I", PAGOS_YESENIA)
 agregar_pagos("Alvania",                     "Bajaj HWD 78I", "HWD78I", PAGOS_ALVANIA)
@@ -909,7 +909,7 @@ print(f"  Dorlys       : {len(PAGOS_DORLYS)} pagos  → ${len(PAGOS_DORLYS) * 24
 print(f"  Elkin        : {len(PAGOS_ELKIN)} pagos  → ${len(PAGOS_ELKIN) * 240_000:,}".replace(",","."))
 print(f"  Juan Andres  : {len(PAGOS_JUAN_ANDRES)} pagos  → ${len(PAGOS_JUAN_ANDRES) * 240_000:,} (1 pendiente)".replace(",","."))
 print(f"  Jorge Luis   : {len(PAGOS_JORGE_LUIS)} pagos  → ${len(PAGOS_JORGE_LUIS) * 240_000:,} (FINALIZADO)".replace(",","."))
-print(f"  Luis Gabriel : {len(PAGOS_LUIS_GABRIEL)} pagos  → ${len(PAGOS_LUIS_GABRIEL) * 240_000:,} ({72 - len(PAGOS_LUIS_GABRIEL)} pendientes de 72)".replace(",","."))
+print(f"  Engelo Junior: {len(PAGOS_LUIS_GABRIEL)} pagos  → ${len(PAGOS_LUIS_GABRIEL) * 240_000:,} ({72 - len(PAGOS_LUIS_GABRIEL)} pendientes de 72)".replace(",","."))
 print(f"  Duvon        : {len(PAGOS_DUVON)} pagos  → ${len(PAGOS_DUVON) * 240_000:,} (1 pendiente de 64)".replace(",","."))
 print(f"  Wilmer       : {len(PAGOS_WILMER)} pagos  → ${len(PAGOS_WILMER) * 240_000:,} (5 pendientes de 64)".replace(",","."))
 print(f"  Jesus/Yuliana: {len(PAGOS_JESUS)} pagos  → ${len(PAGOS_JESUS) * 240_000:,} (20 pendientes de 72)".replace(",","."))
@@ -918,8 +918,8 @@ print(f"  Chacal       : {len(PAGOS_CHACAL)} pagos  → ${len(PAGOS_CHACAL) * 24
 print(f"  Wilian Jr    : {len(PAGOS_WILIAN_JR)} pagos  → ${len(PAGOS_WILIAN_JR) * 240_000:,} (26 pendientes de 60)".replace(",","."))
 print(f"  Darwin       : {len(PAGOS_DARWIN)} pagos  → ${len(PAGOS_DARWIN) * 240_000:,} (10 pendientes de 64)".replace(",","."))
 print(f"  Kevin        : {len(PAGOS_KEVIN)} pagos  → ${len(PAGOS_KEVIN) * 240_000:,} (55 pendientes de 84)".replace(",","."))
-print(f"  Nabro        : {len(PAGOS_NABRO)} pagos  → ${len(PAGOS_NABRO) * 240_000:,} (13 pendientes de 64)".replace(",","."))
-print(f"  Luis Katherin: {len(PAGOS_LUIS_KATHERIN)} pagos  → ${len(PAGOS_LUIS_KATHERIN) * 240_000:,} ({69 - len(PAGOS_LUIS_KATHERIN)} pendientes de 69)".replace(",","."))
+print(f"  Negro Maria  : {len(PAGOS_NABRO)} pagos  → ${len(PAGOS_NABRO) * 240_000:,} (13 pendientes de 64)".replace(",","."))
+print(f"  Sr Pedro     : {len(PAGOS_LUIS_KATHERIN)} pagos  → ${len(PAGOS_LUIS_KATHERIN) * 240_000:,} ({69 - len(PAGOS_LUIS_KATHERIN)} pendientes de 69)".replace(",","."))
 print(f"  Lucho        : {len(PAGOS_LUCHO)} pagos  → ${len(PAGOS_LUCHO) * 240_000:,} (13 pendientes de 64)".replace(",","."))
 print(f"  Roberto      : {len(PAGOS_ROBERTO)} pagos  → ${len(PAGOS_ROBERTO) * 240_000:,} ({64 - len(PAGOS_ROBERTO)} pendientes de 64)".replace(",","."))
 print(f"  Braillon     : {len(PAGOS_BRAILLON)} pagos  → ${len(PAGOS_BRAILLON) * 240_000:,} ({64 - len(PAGOS_BRAILLON)} pendientes de 64)".replace(",","."))
