@@ -60,6 +60,10 @@ CLIENTES = [
     ("Jorge Estrada",                 "Bajaj BJH 66I", "BJH66I", datetime(2026, 2,16), "Foto 43 | 64 cuotas | 18 meses | 16 pagos | GAP en mayo-2026 sin registro", 64),
     ("Donita Juan Camilo",           "Bajaj BJK 95I", "BJK95I", datetime(2026, 3, 5), "Foto 44 | 24 meses | 24 cuotas MENSUALES | tarifa 420.000/mes | total 10.080.000", 24),
     ("Alejandra",                    "Bajaj OKS 30I", "OKS30I", datetime(2026, 4,11), "Foto 45 | 21 meses | 84 cuotas | 13 pagos registrados", 84),
+    ("Carlos",                       "Bajaj BLB 45I", "BLB45I", datetime(2026, 5,16), "Foto 46 | 18 meses | 72 cuotas | 4 pagos registrados | moto #29", 72),
+    ("Francisco (Buñuelo)",          "Bajaj BLG 78I", "BLG78I", datetime(2026, 5, 3), "Foto 47 | 24 meses | 48 cuotas bisemanales | tarifa 190.000 | 4 pagos | moto #30", 48),
+    ("Yesenia",                      "Bajaj HWO 62I", "HWO62I", datetime(2026, 7, 8), "Foto 48 | 18 meses | 72 cuotas | 3 pagos registrados | moto #31", 72),
+    ("Alvania",                      "Bajaj HWD 78I", "HWD78I", datetime(2026, 7,10), "Foto 49 | 18 meses | 72 cuotas | 2 pagos registrados | moto #32", 72),
 ]
 
 # Pagos de Dorlys (57 pagos registrados en fotos 1 y 2)
@@ -530,8 +534,29 @@ PAGOS_SR_LUIS = [
     datetime(2026, 4, 3), datetime(2026, 4,11), datetime(2026, 4,19),
 ]
 
-TARIFA_ERZIK  = 384_000  # mensual (≠ 240.000 semanal de otros clientes)
-TARIFA_DONITA = 420_000  # mensual (foto 44 — pago único mensual, 24 cuotas)
+TARIFA_ERZIK       = 384_000  # mensual (≠ 240.000 semanal de otros clientes)
+TARIFA_DONITA      = 420_000  # mensual (foto 44 — pago único mensual, 24 cuotas)
+TARIFA_FRANCISCO   = 190_000  # bisemanal (foto 47 — 48 cuotas en 24 meses)
+
+# Pagos de Carlos (4 pagos — foto 46, BLB 45I, 18 meses / 72 cuotas, moto #29)
+PAGOS_CARLOS = [
+    datetime(2026, 5,16), datetime(2026, 5,24), datetime(2026, 6, 4), datetime(2026, 6,18),
+]
+
+# Pagos de Francisco Buñuelo (4 pagos — foto 47, BLG 78I, 24 meses / 48 cuotas bisemanales)
+PAGOS_FRANCISCO = [
+    datetime(2026, 5, 3), datetime(2026, 5,15), datetime(2026, 5,30), datetime(2026, 7,15),
+]
+
+# Pagos de Yesenia (3 pagos — foto 48, HWO 62I, 18 meses / 72 cuotas, moto #31)
+PAGOS_YESENIA = [
+    datetime(2026, 7, 8), datetime(2026, 7,15), datetime(2026, 7,22),
+]
+
+# Pagos de Alvania (2 pagos — foto 49, HWD 78I, 18 meses / 72 cuotas, moto #32)
+PAGOS_ALVANIA = [
+    datetime(2026, 7,10), datetime(2026, 7,17),
+]
 
 # Pagos de Donita Juan Camilo (4 pagos — foto 44, 24 cuotas MENSUALES de 420.000)
 PAGOS_DONITA_JUAN_CAMILO = [
@@ -650,6 +675,10 @@ agregar_pagos("Manuel Alga",                  "Bajaj UYZ 39H", "UYZ39H", PAGOS_M
 agregar_pagos("Jorge Estrada",                "Bajaj BJH 66I", "BJH66I", PAGOS_CARLOS_HABITE)
 agregar_pagos("Donita Juan Camilo",          "Bajaj BJK 95I", "BJK95I", PAGOS_DONITA_JUAN_CAMILO, tarifa=TARIFA_DONITA)
 agregar_pagos("Alejandra",                   "Bajaj OKS 30I", "OKS30I", PAGOS_ALEJANDRA)
+agregar_pagos("Carlos",                      "Bajaj BLB 45I", "BLB45I", PAGOS_CARLOS)
+agregar_pagos("Francisco (Buñuelo)",         "Bajaj BLG 78I", "BLG78I", PAGOS_FRANCISCO, tarifa=TARIFA_FRANCISCO)
+agregar_pagos("Yesenia",                     "Bajaj HWO 62I", "HWO62I", PAGOS_YESENIA)
+agregar_pagos("Alvania",                     "Bajaj HWD 78I", "HWD78I", PAGOS_ALVANIA)
 
 # Formato de fecha en columna A
 for row in ws_reg.iter_rows(min_row=2):
@@ -877,6 +906,10 @@ print(f"  Manuel Alga  : {len(PAGOS_MANUEL_ALGA)} pagos  → ${len(PAGOS_MANUEL_
 print(f"  Jorge Estrada: {len(PAGOS_CARLOS_HABITE)} pagos  → ${len(PAGOS_CARLOS_HABITE) * 240_000:,} ({64 - len(PAGOS_CARLOS_HABITE)} pend de 64 | GAP mayo)".replace(",","."))
 print(f"  Donita J.C.  : {len(PAGOS_DONITA_JUAN_CAMILO)} pagos  → ${len(PAGOS_DONITA_JUAN_CAMILO) * TARIFA_DONITA:,} ({24 - len(PAGOS_DONITA_JUAN_CAMILO)} pend de 24 | tarifa 420k/mes)".replace(",","."))
 print(f"  Alejandra    : {len(PAGOS_ALEJANDRA)} pagos  → ${len(PAGOS_ALEJANDRA) * 240_000:,} ({84 - len(PAGOS_ALEJANDRA)} pend de 84)".replace(",","."))
+print(f"  Carlos       : {len(PAGOS_CARLOS)} pagos  → ${len(PAGOS_CARLOS) * 240_000:,} ({72 - len(PAGOS_CARLOS)} pend de 72)".replace(",","."))
+print(f"  Francisco    : {len(PAGOS_FRANCISCO)} pagos  → ${len(PAGOS_FRANCISCO) * TARIFA_FRANCISCO:,} ({48 - len(PAGOS_FRANCISCO)} pend de 48 | tarifa 190k bisemanal)".replace(",","."))
+print(f"  Yesenia      : {len(PAGOS_YESENIA)} pagos  → ${len(PAGOS_YESENIA) * 240_000:,} ({72 - len(PAGOS_YESENIA)} pend de 72)".replace(",","."))
+print(f"  Alvania      : {len(PAGOS_ALVANIA)} pagos  → ${len(PAGOS_ALVANIA) * 240_000:,} ({72 - len(PAGOS_ALVANIA)} pend de 72)".replace(",","."))
 print()
 print("NOTA: revisa las fechas en el Excel — algunas pueden tener ±1-2 días")
 print("      por la letra manuscrita. Edita directamente si algo no cuadra.")
