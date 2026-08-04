@@ -2577,7 +2577,7 @@ async function cargarCobroDiario(){
         const tarifa = TARIFA_SEMANAL_MAP[key.toLowerCase()] || 240000;
         porCliente[key] = { cliente:key, moto:r.moto, placa:r.placa, tarifa, pagos:[] };
       }
-      porCliente[key].pagos.push({ fecha:r.fecha, valor:Number(r.pago_recibido)||0 });
+      porCliente[key].pagos.push({ fecha:r.fecha, valor:Number(r.pago_recibido)||0, medio:r.medio_pago||'' });
     });
 
     // Analizar cada cliente
@@ -2649,9 +2649,13 @@ async function cargarCobroDiario(){
       const nCuotas = c.cuotasCompletadas.length;
       const ultimaCuota = nCuotas > 0 ? c.cuotasCompletadas[nCuotas-1] : null;
 
-      const diasHtml = ciclo.pagos.map(p=>
-        `<span class="cobro-dia">${diaCorto(p.fecha)}: ${formatCompacto(p.valor)}</span>`
-      ).join("");
+      const diasHtml = ciclo.pagos.map(p=>{
+        const esN = (p.medio||'').toLowerCase().includes('nequi');
+        const badge = esN
+          ? `<span style="background:#3B82F6;color:#fff;font-size:0.6rem;font-weight:700;padding:1px 5px;border-radius:4px;margin-left:3px;">N</span>`
+          : `<span style="background:var(--verde);color:#fff;font-size:0.6rem;font-weight:700;padding:1px 5px;border-radius:4px;margin-left:3px;">E</span>`;
+        return `<span class="cobro-dia">${diaCorto(p.fecha)}: ${formatCompacto(p.valor)}${badge}</span>`;
+      }).join("");
 
       const ultimaCuotaHtml = ultimaCuota
         ? `<div class="cobro-ultima-cuota">Última cuota: ${diaCorto(ultimaCuota.fecha)} · ${formatPesos(ultimaCuota.total)}</div>`
