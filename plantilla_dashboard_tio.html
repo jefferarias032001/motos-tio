@@ -2652,22 +2652,34 @@ async function cargarCobroDiario(){
       else porDia[r.fecha].efectivo += v;
     });
     const diasOrden = Object.keys(porDia).sort((a,b)=>b.localeCompare(a));
+    const gtTotal = Object.values(porDia).reduce((s,d)=>s+d.total,0);
+    const gtNequi = Object.values(porDia).reduce((s,d)=>s+d.nequi,0);
+    const gtEfectivo = Object.values(porDia).reduce((s,d)=>s+d.efectivo,0);
+    const gtN = Object.values(porDia).reduce((s,d)=>s+d.n,0);
+
     const diasHtml = diasOrden.map(f=>{
       const d = porDia[f];
       const [y,mo,dd] = f.split("-");
       const label = `${dd}/${mo}/${y}`;
-      const esHoy = f===hoy ? ' style="background:var(--asphalt);border-color:var(--plate);"' : '';
-      return `<tr${esHoy}>
-        <td style="font-weight:600;white-space:nowrap;">${label}</td>
-        <td style="text-align:center;color:var(--ink-soft);">${d.n}</td>
-        <td style="text-align:right;font-weight:700;">${formatPesos(d.total)}</td>
+      const isHoy = f===hoy;
+      const trStyle = isHoy ? ' style="background:var(--asphalt);"' : '';
+      const txtStyle = isHoy ? 'color:#F4EFE2;font-weight:700;' : 'font-weight:600;';
+      const softStyle = isHoy ? 'color:#C8BEA0;' : 'color:var(--ink-soft);';
+      return `<tr${trStyle}>
+        <td style="${txtStyle}white-space:nowrap;">${label}${isHoy?' <span style="font-size:0.65rem;background:var(--plate);color:#1A1714;padding:1px 5px;border-radius:4px;margin-left:4px;font-weight:700;">HOY</span>':''}</td>
+        <td style="text-align:center;${softStyle}">${d.n}</td>
+        <td style="text-align:right;${txtStyle}">${formatPesos(d.total)}</td>
         <td style="text-align:right;color:#3B82F6;font-weight:600;">${d.nequi>0?formatPesos(d.nequi):'—'}</td>
         <td style="text-align:right;color:var(--verde);font-weight:600;">${d.efectivo>0?formatPesos(d.efectivo):'—'}</td>
       </tr>`;
     }).join("");
 
+    // Quitar tabla anterior si ya existe (evita duplicados al refrescar)
+    const tablaAnterior = document.getElementById("cobros-por-dia-wrap");
+    if(tablaAnterior) tablaAnterior.remove();
+
     gridEl.insertAdjacentHTML("beforebegin", `
-      <div style="margin-bottom:24px;">
+      <div id="cobros-por-dia-wrap" style="margin-bottom:24px;">
         <h3 style="font-size:0.78rem;text-transform:uppercase;letter-spacing:0.07em;color:var(--ink-soft);margin:0 0 10px;font-weight:700;">Cobros por día</h3>
         <div class="tabla-scroll">
           <table class="detalle" style="min-width:420px;">
@@ -2678,6 +2690,13 @@ async function cargarCobroDiario(){
               <th style="text-align:right;color:var(--verde);">Efectivo</th>
             </tr></thead>
             <tbody>${diasHtml}</tbody>
+            <tfoot><tr style="background:var(--card-soft);">
+              <td style="font-weight:700;">TOTAL</td>
+              <td style="text-align:center;font-weight:700;">${gtN}</td>
+              <td style="text-align:right;font-weight:700;">${formatPesos(gtTotal)}</td>
+              <td style="text-align:right;color:#3B82F6;font-weight:700;">${formatPesos(gtNequi)}</td>
+              <td style="text-align:right;color:var(--verde);font-weight:700;">${formatPesos(gtEfectivo)}</td>
+            </tr></tfoot>
           </table>
         </div>
       </div>`);
