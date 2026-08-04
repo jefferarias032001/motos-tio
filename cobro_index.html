@@ -17,39 +17,41 @@ html{background:var(--paper);}
 body{
   font-family:-apple-system,'Inter',system-ui,sans-serif;
   background:var(--paper);color:var(--ink);
-  min-height:100vh;padding-bottom:48px;
+  min-height:100vh;display:flex;flex-direction:column;
   -webkit-text-size-adjust:100%;
 }
 
 /* ── Header ─────────────────────────────────────────────────────────── */
 .header{
   background:var(--asphalt);border-bottom:4px solid var(--plate);
-  padding:14px 18px;display:flex;align-items:center;gap:14px;
-  position:sticky;top:0;z-index:10;
+  padding:16px 18px;display:flex;align-items:center;gap:14px;
 }
 .header-text h1{
-  font-size:1.25rem;font-weight:900;letter-spacing:.06em;
+  font-size:1.65rem;font-weight:900;letter-spacing:.06em;
   color:var(--plate);line-height:1;
 }
-.header-text span{font-size:.7rem;color:#C9C2B2;letter-spacing:.04em;}
+.header-text span{font-size:.92rem;color:#C9C2B2;letter-spacing:.04em;}
+
+/* ── Scroll area ─────────────────────────────────────────────────────── */
+main{flex:1;display:flex;flex-direction:column;overflow-y:auto;-webkit-overflow-scrolling:touch;}
 
 /* ── Form ────────────────────────────────────────────────────────────── */
-.form-wrap{padding:20px 16px;display:flex;flex-direction:column;gap:18px;}
+.form-wrap{flex:1;padding:20px 16px 8px;display:flex;flex-direction:column;justify-content:space-between;}
 
-.campo{display:flex;flex-direction:column;gap:7px;}
+.campo{display:flex;flex-direction:column;gap:8px;}
 .campo label{
-  font-size:.72rem;font-weight:700;text-transform:uppercase;
-  letter-spacing:.07em;color:var(--ink-soft);
+  font-size:1rem;font-weight:700;text-transform:uppercase;
+  letter-spacing:.06em;color:var(--ink-soft);
 }
 .campo select,
 .campo input[type=number],
 .campo input[type=date],
 .campo input[type=text],
 .campo textarea{
-  width:100%;padding:14px 16px;
+  width:100%;padding:22px 18px;
   border:2px solid var(--borde);border-radius:var(--radio);
   background:var(--card);color:var(--ink);
-  font-size:1.05rem;font-family:inherit;
+  font-size:1.35rem;font-family:inherit;
   -webkit-appearance:none;appearance:none;outline:none;
 }
 .campo select:focus,
@@ -58,7 +60,7 @@ body{
   border-color:var(--plate);
   box-shadow:0 0 0 3px rgba(232,169,58,.2);
 }
-.campo textarea{resize:none;height:72px;font-size:.95rem;}
+.campo textarea{resize:none;height:90px;font-size:1.15rem;}
 
 /* ── Doble buscador ─────────────────────────────────────────────────── */
 .doble-busca{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
@@ -67,60 +69,65 @@ body{
 .resultados{display:flex;flex-direction:column;gap:6px;}
 .res-item{
   display:flex;align-items:center;gap:12px;
-  padding:12px 14px;background:var(--card);
+  padding:16px 14px;background:var(--card);
   border:2px solid var(--borde);border-radius:var(--radio);
   cursor:pointer;-webkit-tap-highlight-color:transparent;transition:border-color .15s;
 }
 .res-item:active{background:var(--verde-bg);border-color:var(--verde);}
-.res-nombre{font-size:.9rem;font-weight:700;color:var(--ink);}
-.res-moto{font-size:.75rem;color:var(--ink-soft);margin-top:2px;}
-.res-vacio{color:var(--ink-soft);font-size:.85rem;padding:6px 2px;}
+.res-nombre{font-size:1rem;font-weight:700;color:var(--ink);}
+.res-moto{font-size:.82rem;color:var(--ink-soft);margin-top:2px;}
+.res-vacio{color:var(--ink-soft);font-size:.9rem;padding:6px 2px;}
 
 /* ── Tarjeta moto (auto-fill) ────────────────────────────────────────── */
 .moto-card{
   display:none;background:var(--verde-bg);
   border:2px solid var(--verde);border-radius:var(--radio);
-  padding:13px 16px;gap:12px;align-items:center;
+  padding:16px;gap:14px;align-items:center;
 }
 .moto-card.visible{display:flex;}
 .placa-badge{
   background:var(--asphalt);color:var(--plate);
-  font-size:.78rem;font-weight:900;letter-spacing:.1em;
-  padding:5px 11px;border-radius:9px;white-space:nowrap;flex:none;
+  font-size:.9rem;font-weight:900;letter-spacing:.1em;
+  padding:8px 14px;border-radius:10px;white-space:nowrap;flex:none;
 }
-.moto-nom{font-size:.9rem;font-weight:700;color:var(--ink);}
-.moto-tarifa{font-size:.75rem;color:var(--ink-soft);margin-top:2px;}
+.moto-nom{font-size:1rem;font-weight:700;color:var(--ink);}
+.moto-tarifa{font-size:.82rem;color:var(--ink-soft);margin-top:2px;}
 
 /* ── Valor ────────────────────────────────────────────────────────────── */
 .valor-wrap{position:relative;}
 .valor-prefix{
-  position:absolute;left:16px;top:50%;transform:translateY(-50%);
-  font-size:1.1rem;font-weight:700;color:var(--ink-soft);pointer-events:none;
+  position:absolute;left:18px;top:50%;transform:translateY(-50%);
+  font-size:1.5rem;font-weight:700;color:var(--ink-soft);pointer-events:none;
 }
 .campo .valor-wrap input{
-  padding-left:28px;font-size:1.3rem;font-weight:700;
+  padding-left:34px;font-size:2rem;font-weight:700;
 }
 
 /* ── Medios de pago ────────────────────────────────────────────────────── */
-.medios{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.medios{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;}
 .medio-btn{
-  padding:14px 8px;border:2px solid var(--borde);
+  padding:18px 4px 16px;border:2px solid var(--borde);
   border-radius:var(--radio);background:var(--card);color:var(--ink);
-  font-size:.88rem;font-weight:600;cursor:pointer;text-align:center;
+  font-size:1rem;font-weight:600;cursor:pointer;text-align:center;
   transition:all .15s;-webkit-tap-highlight-color:transparent;
   user-select:none;
 }
-.medio-btn .ico{display:block;font-size:1.5rem;margin-bottom:4px;}
+.medio-btn .ico{display:block;font-size:2.1rem;margin-bottom:6px;}
 .medio-btn.activo{
   border-color:var(--plate);background:var(--asphalt);color:var(--plate);
 }
 
 /* ── Botón enviar ────────────────────────────────────────────────────── */
+.btn-footer{
+  padding:14px 16px 24px;
+  background:var(--paper);border-top:1px solid var(--borde);
+  margin-top:8px;
+}
 .btn-enviar{
-  width:100%;padding:18px;background:var(--plate);color:var(--asphalt);
+  width:100%;padding:24px;background:var(--plate);color:var(--asphalt);
   border:none;border-radius:var(--radio);
-  font-size:1.1rem;font-weight:900;letter-spacing:.05em;
-  cursor:pointer;margin-top:6px;
+  font-size:1.4rem;font-weight:900;letter-spacing:.05em;
+  cursor:pointer;
   -webkit-tap-highlight-color:transparent;transition:opacity .15s;
 }
 .btn-enviar:disabled{opacity:.5;cursor:default;}
@@ -180,7 +187,7 @@ body{
 
 <!-- ── Formulario ────────────────────────────────────────────────────── -->
 <main>
-<form class="form-wrap" id="frm" onsubmit="return false">
+<form class="form-wrap" id="frm" onsubmit="return false" autocomplete="off">
 
   <div class="doble-busca">
     <div class="campo">
@@ -244,14 +251,14 @@ body{
     <textarea id="inp-obs" placeholder="Ej: pago parcial, abono, novedad, etc."></textarea>
   </div>
 
-  <div class="toast" id="toast"></div>
-
-  <button class="btn-enviar" id="btn-enviar" onclick="enviar()">
-    REGISTRAR COBRO
-  </button>
-
 </form>
 </main>
+
+<!-- ── Botón fijo al fondo ───────────────────────────────────────────── -->
+<div class="btn-footer">
+  <div class="toast" id="toast"></div>
+  <button class="btn-enviar" id="btn-enviar" onclick="enviar()">REGISTRAR COBRO</button>
+</div>
 
 <!-- ── Pantalla de éxito ─────────────────────────────────────────────── -->
 <div class="success" id="success">
