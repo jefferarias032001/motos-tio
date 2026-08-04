@@ -2598,16 +2598,25 @@ async function cargarCobroDiario(){
     renderClientes(DATOS.clientes);
 
     // Tickers globales
-    const filasHoy      = filas.filter(r=>r.fecha===hoy);
-    const cobrosHoy     = filasHoy.length;
-    const totalHoy      = filasHoy.reduce((s,r)=>s+(Number(r.pago_recibido)||0),0);
-    const cobrosTotal   = filas.length;
+    const mesActual  = hoy.slice(0,7); // "YYYY-MM"
+    const filasHoy   = filas.filter(r=>r.fecha===hoy);
+    const filasMes   = filas.filter(r=>r.fecha.startsWith(mesActual));
+    const cobrosHoy  = filasHoy.length;
+    const cobrosTotal= filas.length;
 
     const esNequi = r => (r.medio_pago||"").toLowerCase().includes("nequi");
-    const nequiHoy      = filasHoy.filter(r=>esNequi(r)).reduce((s,r)=>s+(Number(r.pago_recibido)||0),0);
-    const efectivoHoy   = filasHoy.filter(r=>!esNequi(r)).reduce((s,r)=>s+(Number(r.pago_recibido)||0),0);
-    const nequiTotal    = filas.filter(r=>esNequi(r)).reduce((s,r)=>s+(Number(r.pago_recibido)||0),0);
-    const efectivoTotal = filas.filter(r=>!esNequi(r)).reduce((s,r)=>s+(Number(r.pago_recibido)||0),0);
+    const sum = arr => arr.reduce((s,r)=>s+(Number(r.pago_recibido)||0),0);
+
+    const totalHoy     = sum(filasHoy);
+    const nequiHoy     = sum(filasHoy.filter(r=>esNequi(r)));
+    const efectivoHoy  = sum(filasHoy.filter(r=>!esNequi(r)));
+    const totalMes     = sum(filasMes);
+    const nequiMes     = sum(filasMes.filter(r=>esNequi(r)));
+    const efectivoMes  = sum(filasMes.filter(r=>!esNequi(r)));
+
+    const MESES_C = ["","Ene","Feb","Mar","Abr","May","Jun","Jul","Ago","Sep","Oct","Nov","Dic"];
+    const [aniM, numM] = mesActual.split("-").map(Number);
+    const labelMes = MESES_C[numM] + " " + aniM;
 
     tickEl.innerHTML = `
       <div class="ticker destacado">
@@ -2618,17 +2627,60 @@ async function cargarCobroDiario(){
       <div class="ticker">
         <div class="eyebrow">Cobrado hoy</div>
         <div class="valor">${formatPesos(totalHoy)}</div>
+        <div style="font-size:0.78rem;margin-top:4px;display:flex;gap:8px;">
+          <span style="color:#3B82F6;font-weight:600;">N ${formatPesos(nequiHoy)}</span>
+          <span style="color:var(--verde);font-weight:600;">E ${formatPesos(efectivoHoy)}</span>
+        </div>
       </div>
-      <div class="ticker" style="border-left:3px solid #3B82F6;">
-        <div class="eyebrow">Nequi hoy / total</div>
-        <div class="valor" style="color:#3B82F6;">${formatPesos(nequiHoy)}</div>
-        <div style="font-size:0.78rem;color:var(--ink-soft);margin-top:2px;">${formatPesos(nequiTotal)} acumulado</div>
-      </div>
-      <div class="ticker" style="border-left:3px solid var(--verde);">
-        <div class="eyebrow">Efectivo hoy / total</div>
-        <div class="valor" style="color:var(--verde);">${formatPesos(efectivoHoy)}</div>
-        <div style="font-size:0.78rem;color:var(--ink-soft);margin-top:2px;">${formatPesos(efectivoTotal)} acumulado</div>
+      <div class="ticker destacado">
+        <div class="eyebrow">Cobrado ${labelMes}</div>
+        <div class="valor">${formatPesos(totalMes)}</div>
+        <div style="font-size:0.78rem;margin-top:4px;display:flex;gap:8px;">
+          <span style="color:#3B82F6;font-weight:600;">N ${formatPesos(nequiMes)}</span>
+          <span style="color:var(--verde);font-weight:600;">E ${formatPesos(efectivoMes)}</span>
+        </div>
       </div>`;
+
+    // ── Tabla resumen por día ──────────────────────────────────────────────
+    const porDia = {};
+    filas.forEach(r=>{
+      if(!porDia[r.fecha]) porDia[r.fecha]={total:0,nequi:0,efectivo:0,n:0};
+      const v = Number(r.pago_recibido)||0;
+      porDia[r.fecha].total += v;
+      porDia[r.fecha].n++;
+      if(esNequi(r)) porDia[r.fecha].nequi += v;
+      else porDia[r.fecha].efectivo += v;
+    });
+    const diasOrden = Object.keys(porDia).sort((a,b)=>b.localeCompare(a));
+    const diasHtml = diasOrden.map(f=>{
+      const d = porDia[f];
+      const [y,mo,dd] = f.split("-");
+      const label = `${dd}/${mo}/${y}`;
+      const esHoy = f===hoy ? ' style="background:var(--asphalt);border-color:var(--plate);"' : '';
+      return `<tr${esHoy}>
+        <td style="font-weight:600;white-space:nowrap;">${label}</td>
+        <td style="text-align:center;color:var(--ink-soft);">${d.n}</td>
+        <td style="text-align:right;font-weight:700;">${formatPesos(d.total)}</td>
+        <td style="text-align:right;color:#3B82F6;font-weight:600;">${d.nequi>0?formatPesos(d.nequi):'—'}</td>
+        <td style="text-align:right;color:var(--verde);font-weight:600;">${d.efectivo>0?formatPesos(d.efectivo):'—'}</td>
+      </tr>`;
+    }).join("");
+
+    gridEl.insertAdjacentHTML("beforebegin", `
+      <div style="margin-bottom:24px;">
+        <h3 style="font-size:0.78rem;text-transform:uppercase;letter-spacing:0.07em;color:var(--ink-soft);margin:0 0 10px;font-weight:700;">Cobros por día</h3>
+        <div class="tabla-scroll">
+          <table class="detalle" style="min-width:420px;">
+            <thead><tr>
+              <th>Fecha</th><th style="text-align:center;">Cobros</th>
+              <th style="text-align:right;">Total</th>
+              <th style="text-align:right;color:#3B82F6;">Nequi</th>
+              <th style="text-align:right;color:var(--verde);">Efectivo</th>
+            </tr></thead>
+            <tbody>${diasHtml}</tbody>
+          </table>
+        </div>
+      </div>`);
 
     estadoEl.textContent = "";
 
