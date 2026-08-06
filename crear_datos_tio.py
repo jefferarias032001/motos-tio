@@ -402,7 +402,6 @@ PAGOS_ELKIN = [
     datetime(2026, 2,13), datetime(2026, 2,24), datetime(2026, 3, 2), datetime(2026, 3,15),
     datetime(2026, 3,30), datetime(2026, 4,18), datetime(2026, 4,28), datetime(2026, 5,16),
     datetime(2026, 5,20), datetime(2026, 6,15), datetime(2026, 7, 1), datetime(2026, 7,21),
-    datetime(2026, 8, 2),
 ]
 
 # Pagos de Lucho Laura Nosu (51 pagos — fotos 29-30, OTF59H, 64 cuotas)
