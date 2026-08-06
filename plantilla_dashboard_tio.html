@@ -1808,7 +1808,7 @@ function renderTablaMobil(clientes){
           <div class="tm-proxima">${proximaHtml}</div>
         </td>
         <td>
-          <div class="tm-cuotas-num">${c.pagos_realizados + ((COBRO_POR_CLIENTE[c.nombre.toLowerCase()]||{}).cuotasCompletadas||[]).length}<span style="font-weight:400;color:var(--ink-soft);font-size:0.72rem;">/${c.total_cuotas}</span></div>
+          <div class="tm-cuotas-num">${c.pagos_realizados}<span style="font-weight:400;color:var(--ink-soft);font-size:0.72rem;">/${c.total_cuotas}</span></div>
           <div class="tm-cuotas-bar"><div class="tm-cuotas-fill" style="width:${pct}%"></div></div>
         </td>
         <td class="tm-num ${recibCls}">${formatPesos(recibMes)}</td>
@@ -1885,24 +1885,9 @@ function renderClientes(clientes){
   const cont = document.getElementById("cuentas-clientes");
   renderTablaMobil(clientes);
   cont.innerHTML = clientes.map((c, idx) => {
-    const appCuotas = (COBRO_POR_CLIENTE[c.nombre.toLowerCase()] || {}).cuotasCompletadas || [];
-    const pagosTotal = c.pagos_realizados + appCuotas.length;
-    // Recalcular dias_sin_pagar si el cobro app tiene cuotas más recientes que el Excel
     let dsp = c.dias_sin_pagar || 0;
-    let estadoReal = c.estado_general;
-    if (appCuotas.length > 0) {
-      const hoyD = new Date(DATOS.hoy + 'T00:00:00');
-      const lastApp = new Date(appCuotas[appCuotas.length - 1].fecha + 'T00:00:00');
-      const proxDesdeApp = new Date(lastApp.getTime() + 7 * 86400000);
-      if (proxDesdeApp > hoyD) {
-        dsp = 0;
-        if (!c.contrato_completo) estadoReal = 'al_dia';
-      } else {
-        dsp = Math.min(dsp, Math.max(0, Math.floor((hoyD - proxDesdeApp) / 86400000)));
-        if (dsp === 0 && !c.contrato_completo) estadoReal = 'al_dia';
-      }
-    }
-    const pct = Math.min(100, Math.round(pagosTotal / c.total_cuotas * 100));
+    const estadoReal = c.estado_general;
+    const pct = Math.min(100, c.porc_completado || 0);
     const proxCorto = fmtCorto(c.proximo_pago_esperado);
     const fin = c.contrato_completo;
 
@@ -1931,11 +1916,10 @@ function renderClientes(clientes){
           </div>
         </div>`;
 
-    const pagosRestantesReal = Math.max(0, c.total_cuotas - pagosTotal);
     const bloqueContrato = fin
       ? `<div class="tc-contrato">
           <div class="tc-contrato-hdr">
-            <span class="tc-contrato-cuotas">${pagosTotal}<span class="of"> / ${c.total_cuotas} cuotas</span></span>
+            <span class="tc-contrato-cuotas">${c.pagos_realizados}<span class="of"> / ${c.total_cuotas} cuotas</span></span>
             <span class="tc-contrato-fin" style="color:var(--verde);font-weight:600;">Contrato completado</span>
           </div>
           <div class="progreso-bar"><div class="progreso-fill" style="width:100%"></div></div>
@@ -1943,11 +1927,11 @@ function renderClientes(clientes){
         </div>`
       : `<div class="tc-contrato">
           <div class="tc-contrato-hdr">
-            <span class="tc-contrato-cuotas">${pagosTotal}<span class="of"> / ${c.total_cuotas} cuotas</span></span>
+            <span class="tc-contrato-cuotas">${c.pagos_realizados}<span class="of"> / ${c.total_cuotas} cuotas</span></span>
             <span class="tc-contrato-fin">Fin estimado: ${c.fecha_fin_prevista_legible}</span>
           </div>
           <div class="progreso-bar"><div class="progreso-fill" style="width:${pct}%"></div></div>
-          <div class="tc-contrato-sub">${pagosRestantesReal} cuotas restantes · ${formatPesos(pagosRestantesReal * c.tarifa_ref)}</div>
+          <div class="tc-contrato-sub">${c.pagos_restantes} cuotas restantes · ${formatPesos(c.pagos_restantes * c.tarifa_ref)}</div>
         </div>`;
 
     const fraseFinal = fin
@@ -1967,7 +1951,7 @@ function renderClientes(clientes){
       <div class="tc-fila-tear"></div>
 
       <div class="tc-stats">
-        <div class="tc-stat"><div class="label">Cuotas pagadas</div><div class="valor">${pagosTotal} <span style="font-size:0.8rem;color:var(--ink-soft);font-weight:400;">/ ${c.total_cuotas}</span></div></div>
+        <div class="tc-stat"><div class="label">Cuotas pagadas</div><div class="valor">${c.pagos_realizados} <span style="font-size:0.8rem;color:var(--ink-soft);font-weight:400;">/ ${c.total_cuotas}</span></div></div>
         <div class="tc-stat"><div class="label">Por cobrar</div><div class="valor" style="color:${fin ? 'var(--verde)' : 'var(--ambar)'}">${formatPesos(c.pagos_restantes * c.tarifa_ref)}</div></div>
         <div class="tc-stat"><div class="label">Total recibido</div><div class="valor">${formatPesos(c.recibido_total)}</div></div>
         <div class="tc-stat"><div class="label">% Completado</div><div class="valor" style="color:var(--verde)">${c.porc_completado}%</div></div>
@@ -1983,15 +1967,6 @@ function renderClientes(clientes){
             <span>${p.dia_nombre}</span>
             <span class="n">${p.mes_dia}</span>
           </button>`).join("")}
-        ${appCuotas.map((q, i) => {
-          const d = new Date(q.fecha + 'T00:00:00');
-          const dias = ['dom','lun','mar','mié','jue','vie','sáb'];
-          return `<button type="button" class="chip-sem pagado" tabindex="0"
-            data-tip="Cuota #${c.pagos_realizados + i + 1} (app)&#10;${q.fecha}&#10;Recibido: ${formatPesos(q.total)}">
-            <span>${dias[d.getDay()]}</span>
-            <span class="n">${d.getDate()}/${d.getMonth()+1}</span>
-          </button>`;
-        }).join("")}
         ${chipProximo}
       </div>
 
