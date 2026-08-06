@@ -614,6 +614,9 @@ def generar_html(datos, ruta_plantilla, ruta_salida, hoy):
     html = html.replace("__DATOS_JOMAR_JSON__", json.dumps(datos_jomar, ensure_ascii=False))
     html = html.replace("JEFFER MOTOS", NOMBRE_NEGOCIO)
     ruta_salida.write_text(html, encoding="utf-8")
+    # También guardar como index.html para que GitHub Pages lo sirva en la raíz
+    ruta_index = ruta_salida.parent / "index.html"
+    ruta_index.write_text(html, encoding="utf-8")
 
 # ---------------------------------------------------------------------------
 # MAIN
