@@ -56,6 +56,76 @@ UMBRAL_ATRASO_LEVE = 2
 GOOGLE_SHEET_ID  = "1b_d0lDAYCnPfbcCKRxzPuWN4NOS75Yw0VorFXUBOSPU"
 GOOGLE_SHEET_GID = "0"  # ← GID de la pestaña "Registro Diario" (normalmente 0)
 
+# ---------------------------------------------------------------------------
+# MÓDULO LUNA — datos directos (sin Excel propio por ahora)
+# ---------------------------------------------------------------------------
+_LUNA_RAW = [
+    {
+        "nombre": "Cesar",
+        "moto": "Moto Luna",
+        "placa": "UYJ15H",
+        "inicio": "2026-05-07",
+        "total_cuotas": 64,
+        "tarifa": 240_000,
+        "pago_diario": 30_000,
+        "observaciones": "Paga $30.000/dia x 8 dias = $240.000 por cuota",
+        "pagos": [
+            {"fecha": "2026-05-14", "valor": 240_000},
+            {"fecha": "2026-05-22", "valor": 240_000},
+            {"fecha": "2026-05-30", "valor": 240_000},
+            {"fecha": "2026-06-07", "valor": 240_000},
+            {"fecha": "2026-06-15", "valor": 240_000},
+            {"fecha": "2026-06-23", "valor": 240_000},
+            {"fecha": "2026-07-01", "valor": 240_000},
+            {"fecha": "2026-07-09", "valor": 240_000},
+            {"fecha": "2026-07-17", "valor": 240_000},
+            {"fecha": "2026-07-25", "valor": 240_000},
+            {"fecha": "2026-08-02", "valor": 240_000},
+        ],
+    }
+]
+
+def construir_datos_luna(hoy):
+    clientes = []
+    total_recibido = 0
+    total_contratos = 0
+    for c in _LUNA_RAW:
+        cuotas_pagadas  = len(c["pagos"])
+        cuotas_restantes = c["total_cuotas"] - cuotas_pagadas
+        recibido  = cuotas_pagadas  * c["tarifa"]
+        pendiente = cuotas_restantes * c["tarifa"]
+        total     = c["total_cuotas"] * c["tarifa"]
+        ultimo_pago = c["pagos"][-1]["fecha"] if c["pagos"] else None
+        dias_en_cuota = 0
+        acumulado_cuota = 0
+        if ultimo_pago:
+            from datetime import date as _date
+            ultimo = _date.fromisoformat(ultimo_pago)
+            dias_en_cuota   = (hoy - ultimo).days
+            acumulado_cuota = min(dias_en_cuota * c["pago_diario"], c["tarifa"])
+        clientes.append({
+            "nombre": c["nombre"], "moto": c["moto"], "placa": c["placa"],
+            "inicio": c["inicio"], "total_cuotas": c["total_cuotas"],
+            "cuotas_pagadas": cuotas_pagadas, "cuotas_restantes": cuotas_restantes,
+            "tarifa": c["tarifa"], "pago_diario": c["pago_diario"],
+            "recibido_historico": recibido, "pendiente_total": pendiente,
+            "total_contrato": total, "ultimo_pago": ultimo_pago,
+            "dias_en_cuota_actual": dias_en_cuota,
+            "acumulado_cuota_actual": acumulado_cuota,
+            "observaciones": c.get("observaciones", ""),
+            "pagos": c["pagos"],
+        })
+        total_recibido  += recibido
+        total_contratos += total
+    return {
+        "clientes": clientes,
+        "global": {
+            "recibido_historico": total_recibido,
+            "pendiente_total": total_contratos - total_recibido,
+            "total_contratos": total_contratos,
+        },
+    }
+
 MESES_ES = ["", "enero","febrero","marzo","abril","mayo","junio",
             "julio","agosto","septiembre","octubre","noviembre","diciembre"]
 DIAS_ES       = ["lunes","martes","miércoles","jueves","viernes","sábado","domingo"]
@@ -491,7 +561,9 @@ def generar_html(datos, ruta_plantilla, ruta_salida, hoy):
         "hoy": hoy.isoformat(), "hoy_legible": fecha_legible(hoy),
         **datos,
     }
+    datos_luna = construir_datos_luna(hoy)
     html = plantilla.replace("__DATOS_JSON_AQUI__", json.dumps(payload, ensure_ascii=False))
+    html = html.replace("__DATOS_LUNA_JSON__", json.dumps(datos_luna, ensure_ascii=False))
     html = html.replace("JEFFER MOTOS", NOMBRE_NEGOCIO)
     ruta_salida.write_text(html, encoding="utf-8")
 
