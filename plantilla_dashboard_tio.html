@@ -1885,9 +1885,23 @@ function renderClientes(clientes){
   const cont = document.getElementById("cuentas-clientes");
   renderTablaMobil(clientes);
   cont.innerHTML = clientes.map((c, idx) => {
-    const dsp = c.dias_sin_pagar || 0;
     const appCuotas = (COBRO_POR_CLIENTE[c.nombre.toLowerCase()] || {}).cuotasCompletadas || [];
     const pagosTotal = c.pagos_realizados + appCuotas.length;
+    // Recalcular dias_sin_pagar si el cobro app tiene cuotas más recientes que el Excel
+    let dsp = c.dias_sin_pagar || 0;
+    let estadoReal = c.estado_general;
+    if (appCuotas.length > 0) {
+      const hoyD = new Date(DATOS.hoy + 'T00:00:00');
+      const lastApp = new Date(appCuotas[appCuotas.length - 1].fecha + 'T00:00:00');
+      const proxDesdeApp = new Date(lastApp.getTime() + 7 * 86400000);
+      if (proxDesdeApp > hoyD) {
+        dsp = 0;
+        if (!c.contrato_completo) estadoReal = 'al_dia';
+      } else {
+        dsp = Math.min(dsp, Math.max(0, Math.floor((hoyD - proxDesdeApp) / 86400000)));
+        if (dsp === 0 && !c.contrato_completo) estadoReal = 'al_dia';
+      }
+    }
     const pct = Math.min(100, Math.round(pagosTotal / c.total_cuotas * 100));
     const proxCorto = fmtCorto(c.proximo_pago_esperado);
     const fin = c.contrato_completo;
@@ -1944,7 +1958,7 @@ function renderClientes(clientes){
 
     return `
     <div class="ticket-cliente">
-      <span class="stamp ${c.estado_general}">${ETIQUETA_ESTADO[c.estado_general] || c.estado_general}</span>
+      <span class="stamp ${estadoReal}">${ETIQUETA_ESTADO[estadoReal] || estadoReal}</span>
       <h3 class="tc-nombre">${c.nombre}</h3>
       <div class="tc-moto"><b>${c.moto || ''}</b> · placa ${c.placa || '—'} · desde ${c.inicio_legible}</div>
 
