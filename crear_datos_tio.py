@@ -23,6 +23,25 @@ except ImportError:
 
 SALIDA = Path(__file__).resolve().parent / "control_motos_tio.xlsx"
 
+# ─── AVISO DE SEGURIDAD ───────────────────────────────────────────────────────
+# Este script SOBREESCRIBE el Excel completo desde cero.
+# Cualquier edición manual que hayas hecho en el Excel (fechas, pagos, etc.)
+# se PERDERÁ al correr este script.
+# Usa este script SOLO para agregar clientes nuevos y actualiza el código aquí.
+# Para regenerar el dashboard sin tocar el Excel, corre: procesar_motos_tio.py
+# ─────────────────────────────────────────────────────────────────────────────
+if SALIDA.exists():
+    print("=" * 65)
+    print("  ⚠️  ADVERTENCIA: Este script va a SOBREESCRIBIR el Excel.")
+    print("  Cualquier edición manual en el Excel se perderá.")
+    print("  Si solo quieres actualizar el dashboard, corre:")
+    print("      python procesar_motos_tio.py")
+    print("=" * 65)
+    resp = input("  ¿Estás seguro de que quieres continuar? (escribe SI): ").strip()
+    if resp.upper() != "SI":
+        print("Cancelado. El Excel no fue modificado.")
+        sys.exit(0)
+
 # ---------------------------------------------------------------------------
 # DATOS EXTRAÍDOS DE LAS FOTOS
 # Nota: algunas fechas pueden tener ±1-2 días de imprecisión por la letra
@@ -37,10 +56,10 @@ CLIENTES = [
     ("Elkin Espitia Payares", "Bajaj EYO 06H", "EYO06H", datetime(2024,12,26), "Tel: 3003xx | 5980000",           64),
     ("Juan Andres De Arco",   "Bajaj KOO 16H", "KOO16H", datetime(2025, 1, 5), "Tel: 3202386294 | 5950000 inicial | 63 pagos (1 pendiente)", 64),
     ("Jorge Luis Reyes",      "Bajaj KOO B1H", "KOOB1H", datetime(2025, 1,10), "Tel: 3202841723 / 3005685892 | 5950000 inicial | CONTRATO FINALIZADO", 64),
-    ("Engelo Junior",         "Bajaj UYL 39H", "UYL39H", datetime(2025,12,23), "Tel: 3005685892 | 6806000 inicial | 72 cuotas/18 meses | Moto anterior OYL39H robada, repuesta dic-2025", 72),
-    ("Duvon Enrique",         "Bajaj KEB 58H", "KEB58H", datetime(2025, 2,17), "Tel: 3126959090 | 15360000 total | 16 meses | 63 pagos (1 pendiente)", 64),
-    ("Wilmer Ivis",           "Bajaj KEW 23H", "KEW23H", datetime(2025, 4, 4), "Tel: 3233311964 | 15360000 total | 64 cuotas | 59 pagos (5 pendientes)", 64),
-    ("Jesus Morales Yuliana Olivares", "Bajaj KFK 1AH", "KFK1AH", datetime(2025, 5, 8), "Tel: 3465625710 | 17280000 total | 18 meses | 52 pagos (20 pendientes)", 72),
+    ("Henry Junior",         "Bajaj UYL 39H", "UYL39H", datetime(2025,12,23), "Tel: 3005685892 | 6806000 inicial | 72 cuotas/18 meses | Moto anterior OYL39H robada, repuesta dic-2025", 72),
+    ("Duvan Enrique",         "Bajaj KEB 58H", "KEB58H", datetime(2025, 2,17), "Tel: 3126959090 | 15360000 total | 16 meses | 63 pagos (1 pendiente)", 64),
+    ("Wilmar Ivis",           "Bajaj KEW 27H", "KEW27H", datetime(2025, 4, 4), "Tel: 3233311964 | 15360000 total | 64 cuotas | 59 pagos (5 pendientes)", 64),
+    ("Jesus Morales Yuliana Olivares", "Bajaj KFK 17H", "KFK17H", datetime(2025, 5, 8), "Tel: 3465625710 | 17280000 total | 18 meses | 52 pagos (20 pendientes)", 72),
     ("Osmed Brenda",                  "Bajaj OSZ 46H", "OSZ46H", datetime(2025, 5,15), "Tel: 3205197351 | 15360000 total | 64 cuotas | 54 pagos (10 pendientes) | ATRASADO 21 dias", 64),
     ("Chacal Caterine",               "Bajaj OSZ 43H", "OSZ43H", datetime(2025, 5,13), "Tel: 3245780119 | 17280000 total | 72 cuotas | 50 pagos (22 pendientes)", 72),
     ("Wilian Junior Darlis Esther",   "Bajaj OTE 02H", "OTE02H", datetime(2025, 5,22), "Tel: 3239896985 | 14400000 total | 60 cuotas | 34 pagos (26 pendientes)", 60),
@@ -139,7 +158,7 @@ PAGOS_JORGE_LUIS = [
     datetime(2026, 5, 7), datetime(2026, 5,12), datetime(2026, 5,20), datetime(2026, 6, 3),
 ]
 
-# Pagos de Duvon Enrique (63 pagos — fotos 10 y 11, 1 cuota pendiente)
+# Pagos de Duvan Enrique (63 pagos — fotos 10 y 11, 1 cuota pendiente)
 PAGOS_DUVON = [
     # Foto 10 (1-30) — feb 2025 a oct 2025
     datetime(2025, 2,17), datetime(2025, 2,26),
@@ -204,7 +223,7 @@ PAGOS_OSMED = [
     datetime(2026, 6, 5), datetime(2026, 6,13), datetime(2026, 6,22), datetime(2026, 6,30),
 ]
 
-# Pagos de Jesus Morales Yuliana Olivares (52 pagos — fotos 14 y 15, KFK1AH, 72 cuotas)
+# Pagos de Jesus Morales Yuliana Olivares (52 pagos — fotos 14 y 15, KFK17H, 72 cuotas)
 PAGOS_JESUS = [
     # Foto 14 (1-30) — may 2025 a ene 2026
     datetime(2025, 5, 8), datetime(2025, 5,16), datetime(2025, 5,24),
@@ -226,7 +245,7 @@ PAGOS_JESUS = [
     datetime(2026, 7, 8), datetime(2026, 7,14),
 ]
 
-# Pagos de Wilmer Ivis (59 pagos — fotos 12 y 13, KEW23H, 64 cuotas)
+# Pagos de Wilmar Ivis (59 pagos — fotos 12 y 13, KEW27H, 64 cuotas)
 PAGOS_WILMER = [
     # Foto 12 (1-30) — abr 2025 a nov 2025
     datetime(2025, 4, 4), datetime(2025, 4,12), datetime(2025, 4,20), datetime(2025, 4,28),
@@ -383,6 +402,7 @@ PAGOS_ELKIN = [
     datetime(2026, 2,13), datetime(2026, 2,24), datetime(2026, 3, 2), datetime(2026, 3,15),
     datetime(2026, 3,30), datetime(2026, 4,18), datetime(2026, 4,28), datetime(2026, 5,16),
     datetime(2026, 5,20), datetime(2026, 6,15), datetime(2026, 7, 1), datetime(2026, 7,21),
+    datetime(2026, 8, 2),
 ]
 
 # Pagos de Lucho Laura Nosu (51 pagos — fotos 29-30, OTF59H, 64 cuotas)
@@ -677,10 +697,10 @@ agregar_pagos("Dorlys Jose Julio",     "Bajaj EYO 11H", "EYO11H", PAGOS_DORLYS)
 agregar_pagos("Elkin Espitia Payares", "Bajaj EYO 06H", "EYO06H", PAGOS_ELKIN)
 agregar_pagos("Juan Andres De Arco",   "Bajaj KOO 16H", "KOO16H", PAGOS_JUAN_ANDRES)
 agregar_pagos("Jorge Luis Reyes",      "Bajaj KOO B1H", "KOOB1H", PAGOS_JORGE_LUIS)
-agregar_pagos("Engelo Junior",         "Bajaj UYL 39H", "UYL39H", PAGOS_LUIS_GABRIEL)
-agregar_pagos("Duvon Enrique",         "Bajaj KEB 58H", "KEB58H", PAGOS_DUVON)
-agregar_pagos("Wilmer Ivis",           "Bajaj KEW 23H", "KEW23H", PAGOS_WILMER)
-agregar_pagos("Jesus Morales Yuliana Olivares", "Bajaj KFK 1AH", "KFK1AH", PAGOS_JESUS)
+agregar_pagos("Henry Junior",         "Bajaj UYL 39H", "UYL39H", PAGOS_LUIS_GABRIEL)
+agregar_pagos("Duvan Enrique",         "Bajaj KEB 58H", "KEB58H", PAGOS_DUVON)
+agregar_pagos("Wilmar Ivis",           "Bajaj KEW 27H", "KEW27H", PAGOS_WILMER)
+agregar_pagos("Jesus Morales Yuliana Olivares", "Bajaj KFK 17H", "KFK17H", PAGOS_JESUS)
 agregar_pagos("Osmed Brenda",                  "Bajaj OSZ 46H", "OSZ46H", PAGOS_OSMED)
 agregar_pagos("Chacal Caterine",               "Bajaj OSZ 43H", "OSZ43H", PAGOS_CHACAL)
 agregar_pagos("Wilian Junior Darlis Esther",   "Bajaj OTE 02H", "OTE02H", PAGOS_WILIAN_JR)
@@ -1025,7 +1045,7 @@ print(f"  Dorlys       : {len(PAGOS_DORLYS)} pagos  -> ${len(PAGOS_DORLYS) * 240
 print(f"  Elkin        : {len(PAGOS_ELKIN)} pagos  -> ${len(PAGOS_ELKIN) * 240_000:,}".replace(",","."))
 print(f"  Juan Andres  : {len(PAGOS_JUAN_ANDRES)} pagos  -> ${len(PAGOS_JUAN_ANDRES) * 240_000:,} (1 pendiente)".replace(",","."))
 print(f"  Jorge Luis   : {len(PAGOS_JORGE_LUIS)} pagos  -> ${len(PAGOS_JORGE_LUIS) * 240_000:,} (FINALIZADO)".replace(",","."))
-print(f"  Engelo Junior: {len(PAGOS_LUIS_GABRIEL)} pagos  -> ${len(PAGOS_LUIS_GABRIEL) * 240_000:,} ({72 - len(PAGOS_LUIS_GABRIEL)} pendientes de 72)".replace(",","."))
+print(f"  Henry Junior: {len(PAGOS_LUIS_GABRIEL)} pagos  -> ${len(PAGOS_LUIS_GABRIEL) * 240_000:,} ({72 - len(PAGOS_LUIS_GABRIEL)} pendientes de 72)".replace(",","."))
 print(f"  Duvon        : {len(PAGOS_DUVON)} pagos  -> ${len(PAGOS_DUVON) * 240_000:,} (1 pendiente de 64)".replace(",","."))
 print(f"  Wilmer       : {len(PAGOS_WILMER)} pagos  -> ${len(PAGOS_WILMER) * 240_000:,} (5 pendientes de 64)".replace(",","."))
 print(f"  Jesus/Yuliana: {len(PAGOS_JESUS)} pagos  -> ${len(PAGOS_JESUS) * 240_000:,} (20 pendientes de 72)".replace(",","."))
