@@ -53,8 +53,8 @@ UMBRAL_ATRASO_LEVE = 2
 #   3. Pega el ID del Sheet en GOOGLE_SHEET_ID  (está en la URL del sheet)
 #   4. Vuelve a correr: python procesar_motos_tio.py
 # Si GOOGLE_SHEET_ID está vacío, el script solo usa el Excel local.
-GOOGLE_SHEET_ID  = "1b_d0lDAYCnPfbcCKRxzPuWN4NOS75Yw0VorFXUBOSPU"
-GOOGLE_SHEET_GID = "0"  # ← GID de la pestaña "Registro Diario" (normalmente 0)
+GOOGLE_SHEET_ID  = "2PACX-1vS0qMD_G2AcBCz4eErbdWfzllOwP0CloLc86X274_DGi4-XXszUEtQvylL9Xzr-z6AwvW4iUj_9o-Ag"
+GOOGLE_SHEET_GID = "714608512"
 
 # ---------------------------------------------------------------------------
 # MÓDULO LUNA — datos directos (sin Excel propio por ahora)
@@ -258,8 +258,8 @@ def cargar_registro(wb):
 def cargar_registro_sheets(sheet_id, gid="0"):
     """Descarga el Registro Diario desde Google Sheets (hoja publicada como CSV)."""
     url = (
-        f"https://docs.google.com/spreadsheets/d/{sheet_id}"
-        f"/export?format=csv&gid={gid}"
+        f"https://docs.google.com/spreadsheets/d/e/{sheet_id}"
+        f"/pub?output=csv&gid={gid}"
     )
     try:
         req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"})
@@ -318,6 +318,53 @@ def cargar_registro_sheets(sheet_id, gid="0"):
 
     print(f"📡 Google Sheets: {len(filas)} pagos cargados online.")
     return filas
+
+
+def agrupar_en_cuotas(filas_online, tarifa_default=240_000):
+    """
+    Agrupa pagos diarios de Google Sheets en cuotas completas.
+    Cada vez que el acumulado de un cliente llega a su tarifa ($240.000),
+    se genera UNA sola entrada de cuota en lugar de N entradas diarias.
+    Las cuotas incompletas (ciclo en curso) no se agregan.
+    """
+    por_cliente = defaultdict(list)
+    for f in sorted(filas_online, key=lambda r: r["fecha"]):
+        por_cliente[f["cliente_clave"]].append(f)
+
+    cuotas = []
+    for clave, pagos in por_cliente.items():
+        # Intentar detectar tarifa del cliente desde los registros
+        tarifas = [p["pago_diario"] for p in pagos if p["pago_diario"] and p["pago_diario"] > 0]
+        tarifa = tarifa_default
+        if tarifas:
+            # La tarifa de la cuota = suma de 8 días (pago_diario × 8)
+            diario = max(set(tarifas), key=tarifas.count)
+            tarifa = diario * 8 if diario <= 50_000 else diario
+
+        acum = 0.0
+        plantilla = None  # primer pago del ciclo (para copiar metadatos)
+        for p in pagos:
+            recibido = p["pago_recibido"] or 0.0
+            if recibido <= 0:
+                continue
+            if plantilla is None:
+                plantilla = p
+            acum += recibido
+            if acum >= tarifa:
+                cuota_entry = {
+                    **plantilla,
+                    "fecha":          p["fecha"],      # fecha en que se completó
+                    "pago_diario":    tarifa,
+                    "pago_recibido":  acum,
+                    "saldo_cache":    None,
+                    "observaciones":  "cobro_app",
+                }
+                cuotas.append(cuota_entry)
+                acum = max(0.0, acum - tarifa)         # llevar exceso al siguiente ciclo
+                plantilla = p if acum > 0 else None
+
+    print(f"   → {len(cuotas)} cuotas completas agrupadas desde Google Sheets")
+    return cuotas
 
 # ---------------------------------------------------------------------------
 # PROCESAMIENTO  (idéntico a la versión de Jeffer)
@@ -641,12 +688,14 @@ def main():
     if GOOGLE_SHEET_ID:
         filas_online = cargar_registro_sheets(GOOGLE_SHEET_ID, GOOGLE_SHEET_GID)
         if filas_online:
+            # Agrupar pagos diarios en cuotas completas antes de mezclar
+            cuotas_online = agrupar_en_cuotas(filas_online)
             # Deduplicar por (fecha, cliente_clave) — el Excel tiene precedencia
             claves_excel = {(f["fecha"], f["cliente_clave"]) for f in filas}
-            nuevos = [f for f in filas_online
+            nuevos = [f for f in cuotas_online
                       if (f["fecha"], f["cliente_clave"]) not in claves_excel]
             filas.extend(nuevos)
-            print(f"   + {len(nuevos)} pagos nuevos desde Google Sheets")
+            print(f"   + {len(nuevos)} cuotas nuevas desde Google Sheets")
     print(f"Total: {len(filas)} registros combinados")
 
     datos = procesar(filas, clientes_meta, hoy)
