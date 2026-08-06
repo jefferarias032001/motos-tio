@@ -1450,7 +1450,9 @@ function selModulo(modulo) {
   document.querySelectorAll('.vista').forEach(v => v.classList.remove('activa'));
 
   if (modulo === 'luna') {
-    tabsSevera.forEach(v => { const b = document.querySelector(`.tab-btn[data-vista="${v}"]`); if(b) b.style.display='none'; });
+    // Ocultar tabs Severa excepto Cobro Diario; mostrar tab Luna
+    tabsSevera.filter(v=>v!=='cobro').forEach(v => { const b = document.querySelector(`.tab-btn[data-vista="${v}"]`); if(b) b.style.display='none'; });
+    const btnCobro = document.querySelector('.tab-btn[data-vista="cobro"]'); if(btnCobro) btnCobro.style.display='';
     tabLuna.style.display  = '';
     tabJomar.style.display = 'none';
     document.getElementById('mod-badge-nombre').textContent = 'MOTO LUNA';
@@ -1459,7 +1461,9 @@ function selModulo(modulo) {
     document.getElementById('vista-luna').classList.add('activa');
     renderizarLuna();
   } else if (modulo === 'jomar') {
-    tabsSevera.forEach(v => { const b = document.querySelector(`.tab-btn[data-vista="${v}"]`); if(b) b.style.display='none'; });
+    // Ocultar tabs Severa excepto Cobro Diario; mostrar tab Jomar
+    tabsSevera.filter(v=>v!=='cobro').forEach(v => { const b = document.querySelector(`.tab-btn[data-vista="${v}"]`); if(b) b.style.display='none'; });
+    const btnCobro = document.querySelector('.tab-btn[data-vista="cobro"]'); if(btnCobro) btnCobro.style.display='';
     tabLuna.style.display  = 'none';
     tabJomar.style.display = '';
     document.getElementById('mod-badge-nombre').textContent = 'MOTOS JOMAR';
@@ -1468,7 +1472,7 @@ function selModulo(modulo) {
     document.getElementById('vista-jomar').classList.add('activa');
     renderizarJomar();
   } else {
-    // SEVERA MOTOS
+    // SEVERA MOTOS — todos los tabs severa, sin Luna ni Jomar
     tabsSevera.forEach(v => { const b = document.querySelector(`.tab-btn[data-vista="${v}"]`); if(b) b.style.display=''; });
     tabLuna.style.display  = 'none';
     tabJomar.style.display = 'none';
@@ -3018,6 +3022,24 @@ function generarPillsMes(filas) {
   }
 }
 
+// ─── Filtro de módulo para Cobro Diario ───────────────────────
+const _MOD_COBRO = {
+  luna:  { placas: ['uyj15h'],  nombres: ['cesar'] },
+  jomar: { placas: ['bjr79i'],  nombres: ['william villa', 'william'] },
+};
+function _perteneceModCobro(r, mod) {
+  const p = (r.placa||'').toLowerCase().replace(/[^a-z0-9]/g,'');
+  const n = (r.cliente||'').toLowerCase();
+  const fm = _MOD_COBRO[mod];
+  return fm && (fm.placas.some(x=>p.includes(x)) || fm.nombres.some(x=>n.includes(x)));
+}
+function _filasModulo(filas) {
+  const m = _moduloActual || 'severa';
+  if (_MOD_COBRO[m]) return filas.filter(r => _perteneceModCobro(r, m));
+  // severa: excluir clientes de otros módulos
+  return filas.filter(r => !_perteneceModCobro(r,'luna') && !_perteneceModCobro(r,'jomar'));
+}
+
 function renderCobroFiltrado() {
   const gridEl  = document.getElementById("cobro-diario-grid");
   const sinEl   = document.getElementById("cobro-sin-cobro");
@@ -3025,8 +3047,9 @@ function renderCobroFiltrado() {
   const estadoEl= document.getElementById("cobro-estado-carga");
   const hoy     = DATOS.hoy;
 
-  // Aplicar filtros de fecha
-  let filas = COBRO_FILAS_ALL;
+  // Aplicar filtros de fecha + módulo
+  const filasModulo = _filasModulo(COBRO_FILAS_ALL);
+  let filas = filasModulo;
   if (COBRO_FILTRO_DIA)  filas = filas.filter(r => r.fecha === COBRO_FILTRO_DIA);
   else if (COBRO_FILTRO_MES) filas = filas.filter(r => r.fecha.startsWith(COBRO_FILTRO_MES));
 
@@ -3046,8 +3069,8 @@ function renderCobroFiltrado() {
     labelPeriodo = MESES_C[mo] + " " + y;
   }
 
-  // Tickers del período filtrado
-  const filasHoy  = COBRO_FILAS_ALL.filter(r => r.fecha === hoy);
+  // Tickers del período filtrado (usando filas ya filtradas por módulo)
+  const filasHoy  = filasModulo.filter(r => r.fecha === hoy);
   const mesActual = hoy.slice(0,7);
   const totalHoy    = sum(filasHoy);
   const nequiHoy    = sum(filasHoy.filter(r=>esNequi(r)));
@@ -3061,7 +3084,7 @@ function renderCobroFiltrado() {
   const ayerDate = new Date(hoy + "T12:00:00");
   ayerDate.setDate(ayerDate.getDate() - 1);
   const ayer = ayerDate.toISOString().slice(0,10);
-  const filasAyer   = COBRO_FILAS_ALL.filter(r => r.fecha === ayer);
+  const filasAyer   = filasModulo.filter(r => r.fecha === ayer);
   const totalAyer   = sum(filasAyer);
   const nequiAyer   = sum(filasAyer.filter(r=>esNequi(r)));
   const efectivoAyer= sum(filasAyer.filter(r=>!esNequi(r)));
@@ -3080,7 +3103,7 @@ function renderCobroFiltrado() {
     <div class="ticker destacado">
       <div class="eyebrow">Cobros hoy</div>
       <div class="valor">${filasHoy.length}</div>
-      <div style="font-size:.78rem;color:var(--ink-soft);margin-top:2px;">${COBRO_FILAS_ALL.length} registros totales</div>
+      <div style="font-size:.78rem;color:var(--ink-soft);margin-top:2px;">${filasModulo.length} registros totales</div>
     </div>
     <div class="ticker">
       <div class="eyebrow">Cobrado hoy</div>
@@ -3303,6 +3326,7 @@ async function cargarCobroDiario(){
       (DATOS.detalle||[]).map(d=>`${d.fecha}|${(d.cliente||'').toLowerCase()}|${d.recibido}`)
     );
     const nuevas = filas
+      .filter(r => !_perteneceModCobro(r,'luna') && !_perteneceModCobro(r,'jomar'))
       .map(r=>({ fecha:r.fecha, cliente:r.cliente, moto:r.moto||'', placa:r.placa||'',
                   tarifa:Number(r.pago_diario)||240000, recibido:Number(r.pago_recibido)||0, medio_pago:r.medio_pago||'efectivo' }))
       .filter(r=>r.recibido>0 && !claveExistente.has(`${r.fecha}|${r.cliente.toLowerCase()}|${r.recibido}`));
