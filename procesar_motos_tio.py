@@ -85,12 +85,51 @@ _LUNA_RAW = [
     }
 ]
 
-def construir_datos_luna(hoy):
+# ---------------------------------------------------------------------------
+# MÓDULO JOMAR — datos directos
+# ---------------------------------------------------------------------------
+_JOMAR_RAW = [
+    {
+        "nombre": "William Villa",
+        "moto": "Motos Jomar",
+        "placa": "BJR79I",
+        "inicio": "2026-02-27",
+        "total_cuotas": 72,
+        "tarifa": 240_000,
+        "pago_diario": 30_000,
+        "telefono": "3207593591",
+        "observaciones": "Paga $30.000/dia x 8 dias = $240.000 por cuota | Va puntual",
+        "pagos": [
+            {"fecha": "2026-03-06", "valor": 240_000},   # Cuota 1
+            {"fecha": "2026-03-14", "valor": 240_000},   # Cuota 2
+            {"fecha": "2026-03-22", "valor": 240_000},   # Cuota 3
+            {"fecha": "2026-03-30", "valor": 240_000},   # Cuota 4
+            {"fecha": "2026-04-07", "valor": 240_000},   # Cuota 5
+            {"fecha": "2026-04-15", "valor": 240_000},   # Cuota 6
+            {"fecha": "2026-04-23", "valor": 240_000},   # Cuota 7
+            {"fecha": "2026-05-01", "valor": 240_000},   # Cuota 8
+            {"fecha": "2026-05-09", "valor": 240_000},   # Cuota 9
+            {"fecha": "2026-05-17", "valor": 240_000},   # Cuota 10
+            {"fecha": "2026-05-25", "valor": 240_000},   # Cuota 11
+            {"fecha": "2026-06-02", "valor": 240_000},   # Cuota 12
+            {"fecha": "2026-06-10", "valor": 240_000},   # Cuota 13
+            {"fecha": "2026-06-18", "valor": 240_000},   # Cuota 14
+            {"fecha": "2026-06-26", "valor": 240_000},   # Cuota 15
+            {"fecha": "2026-07-04", "valor": 240_000},   # Cuota 16
+            {"fecha": "2026-07-12", "valor": 240_000},   # Cuota 17
+            {"fecha": "2026-07-20", "valor": 240_000},   # Cuota 18
+            {"fecha": "2026-07-28", "valor": 240_000},   # Cuota 19
+            {"fecha": "2026-08-05", "valor": 240_000},   # Cuota 20 (hoy)
+        ],
+    }
+]
+
+def _construir_modulo(raw_list, hoy):
     clientes = []
     total_recibido = 0
     total_contratos = 0
-    for c in _LUNA_RAW:
-        cuotas_pagadas  = len(c["pagos"])
+    for c in raw_list:
+        cuotas_pagadas   = len(c["pagos"])
         cuotas_restantes = c["total_cuotas"] - cuotas_pagadas
         recibido  = cuotas_pagadas  * c["tarifa"]
         pendiente = cuotas_restantes * c["tarifa"]
@@ -112,6 +151,7 @@ def construir_datos_luna(hoy):
             "total_contrato": total, "ultimo_pago": ultimo_pago,
             "dias_en_cuota_actual": dias_en_cuota,
             "acumulado_cuota_actual": acumulado_cuota,
+            "telefono": c.get("telefono", ""),
             "observaciones": c.get("observaciones", ""),
             "pagos": c["pagos"],
         })
@@ -125,6 +165,12 @@ def construir_datos_luna(hoy):
             "total_contratos": total_contratos,
         },
     }
+
+def construir_datos_luna(hoy):
+    return _construir_modulo(_LUNA_RAW, hoy)
+
+def construir_datos_jomar(hoy):
+    return _construir_modulo(_JOMAR_RAW, hoy)
 
 MESES_ES = ["", "enero","febrero","marzo","abril","mayo","junio",
             "julio","agosto","septiembre","octubre","noviembre","diciembre"]
@@ -561,9 +607,11 @@ def generar_html(datos, ruta_plantilla, ruta_salida, hoy):
         "hoy": hoy.isoformat(), "hoy_legible": fecha_legible(hoy),
         **datos,
     }
-    datos_luna = construir_datos_luna(hoy)
+    datos_luna  = construir_datos_luna(hoy)
+    datos_jomar = construir_datos_jomar(hoy)
     html = plantilla.replace("__DATOS_JSON_AQUI__", json.dumps(payload, ensure_ascii=False))
-    html = html.replace("__DATOS_LUNA_JSON__", json.dumps(datos_luna, ensure_ascii=False))
+    html = html.replace("__DATOS_LUNA_JSON__",  json.dumps(datos_luna,  ensure_ascii=False))
+    html = html.replace("__DATOS_JOMAR_JSON__", json.dumps(datos_jomar, ensure_ascii=False))
     html = html.replace("JEFFER MOTOS", NOMBRE_NEGOCIO)
     ruta_salida.write_text(html, encoding="utf-8")
 

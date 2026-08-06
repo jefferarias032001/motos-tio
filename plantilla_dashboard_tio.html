@@ -804,9 +804,26 @@
   }
   .mod-severa .mod-icon{background:var(--plate);color:var(--asphalt);}
   .mod-luna   .mod-icon{background:#3B82F6;color:#fff;}
-  .mod-jomar  .mod-icon{background:var(--gris);color:var(--asphalt);}
+  .mod-jomar  .mod-icon{background:#10B981;color:#fff;}
+  .mod-jomar{border-color:#10B981;}
+  .mod-jomar:hover:not(:disabled){border-color:#34D399;background:#0d2a20;}
   .mod-nombre{font-family:var(--font-display);font-size:1.25rem;letter-spacing:.06em;}
   .mod-desc{font-size:.73rem;color:var(--ink-soft);}
+  .tab-btn-jomar{border-color:#10B981 !important;color:#10B981 !important;}
+  .tab-btn-jomar.activo{background:#10B981 !important;color:#fff !important;}
+  .jomar-strip{
+    background:linear-gradient(135deg,#0d2a20 0%,#134e2e 100%);
+    border:1px solid #10B981;border-radius:var(--radio);
+    padding:20px 24px;margin-bottom:24px;
+    display:flex;align-items:center;gap:16px;
+  }
+  .jomar-logo{
+    width:48px;height:48px;border-radius:50%;background:#10B981;flex-shrink:0;
+    display:flex;align-items:center;justify-content:center;
+    font-family:var(--font-display);font-size:1.5rem;color:#fff;
+  }
+  .jomar-titulo{font-family:var(--font-display);font-size:1.9rem;color:#F4EFE2;letter-spacing:.06em;line-height:1;}
+  .jomar-subtitulo{font-size:.72rem;color:#34D399;letter-spacing:.1em;text-transform:uppercase;font-weight:600;margin-top:3px;}
   .mod-badge-header{
     display:inline-flex;align-items:center;gap:7px;
     background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15);
@@ -865,10 +882,10 @@
         <div class="mod-nombre">MOTO LUNA</div>
         <div class="mod-desc">Cobro diario · 1 cliente activo</div>
       </button>
-      <button class="mod-card mod-jomar" disabled>
+      <button class="mod-card mod-jomar" onclick="selModulo('jomar')">
         <div class="mod-icon">JM</div>
-        <div class="mod-nombre">JOMAR</div>
-        <div class="mod-desc">Próximamente</div>
+        <div class="mod-nombre">MOTOS JOMAR</div>
+        <div class="mod-desc">Cobro diario · 1 cliente activo</div>
       </button>
     </div>
   </div>
@@ -962,7 +979,8 @@
     <button type="button" class="tab-btn" data-vista="gerencia">Gerencia</button>
     <button type="button" class="tab-btn tab-btn-credito" data-vista="simulador">⚡ Créditos</button>
     <button type="button" class="tab-btn tab-btn-factura" data-vista="facturacion">🧾 Facturación</button>
-    <button type="button" class="tab-btn tab-btn-luna" data-vista="luna" id="tab-luna" style="display:none;">🌙 Luna</button>
+    <button type="button" class="tab-btn tab-btn-luna"  data-vista="luna"  id="tab-luna"  style="display:none;">🌙 Luna</button>
+    <button type="button" class="tab-btn tab-btn-jomar" data-vista="jomar" id="tab-jomar" style="display:none;">🏍️ Jomar</button>
   </div>
 
   <div id="vista-operativo" class="vista activa">
@@ -1368,6 +1386,22 @@
     </section>
   </div>
 
+  <!-- ═══ VISTA JOMAR ═══ -->
+  <div id="vista-jomar" class="vista">
+    <div class="jomar-strip">
+      <div class="jomar-logo">JM</div>
+      <div>
+        <div class="jomar-titulo">MOTOS JOMAR</div>
+        <div class="jomar-subtitulo">módulo independiente · cobro diario</div>
+      </div>
+    </div>
+    <div class="tickers" id="tickers-jomar" style="margin-bottom:24px;"></div>
+    <section>
+      <h2 class="titulo-seccion">Clientes</h2>
+      <div class="cobro-grid" id="jomar-clientes-grid"></div>
+    </section>
+  </div>
+
   <!-- Modal factura -->
   <div id="modal-factura" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.55);backdrop-filter:blur(3px);overflow-y:auto;padding:30px 16px;">
     <div style="max-width:620px;margin:0 auto;position:relative;">
@@ -1394,7 +1428,8 @@
 
 <script>
 const DATOS = __DATOS_JSON_AQUI__;
-const DATOS_LUNA = __DATOS_LUNA_JSON__;
+const DATOS_LUNA  = __DATOS_LUNA_JSON__;
+const DATOS_JOMAR = __DATOS_JOMAR_JSON__;
 let COBRO_POR_CLIENTE = {};
 
 // ─── SELECTOR DE MÓDULOS ───────────────────────────────────────
@@ -1402,38 +1437,43 @@ let _moduloActual = null;
 
 function selModulo(modulo) {
   _moduloActual = modulo;
-  const overlay = document.getElementById('selector-overlay');
-  overlay.style.display = 'none';
+  document.getElementById('selector-overlay').style.display = 'none';
   document.body.style.overflow = '';
   document.getElementById('mod-badge-header').style.display = 'inline-flex';
 
-  const tabLuna = document.getElementById('tab-luna');
   const tabsSevera = ['operativo','cobro','gerencia','simulador','facturacion'];
+  const tabLuna  = document.getElementById('tab-luna');
+  const tabJomar = document.getElementById('tab-jomar');
+
+  // Reset all tabs/vistas
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('activo'));
+  document.querySelectorAll('.vista').forEach(v => v.classList.remove('activa'));
 
   if (modulo === 'luna') {
-    tabLuna.style.display = '';
-    tabsSevera.forEach(v => {
-      const btn = document.querySelector(`.tab-btn[data-vista="${v}"]`);
-      if (btn) btn.style.display = 'none';
-    });
+    tabsSevera.forEach(v => { const b = document.querySelector(`.tab-btn[data-vista="${v}"]`); if(b) b.style.display='none'; });
+    tabLuna.style.display  = '';
+    tabJomar.style.display = 'none';
     document.getElementById('mod-badge-nombre').textContent = 'MOTO LUNA';
     document.getElementById('mod-badge-dot').style.background = '#3B82F6';
-    // activar vista luna
-    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('activo'));
-    document.querySelectorAll('.vista').forEach(v => v.classList.remove('activa'));
     tabLuna.classList.add('activo');
     document.getElementById('vista-luna').classList.add('activa');
     renderizarLuna();
+  } else if (modulo === 'jomar') {
+    tabsSevera.forEach(v => { const b = document.querySelector(`.tab-btn[data-vista="${v}"]`); if(b) b.style.display='none'; });
+    tabLuna.style.display  = 'none';
+    tabJomar.style.display = '';
+    document.getElementById('mod-badge-nombre').textContent = 'MOTOS JOMAR';
+    document.getElementById('mod-badge-dot').style.background = '#10B981';
+    tabJomar.classList.add('activo');
+    document.getElementById('vista-jomar').classList.add('activa');
+    renderizarJomar();
   } else {
-    tabLuna.style.display = 'none';
-    tabsSevera.forEach(v => {
-      const btn = document.querySelector(`.tab-btn[data-vista="${v}"]`);
-      if (btn) btn.style.display = '';
-    });
+    // SEVERA MOTOS
+    tabsSevera.forEach(v => { const b = document.querySelector(`.tab-btn[data-vista="${v}"]`); if(b) b.style.display=''; });
+    tabLuna.style.display  = 'none';
+    tabJomar.style.display = 'none';
     document.getElementById('mod-badge-nombre').textContent = 'SEVERA MOTOS';
     document.getElementById('mod-badge-dot').style.background = 'var(--plate)';
-    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('activo'));
-    document.querySelectorAll('.vista').forEach(v => v.classList.remove('activa'));
     const btnOp = document.querySelector('.tab-btn[data-vista="operativo"]');
     if (btnOp) btnOp.classList.add('activo');
     document.getElementById('vista-operativo').classList.add('activa');
@@ -1446,35 +1486,36 @@ function volverSelector() {
   document.getElementById('mod-badge-header').style.display = 'none';
 }
 
-function renderizarLuna() {
-  if (!DATOS_LUNA) return;
-  const g = DATOS_LUNA.global;
-  const tickEl = document.getElementById('tickers-luna');
+function _renderizarModulo(datos, tickElId, gridElId, accentColor) {
+  if (!datos) return;
+  const g = datos.global;
+  const tickEl = document.getElementById(tickElId);
   if (tickEl) {
     tickEl.innerHTML = `
-      <div class="ticker destacado">Recibido: <span style="color:var(--plate);">${formatPesos(g.recibido_historico)}</span></div>
+      <div class="ticker destacado">Recibido: <span style="color:${accentColor};">${formatPesos(g.recibido_historico)}</span></div>
       <div class="ticker">Por cobrar: <span style="color:var(--ambar);">${formatPesos(g.pendiente_total)}</span></div>
       <div class="ticker">Total contratos: ${formatPesos(g.total_contratos)}</div>`;
   }
-  const gridEl = document.getElementById('luna-clientes-grid');
+  const gridEl = document.getElementById(gridElId);
   if (!gridEl) return;
-  gridEl.innerHTML = DATOS_LUNA.clientes.map(c => {
-    const pct     = Math.round((c.cuotas_pagadas / c.total_cuotas) * 100);
-    const pctCuota = Math.min(100, Math.round(((c.acumulado_cuota_actual || 0) / c.tarifa) * 100));
-    const dias = c.dias_en_cuota_actual || 0;
+  gridEl.innerHTML = datos.clientes.map(c => {
+    const pct      = Math.round((c.cuotas_pagadas / c.total_cuotas) * 100);
+    const pctCuota = Math.min(100, Math.round(((c.acumulado_cuota_actual||0) / c.tarifa) * 100));
+    const dias     = c.dias_en_cuota_actual || 0;
+    const telefonoHtml = c.telefono ? `<div><div style="font-size:.68rem;color:var(--ink-soft);text-transform:uppercase;font-weight:600;">Teléfono</div><strong>${c.telefono}</strong></div>` : '';
     const ultimosPagos = c.pagos.slice(-8).map(p =>
       `<span class="cobro-dia">${p.fecha.slice(5)}: ${formatCompacto(p.valor)}</span>`
     ).join('');
     return `
-      <div class="cobro-card" style="border-color:#3B82F6;max-width:360px;">
-        <div class="cobro-card-header" style="background:linear-gradient(135deg,#162032,#1e3a5f);">
+      <div class="cobro-card" style="border-color:${accentColor};max-width:380px;">
+        <div class="cobro-card-header" style="background:linear-gradient(135deg,#0d1a10,#134e2e);">
           <div class="cobro-card-nombre" style="color:#F4EFE2;">${c.nombre}</div>
-          <div class="cobro-card-placa" style="color:#60A5FA;">${c.placa}</div>
+          <div class="cobro-card-placa" style="color:${accentColor};">${c.placa}</div>
         </div>
         <div class="cobro-card-body">
           <div style="margin-bottom:14px;">
             <div style="font-size:.68rem;text-transform:uppercase;letter-spacing:.08em;color:var(--ink-soft);margin-bottom:5px;font-weight:600;">Contrato — ${c.cuotas_pagadas}/${c.total_cuotas} cuotas (${pct}%)</div>
-            <div class="cobro-barra-wrap"><div class="cobro-barra" style="width:${pct}%;background:#3B82F6;"></div></div>
+            <div class="cobro-barra-wrap"><div class="cobro-barra" style="width:${pct}%;background:${accentColor};"></div></div>
           </div>
           <div style="margin-bottom:14px;">
             <div style="font-size:.68rem;text-transform:uppercase;letter-spacing:.08em;color:var(--ink-soft);margin-bottom:5px;font-weight:600;">Cuota actual — día ${dias}/8 (${pctCuota}%)</div>
@@ -1486,6 +1527,7 @@ function renderizarLuna() {
             <div><div style="font-size:.68rem;color:var(--ink-soft);text-transform:uppercase;font-weight:600;">Por cobrar</div><strong style="color:var(--ambar);">${formatPesos(c.pendiente_total)}</strong></div>
             <div><div style="font-size:.68rem;color:var(--ink-soft);text-transform:uppercase;font-weight:600;">Inicio</div><strong>${c.inicio}</strong></div>
             <div><div style="font-size:.68rem;color:var(--ink-soft);text-transform:uppercase;font-weight:600;">Pago diario</div><strong>${formatPesos(c.pago_diario)}</strong></div>
+            ${telefonoHtml}
           </div>
           <div style="font-size:.68rem;text-transform:uppercase;letter-spacing:.08em;color:var(--ink-soft);margin-bottom:6px;font-weight:600;">Últimas cuotas</div>
           <div style="display:flex;flex-wrap:wrap;gap:4px;">${ultimosPagos}</div>
@@ -1493,6 +1535,9 @@ function renderizarLuna() {
       </div>`;
   }).join('');
 }
+
+function renderizarLuna()  { _renderizarModulo(DATOS_LUNA,  'tickers-luna',  'luna-clientes-grid',  '#3B82F6'); }
+function renderizarJomar() { _renderizarModulo(DATOS_JOMAR, 'tickers-jomar', 'jomar-clientes-grid', '#10B981'); }
 
 // Bloquear scroll mientras se muestra el selector
 document.body.style.overflow = 'hidden';
