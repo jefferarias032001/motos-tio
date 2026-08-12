@@ -64,10 +64,10 @@ GOOGLE_SHEET_GID = "714608512"
 # ---------------------------------------------------------------------------
 CLIENTES_CONFIG = {
     "dorlys":           {"num":  1, "cat": "diario_30k",  "dias": 8,  "meta": 240_000, "label": "Diario 30k × 8d"},
-    "elkin":            {"num":  2, "cat": "quincenal",   "dias": 15, "meta": 240_000, "label": "Quincenal 240k"},
+    "elkin":            {"num":  2, "cat": "quincenal",   "dias": 15, "meta": 240_000, "label": "Quincenal 240k", "tel": "3005106102"},
     "juan andres":      {"num":  3, "cat": "diario_30k",  "dias": 8,  "meta": 240_000, "label": "Diario 30k × 8d"},
     "jorge luis":       {"num":  4, "cat": "semanal",     "dias": 7,  "meta": 240_000, "label": "Semanal 240k"},
-    "henry junior":     {"num":  5, "cat": "diario_34k",  "dias": 7,  "meta": 238_000, "label": "Diario 34k × 7d"},
+    "henry junior":     {"num":  5, "cat": "semanal",     "dias": 7,  "meta": 240_000, "label": "Semanal 240k"},
     "duvan enrique":    {"num":  6, "cat": "semanal",     "dias": 7,  "meta": 240_000, "label": "Semanal 240k"},
     "wilmar ivis":      {"num":  7, "cat": "diario_30k",  "dias": 8,  "meta": 240_000, "label": "Diario 30k × 8d"},
     "jesus morales":    {"num":  8, "cat": "diario_30k",  "dias": 8,  "meta": 240_000, "label": "Diario 30k × 8d"},
@@ -106,6 +106,7 @@ ALIAS_NOMBRES = {
     "darwin / yaimis / ysabel":          "darwin yaimis ysabel",
     "ana milena-juan david":             "juan david-ana milena",
     "kevin rodriguez":                   "heiner rodriguez",
+    "roberto":                           "edinson",
 }
 
 def normalizar_nombre(raw: str) -> str:
@@ -566,10 +567,18 @@ def procesar(filas, clientes_meta, hoy):
         # Overrides manuales de total_cuotas (cuando el Excel trae un valor incorrecto)
         CUOTAS_OVERRIDE = {
             "dorlys jose julio": 60,
+            "henry junior":      52,
+            "asmed brenda":       9,   # pagó $2.160.000 de una sola vez el 15/07
         }
         total_cuotas = CUOTAS_OVERRIDE.get(clave, meta.get("total_cuotas", 64))
         pagos_historicos = sorted([r for r in registros if r["fecha"] <= hoy], key=lambda r: r["fecha"])
         pagos_realizados = len(pagos_historicos)
+        # Si hubo un pago en bloque que cubre varias cuotas, contar por monto
+        meta_cuota = cfg["meta"] if cfg else 240_000
+        if meta_cuota > 0:
+            cuotas_por_monto = int(recibido_total // meta_cuota)
+            if cuotas_por_monto > pagos_realizados:
+                pagos_realizados = cuotas_por_monto
         pagos_restantes  = max(0, total_cuotas - pagos_realizados)
         porc_completado  = round(pagos_realizados / total_cuotas * 100, 1) if total_cuotas > 0 else 0
 
