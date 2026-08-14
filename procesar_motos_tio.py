@@ -75,7 +75,7 @@ CLIENTES_CONFIG = {
     "chacal":           {"num": 10, "cat": "diario_30k",  "dias": 8,  "meta": 240_000, "label": "Diario 30k × 8d"},
     "wilian viejo":     {"num": 11, "cat": "diario_30k",  "dias": 8,  "meta": 240_000, "label": "Diario 30k × 8d"},
     "darwin":           {"num": 12, "cat": "semanal",     "dias": 7,  "meta": 240_000, "label": "Semanal 240k"},
-    "heiner rodriguez": {"num": 13, "cat": "diario_34k",  "dias": 7,  "meta": 238_000, "label": "Diario 34k × 7d"},
+    "heiner rodriguez": {"num": 13, "cat": "diario_34k",  "dias": 7,  "meta": 240_000, "label": "Diario 34k × 7d"},
     "negro luis":       {"num": 14, "cat": "quincenal",   "dias": 15, "meta": 240_000, "label": "Quincenal 240k"},
     "sr pedro":         {"num": 15, "cat": "semanal",     "dias": 7,  "meta": 240_000, "label": "Semanal 240k"},
     "lucho laura":      {"num": 16, "cat": "semanal",     "dias": 7,  "meta": 240_000, "label": "Semanal 240k"},
@@ -107,6 +107,9 @@ ALIAS_NOMBRES = {
     "ana milena-juan david":             "juan david-ana milena",
     "kevin rodriguez":                   "heiner rodriguez",
     "roberto":                           "edinson",
+    "wilian junior / darlis esther":     "wilian viejo",
+    "wilian junior":                     "wilian viejo",
+    "chacal / caterine":                 "chacal caterine",
 }
 
 def normalizar_nombre(raw: str) -> str:
@@ -453,16 +456,18 @@ def agrupar_en_cuotas(filas_online, tarifa_default=240_000):
                 plantilla = p
             acum += recibido
             if acum >= tarifa:
+                excedente = acum - tarifa
                 cuota_entry = {
                     **plantilla,
                     "fecha":          p["fecha"],      # fecha en que se completó
                     "pago_diario":    tarifa,
-                    "pago_recibido":  acum,
+                    "pago_recibido":  acum,            # total real (para el saldo)
+                    "excedente":      excedente,       # saldo a favor para la próxima cuota
                     "saldo_cache":    None,
                     "observaciones":  "cobro_app",
                 }
                 cuotas.append(cuota_entry)
-                acum = max(0.0, acum - tarifa)         # llevar exceso al siguiente ciclo
+                acum = max(0.0, excedente)             # llevar exceso al siguiente ciclo
                 plantilla = p if acum > 0 else None
 
     print(f"   → {len(cuotas)} cuotas completas agrupadas desde Google Sheets")
@@ -622,14 +627,18 @@ def procesar(filas, clientes_meta, hoy):
                 est = "parcial"
             else:
                 est = "no_pago"
+            # Para entradas de cobro_app: mostrar la meta exacta, no el total acumulado
+            excedente = r.get("excedente", 0) or 0
+            rec_display = esp if (r.get("observaciones") == "cobro_app" and excedente > 0) else rec
             ultimos_pagos_data.append({
                 "fecha":     r["fecha"].isoformat(),
                 "mes_dia":   f"{r['fecha'].day}/{r['fecha'].month}",
                 "dia_nombre": DIAS_ES_ABREV[r["fecha"].weekday()],
-                "recibido":  rec,
+                "recibido":  rec_display,
                 "esperado":  esp,
                 "estado":    est,
                 "num_cuota": base_num + i_p,
+                "excedente": round(excedente),
             })
 
         meses_con_actividad = sorted({(r["fecha"].year, r["fecha"].month) for r in registros if r["fecha"] <= hoy})

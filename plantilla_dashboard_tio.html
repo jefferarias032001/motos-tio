@@ -767,6 +767,33 @@
   /* ── Facturación ── */
   .tab-btn-factura{border-color:#10B981 !important;color:#10B981 !important;}
   .tab-btn-factura.activo{background:#10B981 !important;color:#fff !important;}
+
+  /* ── Proyección ── */
+  .tab-btn-proyeccion{border-color:#8B5CF6 !important;color:#8B5CF6 !important;}
+  .tab-btn-proyeccion.activo{background:#8B5CF6 !important;color:#fff !important;}
+  .proy-resumen{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:14px;margin-bottom:28px;}
+  .proy-card{background:var(--card);border:1px solid var(--borde);border-radius:var(--radio);padding:16px 18px;}
+  .proy-card-label{font-size:.68rem;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-soft);font-weight:700;margin-bottom:6px;}
+  .proy-card-val{font-size:1.6rem;font-weight:800;line-height:1.1;}
+  .proy-card-sub{font-size:.73rem;color:var(--ink-soft);margin-top:4px;}
+  .proy-tabla-wrap{overflow-x:auto;border-radius:var(--radio);border:1px solid var(--borde);}
+  .proy-tabla{width:100%;border-collapse:collapse;font-size:.84rem;}
+  .proy-tabla th{background:var(--card-soft);color:var(--ink-soft);font-size:.68rem;letter-spacing:.1em;text-transform:uppercase;font-weight:700;padding:10px 14px;text-align:left;border-bottom:1px solid var(--borde);white-space:nowrap;}
+  .proy-tabla td{padding:11px 14px;border-bottom:1px solid var(--borde);vertical-align:middle;}
+  .proy-tabla tr:last-child td{border-bottom:none;}
+  .proy-tabla tr:hover td{background:var(--card-soft);}
+  .proy-mes-actual td{background:rgba(139,92,246,.06) !important;}
+  .proy-mes-actual .proy-mes-lbl{font-weight:800;color:#8B5CF6;}
+  .proy-badge-activos{display:inline-flex;align-items:center;gap:5px;background:rgba(139,92,246,.12);color:#6D28D9;border-radius:20px;padding:3px 10px;font-weight:700;font-size:.82rem;}
+  .proy-ingreso{font-weight:700;font-size:.92rem;}
+  .proy-chip-termina{display:inline-block;background:rgba(239,68,68,.1);color:#B91C1C;border-radius:4px;padding:2px 7px;font-size:.72rem;font-weight:600;margin:1px 2px;white-space:nowrap;}
+  .proy-chip-ninguno{color:var(--ink-soft);font-size:.8rem;font-style:italic;}
+  .proy-rec-ok{color:var(--verde);font-weight:600;font-size:.82rem;}
+  .proy-rec-warn{color:#D97706;font-weight:700;font-size:.82rem;}
+  .proy-rec-alert{color:#DC2626;font-weight:800;font-size:.82rem;}
+  .proy-ingreso-cae{color:#DC2626;font-weight:600;}
+  .proy-ingreso-cae-cero{color:var(--ink-soft);font-size:.8rem;}
+  .proy-section-titulo{font-size:.72rem;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-soft);font-weight:700;margin:24px 0 10px;}
   .fact-selector-wrap{background:var(--card);border:1px solid var(--borde);border-radius:var(--radio);padding:16px 20px;}
   .fact-selector-label{display:block;font-size:.72rem;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-soft);font-weight:700;margin-bottom:8px;}
   .fact-select{background:var(--card-soft);border:1px solid var(--borde);border-radius:8px;padding:9px 14px;font-size:.9rem;color:var(--ink);min-width:280px;max-width:100%;cursor:pointer;}
@@ -1044,6 +1071,7 @@
     <button type="button" class="tab-btn" data-vista="gerencia">Gerencia</button>
     <button type="button" class="tab-btn tab-btn-credito" data-vista="simulador">⚡ Créditos</button>
     <button type="button" class="tab-btn tab-btn-factura" data-vista="facturacion">🧾 Facturación</button>
+    <button type="button" class="tab-btn tab-btn-proyeccion" data-vista="proyeccion">📈 Proyección</button>
     <button type="button" class="tab-btn tab-btn-luna"  data-vista="luna"  id="tab-luna"  style="display:none;">🌙 Luna</button>
     <button type="button" class="tab-btn tab-btn-jomar" data-vista="jomar" id="tab-jomar" style="display:none;">🏍️ Jomar</button>
   </div>
@@ -1478,6 +1506,34 @@
   </section>
   </div>
 
+  <!-- ═══ VISTA PROYECCIÓN ═══ -->
+  <div id="vista-proyeccion" class="vista">
+  <section id="seccion-proyeccion">
+    <h2 class="titulo-seccion">📈 Proyección financiera</h2>
+    <div id="proyeccion-resumen" class="proy-resumen"></div>
+    <p class="proy-section-titulo">Mes a mes · 2026–2027</p>
+    <div class="proy-tabla-wrap">
+      <table class="proy-tabla" id="proyeccion-tabla">
+        <thead>
+          <tr>
+            <th>Mes</th>
+            <th>Motos activas</th>
+            <th>Ingreso esperado</th>
+            <th>Terminan contrato</th>
+            <th>Ingreso que cae</th>
+            <th>Recomendación</th>
+          </tr>
+        </thead>
+        <tbody id="proyeccion-tbody"></tbody>
+      </table>
+    </div>
+    <p style="margin-top:16px;font-size:.75rem;color:var(--ink-soft);">
+      Ingreso esperado = suma de cuotas que caen en cada mes asumiendo pago puntual.<br>
+      Fecha fin = inicio contrato + total cuotas × ciclo días (proyección basada en Excel).
+    </p>
+  </section>
+  </div>
+
   <!-- ═══ VISTA LUNA ═══ -->
   <div id="vista-luna" class="vista">
     <div class="luna-strip">
@@ -1571,7 +1627,7 @@ function selModulo(modulo) {
   document.body.style.overflow = '';
   document.getElementById('mod-badge-header').style.display = 'inline-flex';
 
-  const tabsSevera = ['operativo','cobro','gerencia','simulador','facturacion'];
+  const tabsSevera = ['operativo','cobro','gerencia','simulador','facturacion','proyeccion'];
   const tabLuna  = document.getElementById('tab-luna');
   const tabJomar = document.getElementById('tab-jomar');
 
@@ -2491,6 +2547,155 @@ function renderVencimientos(clientes){
   }).join("");
 }
 
+// ═══════════════════════════════════════════════════════════════
+// PROYECCIÓN FINANCIERA
+// ═══════════════════════════════════════════════════════════════
+let _proyeccionCargada = false;
+
+function cargarProyeccion(){
+  if(_proyeccionCargada) return;
+  _proyeccionCargada = true;
+
+  const NOMBRES_MESES_ES = ["Enero","Febrero","Marzo","Abril","Mayo","Junio",
+                             "Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre"];
+
+  const hoy = new Date(DATOS.hoy + "T00:00:00");
+  const todosClientes = DATOS.clientes || [];
+
+  // Solo clientes con contratos que aún no vencieron o que vencen en el futuro
+  const clientesActivos = todosClientes.filter(c => {
+    if(!c.fecha_fin_prevista) return false;
+    const fin = new Date(c.fecha_fin_prevista + "T00:00:00");
+    return fin >= new Date(hoy.getFullYear(), hoy.getMonth(), 1);
+  });
+
+  // Ingreso mensual estimado por cliente (si paga puntual)
+  function ingresoMensualCliente(c, diasEnMes){
+    const diasCiclo = c.dias_ciclo || 7;
+    const meta      = c.meta_ciclo || 240000;
+    return (diasEnMes / diasCiclo) * meta;
+  }
+
+  // Generar meses desde el mes actual hasta dic 2027 (18 meses)
+  const meses = [];
+  const mesInicio = new Date(hoy.getFullYear(), hoy.getMonth(), 1);
+  const mesFin    = new Date(2028, 0, 1);
+
+  for(let d = new Date(mesInicio); d < mesFin; d.setMonth(d.getMonth() + 1)){
+    const year  = d.getFullYear();
+    const month = d.getMonth();
+    const primerDia = new Date(year, month, 1);
+    const ultimoDia = new Date(year, month + 1, 0);
+    const diasEnMes = ultimoDia.getDate();
+    const esMesActual = (year === hoy.getFullYear() && month === hoy.getMonth());
+
+    // Activos: contrato termina en o después del primer día del mes
+    const activos = clientesActivos.filter(c => {
+      const fin = new Date(c.fecha_fin_prevista + "T00:00:00");
+      return fin >= primerDia;
+    });
+
+    // Terminan: contrato cuyo fin cae dentro de este mes
+    const terminan = clientesActivos.filter(c => {
+      const fin = new Date(c.fecha_fin_prevista + "T00:00:00");
+      return fin >= primerDia && fin <= ultimoDia;
+    });
+
+    // Ingreso esperado = suma de todos los activos este mes
+    const ingresoEsperado = activos.reduce((s,c) => s + ingresoMensualCliente(c, diasEnMes), 0);
+
+    // Ingreso que cae = contribución de los que terminan
+    const ingresoTermina  = terminan.reduce((s,c) => s + ingresoMensualCliente(c, diasEnMes), 0);
+
+    meses.push({
+      year, month, esMesActual, diasEnMes,
+      label: `${NOMBRES_MESES_ES[month]} ${year}`,
+      numActivos: activos.length,
+      terminan: terminan.map(c => c.nombre),
+      ingresoEsperado: Math.round(ingresoEsperado),
+      ingresoTermina:  Math.round(ingresoTermina),
+    });
+  }
+
+  // ── Resumen cards ──────────────────────────────────────────────
+  const mesHoy    = meses.find(m => m.esMesActual) || meses[0];
+  const totalMots = clientesActivos.filter(c => !c.contrato_completo).length;
+  const ingresoPromedio = Math.round(meses.slice(0,6).reduce((s,m)=>s+m.ingresoEsperado,0)/Math.min(6,meses.length));
+
+  // Próximo contrato en vencer
+  const proximoVence = clientesActivos
+    .filter(c => !c.contrato_completo && c.fecha_fin_prevista >= DATOS.hoy)
+    .sort((a,b) => a.fecha_fin_prevista.localeCompare(b.fecha_fin_prevista))[0];
+
+  const resumenEl = document.getElementById("proyeccion-resumen");
+  resumenEl.innerHTML = `
+    <div class="proy-card">
+      <div class="proy-card-label">Motos activas hoy</div>
+      <div class="proy-card-val" style="color:#8B5CF6;">${totalMots}</div>
+      <div class="proy-card-sub">contratos vigentes</div>
+    </div>
+    <div class="proy-card">
+      <div class="proy-card-label">Ingreso este mes</div>
+      <div class="proy-card-val" style="color:var(--verde);">${formatCompacto(mesHoy.ingresoEsperado)}</div>
+      <div class="proy-card-sub">si todos pagan puntual</div>
+    </div>
+    <div class="proy-card">
+      <div class="proy-card-label">Promedio próx. 6 meses</div>
+      <div class="proy-card-val" style="color:#0EA5E9;">${formatCompacto(ingresoPromedio)}</div>
+      <div class="proy-card-sub">mensual estimado</div>
+    </div>
+    <div class="proy-card">
+      <div class="proy-card-label">Próximo en vencer</div>
+      <div class="proy-card-val" style="font-size:1rem;font-weight:700;color:#D97706;">${proximoVence ? proximoVence.nombre.split(" ").slice(0,2).join(" ") : "—"}</div>
+      <div class="proy-card-sub">${proximoVence ? proximoVence.fecha_fin_prevista_legible || proximoVence.fecha_fin_prevista : "—"}</div>
+    </div>
+  `;
+
+  // ── Tabla mensual ──────────────────────────────────────────────
+  const tbody = document.getElementById("proyeccion-tbody");
+  tbody.innerHTML = meses.map(m => {
+    const terminanHtml = m.terminan.length
+      ? m.terminan.map(n => {
+          const partes = n.split(" ");
+          const corto  = partes.slice(0,2).join(" ");
+          return `<span class="proy-chip-termina" title="${n}">${corto}</span>`;
+        }).join("")
+      : `<span class="proy-chip-ninguno">—</span>`;
+
+    const caeCls  = m.ingresoTermina > 0 ? "proy-ingreso-cae" : "proy-ingreso-cae-cero";
+    const caeHtml = m.ingresoTermina > 0
+      ? `<span class="${caeCls}">−${formatCompacto(m.ingresoTermina)}</span>`
+      : `<span class="${caeCls}">—</span>`;
+
+    let recHtml;
+    if(m.terminan.length >= 2){
+      recHtml = `<span class="proy-rec-alert">🔴 Compra urgente (${m.terminan.length} contratos)</span>`;
+    } else if(m.terminan.length === 1){
+      // Look 1 month ahead — recommend buying the month before this one
+      recHtml = `<span class="proy-rec-warn">🟡 Comprar antes de este mes</span>`;
+    } else {
+      // Check if any contract ends next month
+      const siguienteMes = meses.find(x => x.year === m.year && x.month === m.month + 1) ||
+                           meses.find(x => x.year === m.year + 1 && x.month === 0 && m.month === 11);
+      if(siguienteMes && siguienteMes.terminan.length > 0){
+        recHtml = `<span class="proy-rec-warn">🟡 Preparar compra (vence el próximo mes)</span>`;
+      } else {
+        recHtml = `<span class="proy-rec-ok">🟢 Estable</span>`;
+      }
+    }
+
+    const trCls = m.esMesActual ? "proy-mes-actual" : "";
+    return `<tr class="${trCls}">
+      <td><span class="proy-mes-lbl">${m.label}</span>${m.esMesActual ? ' <span style="font-size:.65rem;background:#8B5CF622;color:#7C3AED;border-radius:4px;padding:1px 6px;font-weight:700;">HOY</span>' : ''}</td>
+      <td><span class="proy-badge-activos">🏍️ ${m.numActivos}</span></td>
+      <td><span class="proy-ingreso">${formatCompacto(m.ingresoEsperado)}</span></td>
+      <td>${terminanHtml}</td>
+      <td>${caeHtml}</td>
+      <td>${recHtml}</td>
+    </tr>`;
+  }).join("");
+}
+
 function iniciarTabs(){
   document.querySelectorAll(".tab-btn").forEach(btn=>{
     btn.addEventListener("click", ()=>{
@@ -2500,6 +2705,7 @@ function iniciarTabs(){
       document.getElementById("vista-"+btn.dataset.vista).classList.add("activa");
       if(btn.dataset.vista === "cobro") cargarCobroDiario();
       if(btn.dataset.vista === "facturacion") cargarFacturacion();
+      if(btn.dataset.vista === "proyeccion") cargarProyeccion();
     });
   });
 }
@@ -2809,6 +3015,9 @@ function iniciarFiltroPeriodo(){
 const ALIAS_NOMBRES_JS = {
   "kevin rodriguez":                  "heiner rodriguez",
   "roberto":                          "edinson",
+  "wilian junior / darlis esther":    "wilian viejo",
+  "wilian junior":                    "wilian viejo",
+  "chacal / caterine":                "chacal caterine",
   "lucho / laura nosu":               "lucho laura nosu",
   "lucho laura nosu":                 "lucho laura nosu",
   "jesus morales / yuliana olivares": "jesus morales yuliana olivares",
@@ -3370,10 +3579,18 @@ function renderTablaClientes() {
     let chipsHtml = ultimos.map(p => {
       const cls = p.estado === 'pagado' ? 'pagado' : p.estado === 'parcial' ? 'parcial' : 'no_pago';
       const [fy,fm,fd] = p.fecha.split('-');
-      return `<span class="cobro-mini-chip ${cls}" title="Cuota ${p.fecha} — ${formatCompacto(p.recibido)}">
+      const excedente = p.excedente || 0;
+      const chipCuota = `<span class="cobro-mini-chip ${cls}" title="Cuota ${p.fecha} — ${formatCompacto(p.recibido)}${excedente>0?' · Saldo a favor: '+formatCompacto(excedente):''}">
         <span>${fd}/${fm}</span>
         <span class="dia">${p.dia_nombre}</span>
       </span>`;
+      const chipSaldo = excedente > 0
+        ? `<span class="cobro-mini-chip" style="background:#F59E0B22;color:#B45309;border:1px solid #F59E0B44;font-size:.62rem;" title="Saldo a favor que se arrastra a la próxima cuota">
+            <span>${formatCompacto(excedente)}</span>
+            <span class="dia">sdo</span>
+           </span>`
+        : '';
+      return chipCuota + chipSaldo;
     }).join('');
 
     // Chip de aviso si lleva días sin pagar (ciclo vencido)
@@ -3384,9 +3601,9 @@ function renderTablaClientes() {
       </span>`;
     }
 
-    // Chips del ciclo actual en app (pagos diarios si es diario)
+    // Chips del ciclo actual en app (pagos diarios si es diario) — omitir carry-over
     if (anal.cicloActual.pagos.length > 0) {
-      chipsHtml += anal.cicloActual.pagos.map(p => {
+      chipsHtml += anal.cicloActual.pagos.filter(p => !p.isCarryOver).map(p => {
         const [fy,fm,fd] = p.fecha.split('-');
         const esN = (p.medio||'').toLowerCase().includes('nequi');
         return `<span class="cobro-mini-chip" style="background:${esN?'#3B82F622':'#10B98122'};color:${esN?'#1D4ED8':'#047857'};border:1px solid ${esN?'#3B82F644':'#10B98144'};" title="App ${p.fecha}: ${formatCompacto(p.valor)}${esN?' · Nequi':' · Efectivo'}">
@@ -3519,17 +3736,18 @@ function analizarPagosCliente(pagos, tarifa){
     acum += p.valor;
     pagosCiclo.push(p);
 
-    if(acum >= tarifa){
+    while(acum >= tarifa){
       cuotas.push({
         fecha: p.fecha,       // día en que se completó
-        total: acum,
+        total: tarifa,        // siempre la meta exacta
+        excedente: 0,         // se lleva al siguiente ciclo
         inicio: inicioCiclo,
         dias: pagosCiclo.length
       });
-      // Reiniciar ciclo
-      acum = 0;
-      inicioCiclo = null;
-      pagosCiclo = [];
+      // Arrastrar excedente al siguiente ciclo (NO perder el saldo)
+      acum = acum - tarifa;
+      inicioCiclo = acum > 0 ? p.fecha : null;
+      pagosCiclo  = acum > 0 ? [{ ...p, valor: acum, isCarryOver: true }] : [];
     }
   });
 
