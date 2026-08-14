@@ -2562,12 +2562,22 @@ function cargarProyeccion(){
   const hoy = new Date(DATOS.hoy + "T00:00:00");
   const todosClientes = DATOS.clientes || [];
 
-  // Solo clientes con contratos que aún no vencieron o que vencen en el futuro
-  const clientesActivos = todosClientes.filter(c => {
-    if(!c.fecha_fin_prevista) return false;
-    const fin = new Date(c.fecha_fin_prevista + "T00:00:00");
-    return fin >= new Date(hoy.getFullYear(), hoy.getMonth(), 1);
-  });
+  // Fecha de fin REAL proyectada desde hoy según cuotas restantes
+  // Esto evita que clientes con atraso aparezcan como "terminan" en el mes equivocado
+  function fechaFinReal(c){
+    if(c.contrato_completo) return null; // ya terminó, no incluir
+    const diasCiclo  = c.dias_ciclo || 7;
+    const restantes  = c.pagos_restantes || 0;
+    if(restantes <= 0) return null; // terminó según pagos
+    const ms = restantes * diasCiclo * 24 * 60 * 60 * 1000;
+    return new Date(hoy.getTime() + ms);
+  }
+
+  // Solo clientes activos (con cuotas pendientes)
+  const clientesActivos = todosClientes
+    .filter(c => !c.contrato_completo && (c.pagos_restantes || 0) > 0)
+    .map(c => ({ ...c, _finReal: fechaFinReal(c) }))
+    .filter(c => c._finReal !== null);
 
   // Ingreso mensual estimado por cliente (si paga puntual)
   function ingresoMensualCliente(c, diasEnMes){
@@ -2576,7 +2586,7 @@ function cargarProyeccion(){
     return (diasEnMes / diasCiclo) * meta;
   }
 
-  // Generar meses desde el mes actual hasta dic 2027 (18 meses)
+  // Generar meses desde el mes actual hasta dic 2027
   const meses = [];
   const mesInicio = new Date(hoy.getFullYear(), hoy.getMonth(), 1);
   const mesFin    = new Date(2028, 0, 1);
@@ -2589,23 +2599,26 @@ function cargarProyeccion(){
     const diasEnMes = ultimoDia.getDate();
     const esMesActual = (year === hoy.getFullYear() && month === hoy.getMonth());
 
-    // Activos: contrato termina en o después del primer día del mes
-    const activos = clientesActivos.filter(c => {
-      const fin = new Date(c.fecha_fin_prevista + "T00:00:00");
-      return fin >= primerDia;
-    });
+    // Activos este mes: su fin proyectado es en este mes o después
+    const activos = clientesActivos.filter(c => c._finReal >= primerDia);
 
-    // Terminan: contrato cuyo fin cae dentro de este mes
-    const terminan = clientesActivos.filter(c => {
-      const fin = new Date(c.fecha_fin_prevista + "T00:00:00");
-      return fin >= primerDia && fin <= ultimoDia;
-    });
+    // Terminan: su fin proyectado cae dentro de este mes
+    const terminan = clientesActivos.filter(c => c._finReal >= primerDia && c._finReal <= ultimoDia);
 
-    // Ingreso esperado = suma de todos los activos este mes
-    const ingresoEsperado = activos.reduce((s,c) => s + ingresoMensualCliente(c, diasEnMes), 0);
+    // Ingreso esperado = suma de activos este mes
+    // Si terminan este mes, solo cuentan las cuotas hasta su fecha de fin
+    const ingresoEsperado = activos.reduce((s,c) => {
+      const diasCiclo = c.dias_ciclo || 7;
+      const meta      = c.meta_ciclo || 240000;
+      // Si termina este mes, proporcional a los días hasta el fin
+      const diasActivos = terminan.includes(c)
+        ? Math.min(diasEnMes, Math.round((c._finReal - primerDia) / (24*60*60*1000)))
+        : diasEnMes;
+      return s + (diasActivos / diasCiclo) * meta;
+    }, 0);
 
-    // Ingreso que cae = contribución de los que terminan
-    const ingresoTermina  = terminan.reduce((s,c) => s + ingresoMensualCliente(c, diasEnMes), 0);
+    // Ingreso que cae: contribución mensual de los que terminan
+    const ingresoTermina = terminan.reduce((s,c) => s + ingresoMensualCliente(c, diasEnMes), 0);
 
     meses.push({
       year, month, esMesActual, diasEnMes,
@@ -2618,14 +2631,14 @@ function cargarProyeccion(){
   }
 
   // ── Resumen cards ──────────────────────────────────────────────
-  const mesHoy    = meses.find(m => m.esMesActual) || meses[0];
-  const totalMots = clientesActivos.filter(c => !c.contrato_completo).length;
+  const mesHoy       = meses.find(m => m.esMesActual) || meses[0];
+  const totalMots    = clientesActivos.length;
   const ingresoPromedio = Math.round(meses.slice(0,6).reduce((s,m)=>s+m.ingresoEsperado,0)/Math.min(6,meses.length));
 
-  // Próximo contrato en vencer
+  // Próximo contrato en vencer (por fecha real)
   const proximoVence = clientesActivos
-    .filter(c => !c.contrato_completo && c.fecha_fin_prevista >= DATOS.hoy)
-    .sort((a,b) => a.fecha_fin_prevista.localeCompare(b.fecha_fin_prevista))[0];
+    .slice()
+    .sort((a,b) => a._finReal - b._finReal)[0];
 
   const resumenEl = document.getElementById("proyeccion-resumen");
   resumenEl.innerHTML = `
@@ -2647,7 +2660,7 @@ function cargarProyeccion(){
     <div class="proy-card">
       <div class="proy-card-label">Próximo en vencer</div>
       <div class="proy-card-val" style="font-size:1rem;font-weight:700;color:#D97706;">${proximoVence ? proximoVence.nombre.split(" ").slice(0,2).join(" ") : "—"}</div>
-      <div class="proy-card-sub">${proximoVence ? proximoVence.fecha_fin_prevista_legible || proximoVence.fecha_fin_prevista : "—"}</div>
+      <div class="proy-card-sub">${proximoVence ? (()=>{const f=proximoVence._finReal;return f.getDate()+'/'+(f.getMonth()+1)+'/'+f.getFullYear();})() : "—"}</div>
     </div>
   `;
 
