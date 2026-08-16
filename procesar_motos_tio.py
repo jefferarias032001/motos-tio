@@ -97,6 +97,9 @@ CLIENTES_CONFIG = {
     "alvania":          {"num": 32, "cat": "diario_34k",  "dias": 7,  "meta": 240_000, "label": "Diario 34k × 7d"},
     "yorkis":           {"num": 33, "cat": "semanal",     "dias": 7,  "meta": 240_000, "label": "Semanal 240k"},
     "josue":            {"num": 34, "cat": "quincenal",   "dias": 15, "meta": 240_000, "label": "Quincenal 240k"},
+    # Empresas externas (Luna / Jomar) — se procesan por separado pero necesitan config de ciclo
+    "cesar":            {"num":  1, "cat": "diario_30k",  "dias": 8,  "meta": 240_000, "label": "Diario 30k × 8d"},
+    "william villa":    {"num":  1, "cat": "diario_30k",  "dias": 8,  "meta": 240_000, "label": "Diario 30k × 8d"},
 }
 
 # Alias: nombre en app → nombre canónico en Excel (minúsculas)
@@ -111,6 +114,20 @@ ALIAS_NOMBRES = {
     "wilian junior":                     "wilian viejo",
     "chacal / caterine":                 "chacal caterine",
 }
+
+# Identificadores de empresas externas (substrings y placas en minúsculas)
+# Usa coincidencia de substring para cubrir variantes de nombre en el Excel
+_LUNA_SUBS   = ['cesar']
+_LUNA_PLACAS = {'uyj15h'}
+_JOMAR_SUBS  = ['william villa', 'william']   # 'william' ≠ 'wilian viejo' (doble l vs una l)
+_JOMAR_PLACAS = {'bjr79i'}
+
+def _empresa_de(clave, placa=None):
+    """Retorna 'luna', 'jomar' o 'severa' según clave/placa del cliente."""
+    p = str(placa).strip().lower() if placa else ''
+    if any(s in clave for s in _LUNA_SUBS)  or p in _LUNA_PLACAS:  return 'luna'
+    if any(s in clave for s in _JOMAR_SUBS) or p in _JOMAR_PLACAS: return 'jomar'
+    return 'severa'
 
 def normalizar_nombre(raw: str) -> str:
     """Normaliza variantes de nombres al nombre canónico."""
@@ -240,6 +257,62 @@ def construir_datos_luna(hoy):
 
 def construir_datos_jomar(hoy):
     return _construir_modulo(_JOMAR_RAW, hoy)
+
+def _raw_a_filas(raw_list):
+    """Convierte pagos hardcodeados (_LUNA_RAW/_JOMAR_RAW) a filas compatibles con procesar()."""
+    filas = []
+    for c in raw_list:
+        clave = normalizar_nombre(c["nombre"])
+        tarifa = c.get("tarifa", 240_000)
+        for p in c.get("pagos", []):
+            fecha = date.fromisoformat(p["fecha"]) if isinstance(p["fecha"], str) else p["fecha"]
+            filas.append({
+                "fecha":         fecha,
+                "cliente_clave": clave,
+                "cliente_raw":   c["nombre"],
+                "moto":          c.get("moto"),
+                "placa":         c.get("placa"),
+                "pago_diario":   tarifa,
+                "pago_recibido": float(p["valor"]),
+                "medio_pago":    None,
+                "saldo_cache":   None,
+                "observaciones": "cobro_historico",
+            })
+    return filas
+
+def _meta_de_raw(raw_list):
+    """Construye un clientes_meta a partir de _LUNA_RAW/_JOMAR_RAW."""
+    meta = {}
+    for c in raw_list:
+        clave = normalizar_nombre(c["nombre"])
+        inicio_raw = c.get("inicio")
+        if isinstance(inicio_raw, str):
+            inicio_d = date.fromisoformat(inicio_raw)
+        elif isinstance(inicio_raw, date):
+            inicio_d = inicio_raw
+        else:
+            inicio_d = None
+        meta[clave] = {
+            "nombre":       c["nombre"],
+            "moto":         c.get("moto"),
+            "placa":        c.get("placa"),
+            "inicio":       inicio_d,
+            "observaciones": c.get("observaciones", ""),
+            "total_cuotas": c.get("total_cuotas", 64),
+        }
+    return meta
+
+def _construir_datos_empresa(raw_list, filas_sheets, hoy):
+    """Combina datos hardcodeados con cuotas nuevas de Google Sheets y procesa todo."""
+    filas_hist = _raw_a_filas(raw_list)
+    meta = _meta_de_raw(raw_list)
+    if filas_sheets:
+        ultimo_hist = max((f["fecha"] for f in filas_hist), default=date.min)
+        filas_nuevas = [f for f in filas_sheets if f["fecha"] > ultimo_hist]
+    else:
+        filas_nuevas = []
+    filas_total = filas_hist + filas_nuevas
+    return procesar(filas_total, meta, hoy) if filas_total else None
 
 MESES_ES = ["", "enero","febrero","marzo","abril","mayo","junio",
             "julio","agosto","septiembre","octubre","noviembre","diciembre"]
@@ -793,15 +866,27 @@ def imprimir_resumen_terminal(datos, hoy):
     print(f" Cumplimiento       : {g['cumplimiento']}%")
     print("=" * 64)
 
-def generar_html(datos, ruta_plantilla, ruta_salida, hoy):
+def generar_html(datos, ruta_plantilla, ruta_salida, hoy,
+                 datos_luna_excel=None, datos_jomar_excel=None):
     plantilla = ruta_plantilla.read_text(encoding="utf-8")
+    ts = datetime.now().strftime("%d/%m/%Y %I:%M %p")
     payload = {
-        "generado_en": datetime.now().strftime("%d/%m/%Y %I:%M %p"),
+        "generado_en": ts,
         "hoy": hoy.isoformat(), "hoy_legible": fecha_legible(hoy),
         **datos,
     }
-    datos_luna  = construir_datos_luna(hoy)
-    datos_jomar = construir_datos_jomar(hoy)
+    # Luna: usa datos del Excel si están disponibles, sino los hardcodeados
+    if datos_luna_excel:
+        datos_luna = {"generado_en": ts, "hoy": hoy.isoformat(),
+                      "hoy_legible": fecha_legible(hoy), **datos_luna_excel}
+    else:
+        datos_luna = construir_datos_luna(hoy)
+    # Jomar: igual
+    if datos_jomar_excel:
+        datos_jomar = {"generado_en": ts, "hoy": hoy.isoformat(),
+                       "hoy_legible": fecha_legible(hoy), **datos_jomar_excel}
+    else:
+        datos_jomar = construir_datos_jomar(hoy)
     html = plantilla.replace("__DATOS_JSON_AQUI__", json.dumps(payload, ensure_ascii=False))
     html = html.replace("__DATOS_LUNA_JSON__",  json.dumps(datos_luna,  ensure_ascii=False))
     html = html.replace("__DATOS_JOMAR_JSON__", json.dumps(datos_jomar, ensure_ascii=False))
@@ -849,7 +934,20 @@ def main():
             print(f"   + {len(nuevos)} cuotas nuevas desde Google Sheets")
     print(f"Total: {len(filas)} registros combinados")
 
-    datos = procesar(filas, clientes_meta, hoy)
+    # Separar filas y clientes por empresa
+    filas_severa = [f for f in filas if _empresa_de(f["cliente_clave"], f.get("placa")) == 'severa']
+    filas_luna   = [f for f in filas if _empresa_de(f["cliente_clave"], f.get("placa")) == 'luna']
+    filas_jomar  = [f for f in filas if _empresa_de(f["cliente_clave"], f.get("placa")) == 'jomar']
+    clientes_severa = {k: v for k, v in clientes_meta.items() if _empresa_de(k, v.get("placa")) == 'severa'}
+    clientes_luna   = {k: v for k, v in clientes_meta.items() if _empresa_de(k, v.get("placa")) == 'luna'}
+    clientes_jomar  = {k: v for k, v in clientes_meta.items() if _empresa_de(k, v.get("placa")) == 'jomar'}
+    print(f"  Severa: {len(filas_severa)} reg / {len(clientes_severa)} clientes")
+    print(f"  Luna:   {len(filas_luna)} reg / {len(clientes_luna)} clientes")
+    print(f"  Jomar:  {len(filas_jomar)} reg / {len(clientes_jomar)} clientes")
+
+    datos = procesar(filas_severa, clientes_severa, hoy)
+    datos_luna_exc  = _construir_datos_empresa(_LUNA_RAW,  filas_luna,  hoy)
+    datos_jomar_exc = _construir_datos_empresa(_JOMAR_RAW, filas_jomar, hoy)
 
     base_dir = Path(__file__).resolve().parent
     # Usa la plantilla tío (semanal); si no existe, cae al original
@@ -861,7 +959,8 @@ def main():
         sys.exit(1)
 
     ruta_salida = Path(args.salida) if args.salida else base_dir / "dashboard_motos_tio.html"
-    generar_html(datos, ruta_plantilla, ruta_salida, hoy)
+    generar_html(datos, ruta_plantilla, ruta_salida, hoy,
+                 datos_luna_excel=datos_luna_exc, datos_jomar_excel=datos_jomar_exc)
     imprimir_resumen_terminal(datos, hoy)
     print(f"\nDashboard generado en: {ruta_salida}")
 

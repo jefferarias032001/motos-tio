@@ -3959,12 +3959,17 @@ function renderTablaClientes() {
   const thPago = document.getElementById('cobro-tabla-th-pago');
   if (thPago) thPago.textContent = `Pago ${dF}/${mF}`;
 
-  tbody.innerHTML = (DATOS_ACTIVO.clientes||[]).filter(c => {
+  const clientesFiltrados = (DATOS_ACTIVO.clientes||[]).filter(c => {
     if (COBRO_FILTRO_NOMBRE && !c.nombre.toLowerCase().includes(COBRO_FILTRO_NOMBRE.toLowerCase())) return false;
     if (COBRO_FILTRO_PLACA  && !(c.placa||'').toLowerCase().includes(COBRO_FILTRO_PLACA.toLowerCase())) return false;
     if (COBRO_FILTRO_CAT    && c.categoria !== COBRO_FILTRO_CAT) return false;
     return true;
-  }).map(c => {
+  });
+  const _activos     = clientesFiltrados.filter(c => !c.contrato_completo);
+  const _finalizados = clientesFiltrados.filter(c =>  c.contrato_completo);
+  const _sepRow = (lbl, n) =>
+    `<tr><td colspan="7" style="padding:7px 12px 5px;font-size:.66rem;font-weight:700;text-transform:uppercase;letter-spacing:.12em;color:var(--ink-soft);background:var(--asphalt);border-top:2px solid var(--plate);border-bottom:1px solid var(--borde);">${lbl}<span style="font-weight:400;opacity:.65;margin-left:7px;">(${n})</span></td></tr>`;
+  const _rowHtml = c => {
     const key  = normalizarNombreCliente(c.nombre);  // alias-aware, matches pcMap keys
     const anal = analMap[key] || { cicloActual:{acumulado:0,pagos:[]}, cuotasCompletadas:[] };
     const meta  = c.meta_ciclo || 240000;
@@ -4180,7 +4185,13 @@ function renderTablaClientes() {
       <td style="white-space:nowrap;">${pagoHoyHtml}</td>
       <td style="font-size:.78rem;color:${proxColor};white-space:nowrap;">${proxText}</td>
     </tr>`;
-  }).join('');
+  };
+  tbody.innerHTML =
+    _sepRow('Motos Activas', _activos.length) +
+    _activos.map(_rowHtml).join('') +
+    (_finalizados.length
+      ? _sepRow('Contratos Terminados', _finalizados.length) + _finalizados.map(_rowHtml).join('')
+      : '');
 }
 
 // Genera HTML del bloque "Cobro app" dentro de cada tarjeta de Operativo
