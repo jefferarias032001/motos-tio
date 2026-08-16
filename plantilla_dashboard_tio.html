@@ -4048,7 +4048,7 @@ function renderTablaClientes() {
         const _n1  = c.nombre.split(' ')[0];
         const _tel = String(c.telefono).replace(/\D/g, ''); // solo dígitos
         const _msg = encodeURIComponent(
-          `Hola ${_n1}, le recordamos que lleva ${diasSin} días sin abonar su cuota de moto. Por favor comuníquese con nosotros. - Severa Motos`
+          `Hola ${_n1}, le recordamos que lleva ${diasSin} días sin abonar su cuota de moto. Recuerde que el compromiso es quedar bien en centrales de riesgo y no acudir a reportes negativos. Por favor comuníquese con nosotros. - Severa Motos`
         );
         sinPagarTd += `<a href="sms:+57${_tel}?body=${_msg}"
           style="display:inline-flex;align-items:center;gap:4px;margin-top:6px;padding:4px 12px;
