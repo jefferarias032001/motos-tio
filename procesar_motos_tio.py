@@ -588,7 +588,7 @@ def frase_resumen_semana(nombre, dias_atrasados, monto):
     plural = "día" if len(nombres_dias) == 1 else "días"
     return f"Esta semana {nombre} se quedó {len(nombres_dias)} {plural} ({texto_dias}) por {formatear_pesos(monto)}."
 
-def procesar(filas, clientes_meta, hoy, tel_por_placa=None):
+def procesar(filas, clientes_meta, hoy, tel_por_placa=None, ultimos_sheets=None):
     por_cliente = defaultdict(list)
     for f in filas:
         por_cliente[f["cliente_clave"]].append(f)
@@ -693,15 +693,26 @@ def procesar(filas, clientes_meta, hoy, tel_por_placa=None):
         # contrato completado?
         contrato_completo = pagos_realizados >= total_cuotas
 
-        # días sin pagar: hoy vs (último pago + 7 días)
-        # no aplica si el contrato ya está finalizado
+        # días sin pagar — combinar último pago Excel + último pago raw Sheets
+        # (los pagos parciales del ciclo en curso no llegan como cuota completa)
         dias_sin_pagar = 0
         proximo_pago_esperado = None
         dias_ciclo_cfg = cfg["dias"] if cfg else 7
-        if not contrato_completo and ultimo_pago_fecha:
-            proximo_pago_esperado = ultimo_pago_fecha + timedelta(days=dias_ciclo_cfg)
-            if proximo_pago_esperado < hoy:
-                dias_sin_pagar = (hoy - proximo_pago_esperado).days
+        cat_ciclo_str  = cfg["cat"] if cfg else ""
+        ultimo_raw_sheets = (ultimos_sheets or {}).get(clave)
+        ultimo_pago_real = max(
+            [d for d in [ultimo_pago_fecha, ultimo_raw_sheets] if d],
+            default=None
+        )
+        if not contrato_completo and ultimo_pago_real:
+            proximo_pago_esperado = ultimo_pago_real + timedelta(days=dias_ciclo_cfg)
+            # Diario: contar días sueltos sin pago (ciclo=1), no el ciclo de la cuota
+            if cat_ciclo_str.startswith("diario"):
+                prox_sinpagar = ultimo_pago_real + timedelta(days=1)
+            else:
+                prox_sinpagar = proximo_pago_esperado
+            if prox_sinpagar < hoy:
+                dias_sin_pagar = (hoy - prox_sinpagar).days
 
         # últimos 8 pagos semanales para mostrar en la tarjeta
         ultimos_8 = pagos_historicos[-8:]
@@ -933,9 +944,17 @@ def main():
     print(f"{len(filas)} filas del Excel ({len(clientes_meta)} clientes, {len(tel_por_placa)} con tel)")
 
     # Combinar con Google Sheets si está configurado
+    # Último pago real por cliente en raw Sheets (sin agrupar) — para calcular "al día" correctamente
+    ultimos_sheets = {}
     if GOOGLE_SHEET_ID:
         filas_online = cargar_registro_sheets(GOOGLE_SHEET_ID, GOOGLE_SHEET_GID)
         if filas_online:
+            # Capturar último pago raw antes de agrupar
+            for f in filas_online:
+                if (f.get("pago_recibido") or 0) > 0:
+                    clave = f["cliente_clave"]
+                    if clave not in ultimos_sheets or f["fecha"] > ultimos_sheets[clave]:
+                        ultimos_sheets[clave] = f["fecha"]
             # Agrupar pagos diarios en cuotas completas antes de mezclar
             cuotas_online = agrupar_en_cuotas(filas_online)
             # Solo agregar cuotas de app POSTERIORES al último pago Excel del cliente
@@ -962,7 +981,7 @@ def main():
     print(f"  Luna:   {len(filas_luna)} reg / {len(clientes_luna)} clientes")
     print(f"  Jomar:  {len(filas_jomar)} reg / {len(clientes_jomar)} clientes")
 
-    datos = procesar(filas_severa, clientes_severa, hoy, tel_por_placa)
+    datos = procesar(filas_severa, clientes_severa, hoy, tel_por_placa, ultimos_sheets)
     datos_luna_exc  = _construir_datos_empresa(_LUNA_RAW,  filas_luna,  hoy)
     datos_jomar_exc = _construir_datos_empresa(_JOMAR_RAW, filas_jomar, hoy)
 
