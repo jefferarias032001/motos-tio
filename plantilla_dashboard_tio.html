@@ -3662,10 +3662,13 @@ function renderTablaClientes() {
         }
       }
 
-      sinPagarTd = `<div style="display:flex;flex-direction:column;gap:4px;">
-        ${contSin}
-        ${cicloHtml ? `<div style="display:flex;flex-wrap:wrap;gap:1px;">${cicloHtml}</div>` : ''}
-      </div>`;
+      sinPagarTd = contSin;
+
+      // Los cuadros del ciclo van en la columna "Últimos pagos"
+      if (cicloHtml) {
+        chipsHtml += `<span style="display:inline-block;width:1px;height:20px;background:var(--borde);margin:0 4px;vertical-align:middle;"></span>`;
+        chipsHtml += cicloHtml;
+      }
     }
 
     // Cuotas YA completadas en la app (Sheets) que son más nuevas que el último Excel
