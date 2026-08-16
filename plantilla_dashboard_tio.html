@@ -3982,8 +3982,9 @@ function renderTablaClientes() {
 
     // ── Columna "Progreso ciclo" ────────────────────────────────────────
     const nReg = c.pagos_realizados || 0;
-    const nApp = anal.cuotasCompletadas.length;
-    const totalCuotas = nReg + nApp;
+    const totalCtto = c.total_cuotas || 64;
+    // cuota actual = la que está pagando ahora (última completada + 1)
+    const cuotaActual = c.contrato_completo ? nReg : nReg + 1;
     const progHtml = `
       <div style="height:5px;background:var(--borde);border-radius:3px;margin-bottom:4px;overflow:hidden;">
         <div style="height:100%;width:${pct}%;background:${barC};border-radius:3px;transition:width .3s;"></div>
@@ -3993,7 +3994,7 @@ function renderTablaClientes() {
           ? `<span style="font-size:.72rem;font-weight:700;color:${barC};">${formatCompacto(acum)}/${formatCompacto(meta)}</span>
              <span style="font-size:.65rem;color:var(--ink-soft);">(${pct}%)</span>`
           : `<span style="font-size:.7rem;color:var(--ink-soft);">Sin cobros</span>`}
-        ${totalCuotas > 0 ? `<span style="font-size:.62rem;background:var(--borde);padding:1px 6px;border-radius:10px;color:var(--ink-soft);">${totalCuotas} cuotas</span>` : ''}
+        <span style="font-size:.62rem;background:var(--borde);padding:1px 6px;border-radius:10px;color:var(--ink-soft);">Cuota ${cuotaActual}/${totalCtto}</span>
       </div>`;
 
     // ── Columna "Últimos pagos" (chips del registro Excel) ──────────────
