@@ -1002,6 +1002,110 @@
   .luna-subtitulo{font-size:.72rem;color:#60A5FA;letter-spacing:.1em;text-transform:uppercase;font-weight:600;margin-top:3px;}
   .tab-btn-luna{border-color:#3B82F6 !important;color:#3B82F6 !important;}
   .tab-btn-luna.activo{background:#3B82F6 !important;color:#fff !important;}
+
+  /* ── Toggle de tema ── */
+  .btn-tema-toggle{
+    background:rgba(255,255,255,0.08);
+    border:1px solid rgba(255,255,255,0.14);
+    color:var(--ink-soft);
+    border-radius:20px;
+    padding:5px 13px 5px 9px;
+    font-family:var(--font-body);
+    font-size:.68rem;
+    font-weight:600;
+    letter-spacing:.07em;
+    text-transform:uppercase;
+    cursor:pointer;
+    display:flex;align-items:center;gap:6px;
+    transition:background .18s,border-color .18s,color .18s;
+    white-space:nowrap;
+  }
+  .btn-tema-toggle:hover{
+    background:rgba(255,255,255,0.15);
+    border-color:rgba(255,255,255,0.28);
+    color:var(--ink);
+  }
+
+  /* ── TEMA CLARO ── */
+  body.tema-claro{
+    --paper:#EDE7D8;
+    --card:#FBF8EF;
+    --card-soft:#F3EEDF;
+    --ink:#241F1A;
+    --ink-soft:#6B6255;
+    --asphalt:#211E1A;
+    --asphalt-soft:#37332C;
+    --plate:#E8A93A;
+    --plate-ink:#241F1A;
+    --verde:#256B45;
+    --verde-bg:#DDF0E4;
+    --ambar:#A8631A;
+    --ambar-bg:#F7E8D0;
+    --rojo:#A63333;
+    --rojo-bg:#F5DFE0;
+    --gris:#8A8070;
+    --gris-bg:#E6DFD2;
+    --borde:rgba(36,31,26,0.13);
+    --sombra:0 2px 14px rgba(36,31,26,0.09), 0 1px 3px rgba(36,31,26,0.06);
+    --neon-orange:rgba(232,169,58,0.28);
+    --neon-green:rgba(37,107,69,0.25);
+    --neon-red:rgba(166,51,51,0.25);
+    --carbon:none;
+    --carbon-size:auto;
+  }
+  body.tema-claro .btn-tema-toggle{
+    background:rgba(0,0,0,0.07);
+    border-color:rgba(0,0,0,0.14);
+  }
+  body.tema-claro .btn-tema-toggle:hover{
+    background:rgba(0,0,0,0.12);
+    border-color:rgba(0,0,0,0.22);
+  }
+  body.tema-claro .filtro-periodo-wrap{
+    border-color:rgba(232,169,58,0.3);
+    box-shadow:0 4px 24px rgba(36,31,26,0.14);
+  }
+  body.tema-claro .filtro-periodo-campo input[type=date]{
+    border-color:rgba(232,169,58,0.35);
+  }
+  body.tema-claro .filtro-periodo-campo input[type=date]::-webkit-calendar-picker-indicator{
+    filter:none;
+  }
+  body.tema-claro input:focus,
+  body.tema-claro select:focus,
+  body.tema-claro textarea:focus{
+    border-color:rgba(232,169,58,0.6);
+    box-shadow:0 0 0 2px var(--neon-orange);
+  }
+  body.tema-claro .cobro-mini-chip.pagado{
+    background:rgba(37,107,69,0.12);
+    color:var(--verde);
+    border-color:rgba(37,107,69,0.3);
+  }
+  body.tema-claro .cobro-mini-chip.no_pago,
+  body.tema-claro .cobro-mini-chip.vencido{
+    border-color:rgba(166,51,51,0.3);
+  }
+  body.tema-claro .deuda-fila{border-bottom-color:rgba(36,31,26,0.06);}
+
+  /* ── Chip de rango (días sin pago consecutivos) ── */
+  .cobro-mini-chip-rango{
+    min-width:auto !important;
+    padding:0 9px !important;
+    flex-direction:row !important;
+    gap:5px !important;
+    height:auto !important;
+    min-height:28px;
+    font-size:.63rem !important;
+    border-radius:6px !important;
+  }
+  .cobro-mini-chip-rango .rango-fechas{font-weight:700;letter-spacing:.01em;}
+  .cobro-mini-chip-rango .rango-dias{
+    opacity:.75;font-weight:600;
+    border-left:1px solid currentColor;
+    padding-left:5px;
+    margin-left:1px;
+  }
 </style>
 </head>
 <body>
@@ -1092,6 +1196,10 @@
       <span id="mod-badge-nombre">SEVERA MOTOS</span>
       <button class="mod-badge-cambiar" onclick="volverSelector()">Cambiar</button>
     </div>
+    <button id="btn-tema" class="btn-tema-toggle" onclick="toggleTema()" title="Cambiar tema">
+      <span id="btn-tema-icono">☀️</span>
+      <span id="btn-tema-texto">Claro</span>
+    </button>
   </div>
   <!-- Moto decorativa de fondo -->
   <div class="moto-deco" aria-hidden="true">
@@ -3664,6 +3772,23 @@ document.getElementById("proy-meta-motos").addEventListener("input", actualizarP
 
 iniciarTabs();
 
+// ── Toggle tema claro / oscuro ────────────────────────────────────────────────
+function toggleTema() {
+  const esClaro = document.body.classList.toggle('tema-claro');
+  document.getElementById('btn-tema-icono').textContent = esClaro ? '🌑' : '☀️';
+  document.getElementById('btn-tema-texto').textContent = esClaro ? 'Oscuro' : 'Claro';
+  localStorage.setItem('sm-tema', esClaro ? 'claro' : 'oscuro');
+}
+(function initTema() {
+  if (localStorage.getItem('sm-tema') === 'claro') {
+    document.body.classList.add('tema-claro');
+    const ico = document.getElementById('btn-tema-icono');
+    const txt = document.getElementById('btn-tema-texto');
+    if (ico) ico.textContent = '🌑';
+    if (txt) txt.textContent = 'Oscuro';
+  }
+})();
+
 window.addEventListener("resize", ()=>{ renderTendencia(DATOS.tendencia); });
 
 // ── COBRO DIARIO · Apps Script proxy (sin CORS) ──
@@ -3818,7 +3943,7 @@ function renderTablaClientes() {
         for (let i = 0; i < maxDias; i++) {
           const d = new Date(startDate);
           d.setDate(d.getDate() + i);
-          if (d > hoyDate) break;
+          if (d >= hoyDate) break;
           const ds = d.toISOString().slice(0, 10);
           if (!pagoFechasSet.has(ds)) {
             eventos.push({ fecha: ds, tipo: 'falta' });
@@ -3829,19 +3954,50 @@ function renderTablaClientes() {
       // Ordenar todo cronológicamente
       eventos.sort((a, b) => a.fecha.localeCompare(b.fecha));
 
+      // Agrupar faltas consecutivas en rangos
+      const gruposRender = [];
+      {
+        let g = 0;
+        while (g < eventos.length) {
+          const ev = eventos[g];
+          if (ev.tipo !== 'falta') { gruposRender.push(ev); g++; continue; }
+          let h = g + 1;
+          while (h < eventos.length && eventos[h].tipo === 'falta') {
+            const prev = new Date(eventos[h-1].fecha + "T00:00:00");
+            const curr = new Date(eventos[h].fecha   + "T00:00:00");
+            if (Math.round((curr - prev) / 86400000) === 1) h++;
+            else break;
+          }
+          if (h - g === 1) {
+            gruposRender.push({ tipo:'falta_dia', fecha:ev.fecha });
+          } else {
+            gruposRender.push({ tipo:'falta_rango', inicio:ev.fecha, fin:eventos[h-1].fecha, count:h-g });
+          }
+          g = h;
+        }
+      }
+
       // Renderizar
-      eventos.forEach(ev => {
-        const [,fm,fd] = ev.fecha.split('-');
-        const diaN = DIAS_ES_C[new Date(ev.fecha + "T00:00:00").getDay()];
-        if (ev.tipo === 'falta') {
+      gruposRender.forEach(ev => {
+        if (ev.tipo === 'falta_dia') {
+          const [,fm,fd] = ev.fecha.split('-');
+          const diaN = DIAS_ES_C[new Date(ev.fecha + "T00:00:00").getDay()];
           chipsHtml += `<span class="cobro-mini-chip no_pago" title="Sin pago ${ev.fecha}">
             <span>${fd}/${fm}</span><span class="dia">${diaN}</span>
           </span>`;
+        } else if (ev.tipo === 'falta_rango') {
+          const [,fim,fid] = ev.inicio.split('-');
+          const [,ffm,ffd] = ev.fin.split('-');
+          chipsHtml += `<span class="cobro-mini-chip no_pago cobro-mini-chip-rango" title="Sin pago del ${fid}/${fim} al ${ffd}/${ffm} (${ev.count} días)">
+            <span class="rango-fechas">${fid}/${fim}→${ffd}/${ffm}</span><span class="rango-dias">${ev.count}d sin</span>
+          </span>`;
         } else if (ev.tipo === 'cuota_app') {
+          const [,fm,fd] = ev.fecha.split('-');
           chipsHtml += `<span class="cobro-mini-chip pagado" title="Cuota App ${ev.fecha} — ${formatCompacto(ev.total)}">
             <span>${fd}/${fm}</span><span class="dia">A</span>
           </span>`;
         } else {
+          const [,fm,fd] = ev.fecha.split('-');
           const esN = (ev.medio||'').toLowerCase().includes('nequi');
           chipsHtml += `<span class="cobro-mini-chip" style="background:${esN?'#3B82F622':'#10B98122'};color:${esN?'#1D4ED8':'#047857'};border:1px solid ${esN?'#3B82F644':'#10B98144'};" title="App ${ev.fecha}: ${formatCompacto(ev.valor)}${esN?' · Nequi':' · Efectivo'}">
             <span>${fd}/${fm}</span><span class="dia">${esN?'N':'E'}</span>
