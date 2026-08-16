@@ -1228,6 +1228,7 @@
             <th>Cliente</th>
             <th>Progreso ciclo</th>
             <th>Últimos pagos</th>
+            <th style="white-space:nowrap;">Sin pagar · Ciclo</th>
             <th id="cobro-tabla-th-pago" style="white-space:nowrap;">Pago hoy</th>
             <th style="white-space:nowrap;">Próx. cuota</th>
           </tr>
@@ -3610,34 +3611,61 @@ function renderTablaClientes() {
       return chipCuota + chipSaldo;
     }).join('');
 
-    // ── Indicador de días consecutivos sin pagar ───────────────────
+    // ── Columna "Sin pagar · Ciclo" ────────────────────────────────
+    let sinPagarTd = '<span style="color:var(--borde);font-size:.75rem;">—</span>';
     if (!c.contrato_completo) {
-      // Fecha del último pago registrado (Sheets o Excel, lo más reciente)
+      // Fecha del último pago (Sheets o Excel, lo más reciente)
       const todosLosPagosSheets = [
         ...anal.cuotasCompletadas.map(cu => cu.fecha),
         ...anal.cicloActual.pagos.filter(p => !p.isCarryOver).map(p => p.fecha),
       ];
       const ultimoPagoSheets = todosLosPagosSheets.length
-        ? todosLosPagosSheets.sort().slice(-1)[0]
-        : null;
-      const ultimoPagoExcel = ultimos.length ? ultimos[ultimos.length - 1].fecha : null;
-
-      // Usar el más reciente entre Sheets y Excel
+        ? todosLosPagosSheets.sort().slice(-1)[0] : null;
+      const ultimoPagoExcel  = ultimos.length ? ultimos[ultimos.length - 1].fecha : null;
       const candidatos = [ultimoPagoSheets, ultimoPagoExcel].filter(Boolean);
       const ultimoPago = candidatos.length ? candidatos.sort().slice(-1)[0] : null;
 
+      let diasSin = 0;
       if (ultimoPago) {
         const hoyMs  = new Date(DATOS.hoy + "T00:00:00").getTime();
         const pagoMs = new Date(ultimoPago + "T00:00:00").getTime();
-        const dias   = Math.floor((hoyMs - pagoMs) / (24 * 60 * 60 * 1000));
-        if (dias >= 1 && dias < 365) {
-          const color = dias >= 14 ? '#DC2626' : dias >= 7 ? '#D97706' : '#6B7280';
-          const bg    = dias >= 14 ? 'rgba(220,38,38,.1)' : dias >= 7 ? 'rgba(217,119,6,.1)' : 'rgba(107,114,128,.1)';
-          chipsHtml += `<span class="cobro-mini-chip" style="background:${bg};color:${color};border:1px solid ${bg.replace('.1)','.3)')};" title="Lleva ${dias} día${dias===1?'':'s'} consecutivos sin pagar">
-            <span>${dias}d</span><span class="dia">sin</span>
+        diasSin = Math.floor((hoyMs - pagoMs) / (24 * 60 * 60 * 1000));
+      }
+
+      const colorSin = diasSin >= 14 ? '#DC2626' : diasSin >= 7 ? '#D97706' : '#6B7280';
+      const contSin  = diasSin > 0
+        ? `<div style="font-weight:800;font-size:.95rem;color:${colorSin};line-height:1;">${diasSin}d sin</div>`
+        : `<div style="font-size:.7rem;color:var(--verde);font-weight:700;">Al día</div>`;
+
+      // Desglose días del ciclo actual (verde=pagó, rojo=no pagó)
+      const cicloStart   = anal.cicloActual.inicio;
+      const pagoFechasSet = new Set(anal.cicloActual.pagos.filter(p => !p.isCarryOver).map(p => p.fecha));
+      const DIAS_C = ['D','L','M','X','J','V','S'];
+      let cicloHtml = '';
+      if (cicloStart) {
+        const startDate = new Date(cicloStart + "T00:00:00");
+        const hoyDate   = new Date(DATOS.hoy   + "T00:00:00");
+        const maxDias   = Math.min(c.dias_ciclo || 7, 31);
+        for (let i = 0; i < maxDias; i++) {
+          const d = new Date(startDate);
+          d.setDate(d.getDate() + i);
+          if (d > hoyDate) break;
+          const ds   = d.toISOString().slice(0, 10);
+          const dn   = d.getDate();
+          const diaN = DIAS_C[d.getDay()];
+          const ok   = pagoFechasSet.has(ds);
+          const col  = ok ? 'var(--verde)' : '#DC2626';
+          const bg   = ok ? 'rgba(16,185,129,.15)' : 'rgba(220,38,38,.13)';
+          cicloHtml += `<span style="display:inline-flex;flex-direction:column;align-items:center;background:${bg};color:${col};border-radius:4px;padding:2px 5px;font-size:.65rem;font-weight:700;margin:1px 1px 0;" title="${ds} — ${ok?'Pagó':'Sin pago'}">
+            <span>${dn}</span><span style="font-size:.52rem;opacity:.85;">${diaN}</span>
           </span>`;
         }
       }
+
+      sinPagarTd = `<div style="display:flex;flex-direction:column;gap:4px;">
+        ${contSin}
+        ${cicloHtml ? `<div style="display:flex;flex-wrap:wrap;gap:1px;">${cicloHtml}</div>` : ''}
+      </div>`;
     }
 
     // Cuotas YA completadas en la app (Sheets) que son más nuevas que el último Excel
@@ -3713,6 +3741,7 @@ function renderTablaClientes() {
       </td>
       <td style="min-width:140px;">${progHtml}</td>
       <td style="min-width:200px;"><div style="display:flex;gap:4px;flex-wrap:wrap;align-items:center;">${chipsHtml}</div></td>
+      <td style="min-width:130px;vertical-align:middle;">${sinPagarTd}</td>
       <td style="white-space:nowrap;">${pagoHoyHtml}</td>
       <td style="font-size:.78rem;color:${proxColor};white-space:nowrap;">${proxText}</td>
     </tr>`;
