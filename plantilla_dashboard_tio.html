@@ -3212,10 +3212,22 @@ function renderResumenDia(clientes, hoy, fechaFiltro) {
   const metaDia     = cobradoHoy + pendienteHoy;
   const pct         = metaDia > 0 ? Math.round(cobradoHoy / metaDia * 100) : (pagaronHoy.length ? 100 : 0);
 
+  // Monto real pagado hoy por cliente (Sheets primero, luego Excel)
+  const pagadoHoyMap = {};
+  (COBRO_FILAS_ALL||[]).filter(r => r.fecha === hoy && Number(r.pago_recibido) > 0).forEach(r => {
+    const k = normalizarNombreCliente(r.cliente);
+    pagadoHoyMap[k] = (pagadoHoyMap[k] || 0) + Number(r.pago_recibido);
+  });
+  (DATOS.detalle||[]).filter(r => r.fecha === hoy && r.recibido > 0).forEach(r => {
+    const k = normalizarNombreCliente(r.cliente);
+    if (!pagadoHoyMap[k]) pagadoHoyMap[k] = r.recibido; // solo si no está en Sheets
+  });
+
   function itemCliente(c, tipo) {
     const dotCls = tipo==="ok"?"ok":tipo==="esp"?"esp":"mal";
+    const clave  = normalizarNombreCliente(c.nombre);
     let sub = "";
-    if (tipo==="ok")  sub = `Pagó hoy · ${fmt(c.tarifa_ref)}`;
+    if (tipo==="ok")  sub = `Pagó hoy · ${fmt(pagadoHoyMap[clave] || c.tarifa_ref)}`;
     if (tipo==="esp") sub = `Espera · ${fmt(c.tarifa_ref)}`;
     if (tipo==="mal") sub = `${c.dias_sin_pagar} día${c.dias_sin_pagar>1?"s":""} sin pagar · ${fmt(Math.abs(c.saldo_atrasado||c.tarifa_ref))}`;
     return `<div class="rd-item">
