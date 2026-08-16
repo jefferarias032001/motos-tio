@@ -62,9 +62,13 @@ GOOGLE_SHEET_GID = "714608512"
 # cat: diario_30k | diario_34k | semanal | quincenal | mensual | sin_categoria
 # dias: días del ciclo completo  |  meta: monto que completa una cuota
 # ---------------------------------------------------------------------------
+# ---------------------------------------------------------------------------
+# TELÉFONOS — agregar "tel": "3XXXXXXXXX" a cada cliente para habilitar SMS
+# desde el dashboard cuando llevan 5+ días sin pagar.
+# ---------------------------------------------------------------------------
 CLIENTES_CONFIG = {
     "dorlys":           {"num":  1, "cat": "diario_30k",  "dias": 8,  "meta": 240_000, "label": "Diario 30k × 8d"},
-    "elkin":            {"num":  2, "cat": "quincenal",   "dias": 15, "meta": 240_000, "label": "Quincenal 240k", "tel": "3005106102"},
+    "elkin":            {"num":  2, "cat": "quincenal",   "dias": 15, "meta": 240_000, "label": "Quincenal 240k",  "tel": "3005106102"},
     "juan andres":      {"num":  3, "cat": "diario_30k",  "dias": 8,  "meta": 240_000, "label": "Diario 30k × 8d"},
     "jorge luis":       {"num":  4, "cat": "semanal",     "dias": 7,  "meta": 240_000, "label": "Semanal 240k"},
     "henry junior":     {"num":  5, "cat": "semanal",     "dias": 7,  "meta": 240_000, "label": "Semanal 240k"},
@@ -89,7 +93,7 @@ CLIENTES_CONFIG = {
     "sr luis":          {"num": 24, "cat": "diario_30k",  "dias": 8,  "meta": 240_000, "label": "Diario 30k × 8d"},
     "manuel olga":      {"num": 25, "cat": "diario_30k",  "dias": 8,  "meta": 240_000, "label": "Diario 30k × 8d"},
     "jorge estrada":    {"num": 26, "cat": "semanal",     "dias": 7,  "meta": 240_000, "label": "Semanal 240k"},
-    "daniela":          {"num": 27, "cat": "mensual",     "dias": 30, "meta": 420_000, "label": "Mensual 420k", "inicio": date(2026, 2, 6)},
+    "daniela":          {"num": 27, "cat": "mensual",     "dias": 30, "meta": 420_000, "label": "Mensual 420k",    "inicio": date(2026, 2, 6)},
     "alejandro":        {"num": 28, "cat": "diario_34k",  "dias": 7,  "meta": 238_000, "label": "Diario 34k × 7d"},
     "karluis":          {"num": 29, "cat": "diario_30k",  "dias": 8,  "meta": 240_000, "label": "Diario 30k × 8d"},
     "francisco":        {"num": 30, "cat": "quincenal",   "dias": 15, "meta": 190_000, "label": "Quincenal 190k"},
@@ -299,6 +303,7 @@ def _meta_de_raw(raw_list):
             "inicio":       inicio_d,
             "observaciones": c.get("observaciones", ""),
             "total_cuotas": c.get("total_cuotas", 64),
+            "telefono":     c.get("telefono", ""),
         }
     return meta
 
@@ -813,6 +818,7 @@ def procesar(filas, clientes_meta, hoy):
             "meta_ciclo":       cfg["meta"]  if cfg else 240_000,
             "prox_cuota_fecha": proximo_pago_esperado.isoformat() if proximo_pago_esperado else None,
             "prox_cuota_dias":  (proximo_pago_esperado - hoy).days if proximo_pago_esperado else None,
+            "telefono": (cfg.get("tel", "") if cfg else "") or meta.get("telefono", ""),
         })
 
         total_global["recibido_historico"]  += recibido_total

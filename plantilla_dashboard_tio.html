@@ -4042,6 +4042,21 @@ function renderTablaClientes() {
         : `<div style="font-size:.7rem;color:var(--verde);font-weight:700;">Al día</div>`;
 
       sinPagarTd = contSin;
+
+      // Botón SMS — solo si tiene teléfono y lleva 5+ días sin pagar
+      if (c.telefono && diasSin >= 5) {
+        const _n1  = c.nombre.split(' ')[0];
+        const _tel = String(c.telefono).replace(/\D/g, ''); // solo dígitos
+        const _msg = encodeURIComponent(
+          `Hola ${_n1}, le recordamos que lleva ${diasSin} días sin abonar su cuota de moto. Por favor comuníquese con nosotros. - Severa Motos`
+        );
+        sinPagarTd += `<a href="sms:+57${_tel}?body=${_msg}"
+          style="display:inline-flex;align-items:center;gap:4px;margin-top:6px;padding:4px 12px;
+                 background:#1D4ED8;color:#fff;border-radius:20px;font-size:.67rem;font-weight:700;
+                 text-decoration:none;white-space:nowrap;cursor:pointer;">
+          ✉ SMS
+        </a>`;
+      }
     }
 
     // ── Chips post-Excel: cuotas app + pagos ciclo + días faltantes (en orden) ──
