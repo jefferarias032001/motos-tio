@@ -3606,12 +3606,34 @@ function renderTablaClientes() {
       return chipCuota + chipSaldo;
     }).join('');
 
-    // Chip de aviso si lleva días sin pagar (ciclo vencido)
-    const diasSinPagar = c.dias_sin_pagar || 0;
-    if (!c.contrato_completo && diasSinPagar > 0 && diasSinPagar < 365) {
-      chipsHtml += `<span class="cobro-mini-chip vencido" title="${diasSinPagar} días sin pagar">
-        <span>⚠</span><span class="dia">${diasSinPagar}d</span>
-      </span>`;
+    // ── Indicador de días consecutivos sin pagar ───────────────────
+    if (!c.contrato_completo) {
+      // Fecha del último pago registrado (Sheets o Excel, lo más reciente)
+      const todosLosPagosSheets = [
+        ...anal.cuotasCompletadas.map(cu => cu.fecha),
+        ...anal.cicloActual.pagos.filter(p => !p.isCarryOver).map(p => p.fecha),
+      ];
+      const ultimoPagoSheets = todosLosPagosSheets.length
+        ? todosLosPagosSheets.sort().slice(-1)[0]
+        : null;
+      const ultimoPagoExcel = ultimos.length ? ultimos[ultimos.length - 1].fecha : null;
+
+      // Usar el más reciente entre Sheets y Excel
+      const candidatos = [ultimoPagoSheets, ultimoPagoExcel].filter(Boolean);
+      const ultimoPago = candidatos.length ? candidatos.sort().slice(-1)[0] : null;
+
+      if (ultimoPago) {
+        const hoyMs  = new Date(DATOS.hoy + "T00:00:00").getTime();
+        const pagoMs = new Date(ultimoPago + "T00:00:00").getTime();
+        const dias   = Math.floor((hoyMs - pagoMs) / (24 * 60 * 60 * 1000));
+        if (dias >= 1 && dias < 365) {
+          const color = dias >= 14 ? '#DC2626' : dias >= 7 ? '#D97706' : '#6B7280';
+          const bg    = dias >= 14 ? 'rgba(220,38,38,.1)' : dias >= 7 ? 'rgba(217,119,6,.1)' : 'rgba(107,114,128,.1)';
+          chipsHtml += `<span class="cobro-mini-chip" style="background:${bg};color:${color};border:1px solid ${bg.replace('.1)','.3)')};" title="Lleva ${dias} día${dias===1?'':'s'} consecutivos sin pagar">
+            <span>${dias}d</span><span class="dia">sin</span>
+          </span>`;
+        }
+      }
     }
 
     // Cuotas YA completadas en la app (Sheets) que son más nuevas que el último Excel

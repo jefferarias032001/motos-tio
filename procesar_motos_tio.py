@@ -94,7 +94,7 @@ CLIENTES_CONFIG = {
     "karluis":          {"num": 29, "cat": "diario_30k",  "dias": 8,  "meta": 240_000, "label": "Diario 30k × 8d"},
     "francisco":        {"num": 30, "cat": "quincenal",   "dias": 15, "meta": 190_000, "label": "Quincenal 190k"},
     "yesenia":          {"num": 31, "cat": "diario_34k",  "dias": 7,  "meta": 238_000, "label": "Diario 34k × 7d"},
-    "alvania":          {"num": 32, "cat": "diario_34k",  "dias": 7,  "meta": 238_000, "label": "Diario 34k × 7d"},
+    "alvania":          {"num": 32, "cat": "diario_34k",  "dias": 7,  "meta": 240_000, "label": "Diario 34k × 7d"},
     "yorkis":           {"num": 33, "cat": "semanal",     "dias": 7,  "meta": 240_000, "label": "Semanal 240k"},
     "josue":            {"num": 34, "cat": "quincenal",   "dias": 15, "meta": 240_000, "label": "Quincenal 240k"},
 }
