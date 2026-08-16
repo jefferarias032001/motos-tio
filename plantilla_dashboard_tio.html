@@ -2100,8 +2100,7 @@ function _renderizarModulo(datos, tickElId, gridElId, accentColor) {
 function renderizarLuna()  { _renderizarModulo(DATOS_LUNA,  'tickers-luna',  'luna-clientes-grid',  '#3B82F6'); }
 function renderizarJomar() { _renderizarModulo(DATOS_JOMAR, 'tickers-jomar', 'jomar-clientes-grid', '#10B981'); }
 
-// Bloquear scroll mientras se muestra el selector
-document.body.style.overflow = 'hidden';
+// (selector eliminado — el scroll queda libre)
 
 function formatPesos(n){
   n = Math.round(n || 0);
