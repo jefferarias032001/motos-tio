@@ -4051,11 +4051,11 @@ function renderTablaClientes() {
         const _msg = encodeURIComponent(
           `Hola ${_n1}, le recordamos que lleva ${_diasAtraso} días de atraso en su cuota de moto. Recuerde que el compromiso es quedar bien en centrales de riesgo y no acudir a reportes negativos. Por favor comuníquese con nosotros. - Severa Motos`
         );
-        sinPagarTd += `<a href="sms:+57${_tel}?body=${_msg}"
+        sinPagarTd += `<a href="https://wa.me/57${_tel}?text=${_msg}" target="_blank"
           style="display:inline-flex;align-items:center;gap:4px;margin-top:6px;padding:4px 12px;
-                 background:#1D4ED8;color:#fff;border-radius:20px;font-size:.67rem;font-weight:700;
+                 background:#25D366;color:#fff;border-radius:20px;font-size:.67rem;font-weight:700;
                  text-decoration:none;white-space:nowrap;cursor:pointer;">
-          ✉ SMS
+          💬 WhatsApp
         </a>`;
       }
     }
