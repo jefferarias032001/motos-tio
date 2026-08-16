@@ -3637,80 +3637,67 @@ function renderTablaClientes() {
         ? `<div style="font-weight:800;font-size:.95rem;color:${colorSin};line-height:1;">${diasSin}d sin</div>`
         : `<div style="font-size:.7rem;color:var(--verde);font-weight:700;">Al día</div>`;
 
-      // Desglose días del ciclo actual (verde=pagó, rojo=no pagó)
-      const cicloStart   = anal.cicloActual.inicio;
-      const pagoFechasSet = new Set(anal.cicloActual.pagos.filter(p => !p.isCarryOver).map(p => p.fecha));
-      const DIAS_C = ['D','L','M','X','J','V','S'];
-      let cicloHtml = '';
-      if (cicloStart) {
-        const startDate = new Date(cicloStart + "T00:00:00");
-        const hoyDate   = new Date(DATOS.hoy   + "T00:00:00");
-        const maxDias   = Math.min(c.dias_ciclo || 7, 31);
-        for (let i = 0; i < maxDias; i++) {
-          const d = new Date(startDate);
-          d.setDate(d.getDate() + i);
-          if (d > hoyDate) break;
-          const ds   = d.toISOString().slice(0, 10);
-          const dn   = d.getDate();
-          const diaN = DIAS_C[d.getDay()];
-          const ok   = pagoFechasSet.has(ds);
-          const col  = ok ? 'var(--verde)' : '#DC2626';
-          const bg   = ok ? 'rgba(16,185,129,.15)' : 'rgba(220,38,38,.13)';
-          cicloHtml += `<span style="display:inline-flex;flex-direction:column;align-items:center;background:${bg};color:${col};border-radius:4px;padding:2px 5px;font-size:.65rem;font-weight:700;margin:1px 1px 0;" title="${ds} — ${ok?'Pagó':'Sin pago'}">
-            <span>${dn}</span><span style="font-size:.52rem;opacity:.85;">${diaN}</span>
-          </span>`;
-        }
-      }
-
       sinPagarTd = contSin;
+    }
 
-      // Días NO pagados del ciclo actual → chip rojo del mismo tamaño que los demás
+    // ── Chips post-Excel: cuotas app + pagos ciclo + días faltantes (en orden) ──
+    {
+      const DIAS_ES_C    = ['dom','lun','mar','mié','jue','vie','sáb'];
+      const ultimaFechaExcel = ultimos.length > 0 ? ultimos[ultimos.length - 1].fecha : "0000-00-00";
+      const cicloStart       = anal.cicloActual.inicio;
+      const pagoFechasSet    = new Set(anal.cicloActual.pagos.filter(p => !p.isCarryOver).map(p => p.fecha));
+      const eventos = [];
+
+      // 1. Cuotas completadas en Sheets más nuevas que el último Excel
+      anal.cuotasCompletadas
+        .filter(cu => cu.fecha > ultimaFechaExcel)
+        .forEach(cu => eventos.push({ fecha: cu.fecha, tipo: 'cuota_app', total: cu.total }));
+
+      // 2. Pagos del ciclo incompleto actual (N/E)
+      anal.cicloActual.pagos
+        .filter(p => !p.isCarryOver)
+        .forEach(p => eventos.push({ fecha: p.fecha, tipo: 'pago', medio: p.medio, valor: p.valor }));
+
+      // 3. Días NO pagados en el ciclo actual
+      // Empieza desde el día SIGUIENTE al cicloStart para no incluir el día de carry-over
       if (cicloStart) {
-        const DIAS_ES_C = ['dom','lun','mar','mié','jue','vie','sáb'];
         const startDate = new Date(cicloStart + "T00:00:00");
-        const hoyDate   = new Date(DATOS.hoy   + "T00:00:00");
-        const maxDias   = Math.min(c.dias_ciclo || 7, 31);
+        startDate.setDate(startDate.getDate() + 1);
+        const hoyDate = new Date(DATOS.hoy + "T00:00:00");
+        const maxDias = Math.min(c.dias_ciclo || 7, 31);
         for (let i = 0; i < maxDias; i++) {
           const d = new Date(startDate);
           d.setDate(d.getDate() + i);
           if (d > hoyDate) break;
           const ds = d.toISOString().slice(0, 10);
           if (!pagoFechasSet.has(ds)) {
-            const [,fm,fd] = ds.split('-');
-            const diaN = DIAS_ES_C[d.getDay()];
-            chipsHtml += `<span class="cobro-mini-chip no_pago" title="Sin pago ${ds}">
-              <span>${fd}/${fm}</span><span class="dia">${diaN}</span>
-            </span>`;
+            eventos.push({ fecha: ds, tipo: 'falta' });
           }
         }
       }
-    }
 
-    // Cuotas YA completadas en la app (Sheets) que son más nuevas que el último Excel
-    // Estas aparecen en cuotasCompletadas pero no en ultimos_pagos todavía
-    const ultimaFechaExcel = ultimos.length > 0 ? ultimos[ultimos.length - 1].fecha : "0000-00-00";
-    if (anal.cuotasCompletadas.length > 0) {
-      chipsHtml += anal.cuotasCompletadas
-        .filter(cu => cu.fecha > ultimaFechaExcel)
-        .map(cu => {
-          const [fy,fm,fd] = cu.fecha.split('-');
-          return `<span class="cobro-mini-chip pagado" title="Cuota App ${cu.fecha} — ${formatCompacto(cu.total)}">
-            <span>${fd}/${fm}</span>
-            <span class="dia">A</span>
+      // Ordenar todo cronológicamente
+      eventos.sort((a, b) => a.fecha.localeCompare(b.fecha));
+
+      // Renderizar
+      eventos.forEach(ev => {
+        const [,fm,fd] = ev.fecha.split('-');
+        const diaN = DIAS_ES_C[new Date(ev.fecha + "T00:00:00").getDay()];
+        if (ev.tipo === 'falta') {
+          chipsHtml += `<span class="cobro-mini-chip no_pago" title="Sin pago ${ev.fecha}">
+            <span>${fd}/${fm}</span><span class="dia">${diaN}</span>
           </span>`;
-        }).join('');
-    }
-
-    // Chips del ciclo actual en app (pagos del ciclo incompleto) — omitir carry-over
-    if (anal.cicloActual.pagos.length > 0) {
-      chipsHtml += anal.cicloActual.pagos.filter(p => !p.isCarryOver).map(p => {
-        const [fy,fm,fd] = p.fecha.split('-');
-        const esN = (p.medio||'').toLowerCase().includes('nequi');
-        return `<span class="cobro-mini-chip" style="background:${esN?'#3B82F622':'#10B98122'};color:${esN?'#1D4ED8':'#047857'};border:1px solid ${esN?'#3B82F644':'#10B98144'};" title="App ${p.fecha}: ${formatCompacto(p.valor)}${esN?' · Nequi':' · Efectivo'}">
-          <span>${fd}/${fm}</span>
-          <span class="dia">${esN?'N':'E'}</span>
-        </span>`;
-      }).join('');
+        } else if (ev.tipo === 'cuota_app') {
+          chipsHtml += `<span class="cobro-mini-chip pagado" title="Cuota App ${ev.fecha} — ${formatCompacto(ev.total)}">
+            <span>${fd}/${fm}</span><span class="dia">A</span>
+          </span>`;
+        } else {
+          const esN = (ev.medio||'').toLowerCase().includes('nequi');
+          chipsHtml += `<span class="cobro-mini-chip" style="background:${esN?'#3B82F622':'#10B98122'};color:${esN?'#1D4ED8':'#047857'};border:1px solid ${esN?'#3B82F644':'#10B98144'};" title="App ${ev.fecha}: ${formatCompacto(ev.valor)}${esN?' · Nequi':' · Efectivo'}">
+            <span>${fd}/${fm}</span><span class="dia">${esN?'N':'E'}</span>
+          </span>`;
+        }
+      });
     }
 
     if (!chipsHtml) chipsHtml = '<span style="color:var(--borde);font-size:.72rem;">Sin registro</span>';
