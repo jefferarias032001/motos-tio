@@ -3664,10 +3664,25 @@ function renderTablaClientes() {
 
       sinPagarTd = contSin;
 
-      // Los cuadros del ciclo van en la columna "Últimos pagos"
-      if (cicloHtml) {
-        chipsHtml += `<span style="display:inline-block;width:1px;height:20px;background:var(--borde);margin:0 4px;vertical-align:middle;"></span>`;
-        chipsHtml += cicloHtml;
+      // Días NO pagados del ciclo actual → chip rojo del mismo tamaño que los demás
+      if (cicloStart) {
+        const DIAS_ES_C = ['dom','lun','mar','mié','jue','vie','sáb'];
+        const startDate = new Date(cicloStart + "T00:00:00");
+        const hoyDate   = new Date(DATOS.hoy   + "T00:00:00");
+        const maxDias   = Math.min(c.dias_ciclo || 7, 31);
+        for (let i = 0; i < maxDias; i++) {
+          const d = new Date(startDate);
+          d.setDate(d.getDate() + i);
+          if (d > hoyDate) break;
+          const ds = d.toISOString().slice(0, 10);
+          if (!pagoFechasSet.has(ds)) {
+            const [,fm,fd] = ds.split('-');
+            const diaN = DIAS_ES_C[d.getDay()];
+            chipsHtml += `<span class="cobro-mini-chip no_pago" title="Sin pago ${ds}">
+              <span>${fd}/${fm}</span><span class="dia">${diaN}</span>
+            </span>`;
+          }
+        }
       }
     }
 
