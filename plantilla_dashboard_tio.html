@@ -1612,6 +1612,15 @@ const DATOS_LUNA  = __DATOS_LUNA_JSON__;
 const DATOS_JOMAR = __DATOS_JOMAR_JSON__;
 let COBRO_POR_CLIENTE = {};
 
+// Datos de cobro globales — declarados al inicio para evitar TDZ antes de renderResumenDia
+let COBRO_FILAS_ALL    = [];
+let COBRO_FILTRO_MES    = null;
+let COBRO_FILTRO_DIA    = null;
+let COBRO_FILTRO_NOMBRE = null;
+let COBRO_FILTRO_PLACA  = null;
+let COBRO_FILTRO_CAT    = null;
+let _cobroSelectoresIniciados = false;
+
 // Números WhatsApp por cliente (clave = nombre en minúsculas, sin espacios extra)
 const WHATSAPP_CLIENTES = {
   "dorlys jose julio":    "573044429690",
@@ -3526,16 +3535,6 @@ const TARIFA_SEMANAL_MAP = {};
 DATOS.clientes.forEach(c => {
   TARIFA_SEMANAL_MAP[c.nombre.toLowerCase()] = c.tarifa_ref || 240000;
 });
-
-// Datos de cobro globales — declarado al inicio del script, se llena en cargarCobroDiario
-let COBRO_FILAS_ALL    = [];
-let COBRO_FILTRO_MES    = null;
-let COBRO_FILTRO_DIA    = null;
-let COBRO_FILTRO_NOMBRE = null;
-let COBRO_FILTRO_PLACA  = null;
-let COBRO_FILTRO_CAT    = null;
-let _cobroSelectoresIniciados = false;
-
 
 // ── Vista unificada de clientes ───────────────────────────────────────────────
 function renderTablaClientes() {
