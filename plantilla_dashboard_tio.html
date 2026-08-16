@@ -4029,17 +4029,12 @@ function renderTablaClientes() {
       const candidatos = [ultimoPagoSheets, ultimoPagoExcel].filter(Boolean);
       const ultimoPago = candidatos.length ? candidatos.sort().slice(-1)[0] : null;
 
-      let diasSin = 0;
-      if (ultimoPago) {
-        const hoyMs  = new Date(DATOS_ACTIVO.hoy + "T00:00:00").getTime();
-        const pagoMs = new Date(ultimoPago + "T00:00:00").getTime();
-        diasSin = Math.floor((hoyMs - pagoMs) / (24 * 60 * 60 * 1000));
-      }
-
-      const colorSin = diasSin >= 14 ? '#DC2626' : diasSin >= 7 ? '#D97706' : '#6B7280';
-      const contSin  = diasSin > 0
-        ? `<div style="font-weight:800;font-size:.95rem;color:${colorSin};line-height:1;">${diasSin}d sin</div>`
-        : `<div style="font-size:.7rem;color:var(--verde);font-weight:700;">Al día</div>`;
+      // Usar dias_sin_pagar de Python (ya descuenta el ciclo del cliente)
+      const dsp = c.dias_sin_pagar || 0;
+      const colorSin = dsp >= 14 ? '#DC2626' : dsp >= 7 ? '#D97706' : '#6B7280';
+      const contSin  = dsp > 0
+        ? `<div style="font-weight:800;font-size:.95rem;color:${colorSin};line-height:1;">${dsp}d sin</div>`
+        : `<div style="font-size:.7rem;color:var(--verde);font-weight:700;">Al día ✓</div>`;
 
       sinPagarTd = contSin;
 
