@@ -80,10 +80,10 @@ CLIENTES_CONFIG = {
     "wilian viejo":     {"num": 11, "cat": "diario_30k",  "dias": 8,  "meta": 240_000, "label": "Diario 30k × 8d"},
     "darwin":           {"num": 12, "cat": "semanal",     "dias": 7,  "meta": 240_000, "label": "Semanal 240k"},
     "heiner rodriguez": {"num": 13, "cat": "diario_34k",  "dias": 7,  "meta": 240_000, "label": "Diario 34k × 7d"},
-    "negro luis":       {"num": 14, "cat": "quincenal",   "dias": 15, "meta": 240_000, "label": "Quincenal 240k"},
+    "negro luis":       {"num": 14, "cat": "quincenal",   "dias": 15, "meta": 240_000, "label": "Quincenal 240k",   "tel": "3017986930"},
     "sr pedro":         {"num": 15, "cat": "semanal",     "dias": 7,  "meta": 240_000, "label": "Semanal 240k"},
     "lucho laura":      {"num": 16, "cat": "semanal",     "dias": 7,  "meta": 240_000, "label": "Semanal 240k"},
-    "edinson":          {"num": 17, "cat": "diario_34k",  "dias": 7,  "meta": 238_000, "label": "Diario 34k × 7d"},
+    "edinson":          {"num": 17, "cat": "diario_34k",  "dias": 7,  "meta": 238_000, "label": "Diario 34k × 7d",  "tel": "3017355501"},
     "brayan":           {"num": 18, "cat": "diario_30k",  "dias": 8,  "meta": 240_000, "label": "Diario 30k × 8d"},
     "gustavo primo":    {"num": 19, "cat": "semanal",     "dias": 7,  "meta": 240_000, "label": "Semanal 240k"},
     "erik":             {"num": 20, "cat": "mensual",     "dias": 30, "meta": 420_000, "label": "Mensual 420k"},
@@ -358,17 +358,25 @@ def resolver_ruta_excel():
 # CARGA DE DATOS
 # ---------------------------------------------------------------------------
 
+def _tel_valido(raw):
+    """Retorna el número si es móvil colombiano válido (10 dígitos, empieza en 3), sino ''."""
+    s = str(raw).strip().replace(" ", "").replace("-", "") if raw else ""
+    return s if (s.isdigit() and len(s) == 10 and s.startswith("3")) else ""
+
 def cargar_clientes(wb):
+    """Retorna (info_por_nombre, tel_por_placa)."""
     info = {}
+    tel_por_placa = {}
     if HOJA_CLIENTES not in wb.sheetnames:
-        return info
+        return info, tel_por_placa
     ws = wb[HOJA_CLIENTES]
     for row in ws.iter_rows(min_row=2, values_only=True):
-        row = (list(row) + [None]*6)[:6]
-        nombre, moto, placa, inicio, obs, total_cuotas_raw = row
+        row = (list(row) + [None]*7)[:7]
+        nombre, moto, placa, inicio, obs, total_cuotas_raw, tel_raw = row
         if not nombre:
             continue
-        clave = str(nombre).strip().lower()
+        clave = normalizar_nombre(str(nombre).strip().lower())
+        tel = _tel_valido(tel_raw)
         info[clave] = {
             "nombre": str(nombre).strip().title(),
             "moto": moto,
@@ -376,8 +384,11 @@ def cargar_clientes(wb):
             "inicio": inicio.date() if isinstance(inicio, datetime) else None,
             "observaciones": obs,
             "total_cuotas": int(total_cuotas_raw) if isinstance(total_cuotas_raw, (int, float)) else 64,
+            "telefono": tel,
         }
-    return info
+        if tel and placa:
+            tel_por_placa[str(placa).strip().lower()] = tel
+    return info, tel_por_placa
 
 def _parsear_fecha(val):
     if isinstance(val, datetime):
@@ -577,7 +588,7 @@ def frase_resumen_semana(nombre, dias_atrasados, monto):
     plural = "día" if len(nombres_dias) == 1 else "días"
     return f"Esta semana {nombre} se quedó {len(nombres_dias)} {plural} ({texto_dias}) por {formatear_pesos(monto)}."
 
-def procesar(filas, clientes_meta, hoy):
+def procesar(filas, clientes_meta, hoy, tel_por_placa=None):
     por_cliente = defaultdict(list)
     for f in filas:
         por_cliente[f["cliente_clave"]].append(f)
@@ -818,7 +829,7 @@ def procesar(filas, clientes_meta, hoy):
             "meta_ciclo":       cfg["meta"]  if cfg else 240_000,
             "prox_cuota_fecha": proximo_pago_esperado.isoformat() if proximo_pago_esperado else None,
             "prox_cuota_dias":  (proximo_pago_esperado - hoy).days if proximo_pago_esperado else None,
-            "telefono": (cfg.get("tel", "") if cfg else "") or meta.get("telefono", ""),
+            "telefono": (tel_por_placa or {}).get(str(placa).strip().lower(), "") or meta.get("telefono", "") or (cfg.get("tel", "") if cfg else ""),
         })
 
         total_global["recibido_historico"]  += recibido_total
@@ -917,9 +928,9 @@ def main():
 
     print(f"Leyendo: {ruta_excel}")
     wb = openpyxl.load_workbook(ruta_excel, data_only=True)
-    clientes_meta = cargar_clientes(wb)
+    clientes_meta, tel_por_placa = cargar_clientes(wb)
     filas = cargar_registro(wb)
-    print(f"{len(filas)} filas del Excel ({len(clientes_meta)} clientes)")
+    print(f"{len(filas)} filas del Excel ({len(clientes_meta)} clientes, {len(tel_por_placa)} con tel)")
 
     # Combinar con Google Sheets si está configurado
     if GOOGLE_SHEET_ID:
@@ -951,7 +962,7 @@ def main():
     print(f"  Luna:   {len(filas_luna)} reg / {len(clientes_luna)} clientes")
     print(f"  Jomar:  {len(filas_jomar)} reg / {len(clientes_jomar)} clientes")
 
-    datos = procesar(filas_severa, clientes_severa, hoy)
+    datos = procesar(filas_severa, clientes_severa, hoy, tel_por_placa)
     datos_luna_exc  = _construir_datos_empresa(_LUNA_RAW,  filas_luna,  hoy)
     datos_jomar_exc = _construir_datos_empresa(_JOMAR_RAW, filas_jomar, hoy)
 
