@@ -3533,15 +3533,19 @@ function renderTablaClientes() {
   const filasModulo = _filasModulo(COBRO_FILAS_ALL);
   const pcMap = {};
   filasModulo.forEach(r => {
-    const key = r.cliente.trim().toLowerCase();
+    const key = normalizarNombreCliente(r.cliente);  // alias-aware
     if (!pcMap[key]) {
-      const meta = (DATOS.clientes.find(c => c.nombre.toLowerCase() === key) || {}).meta_ciclo || 240000;
+      const meta = (DATOS.clientes.find(c => normalizarNombreCliente(c.nombre) === key) || {}).meta_ciclo || 240000;
       pcMap[key] = { pagos: [], tarifa: meta };
     }
     pcMap[key].pagos.push({ fecha: r.fecha, valor: Number(r.pago_recibido)||0, medio: r.medio_pago||'' });
   });
   const analMap = {};
-  Object.entries(pcMap).forEach(([k, d]) => { analMap[k] = analizarPagosCliente(d.pagos, d.tarifa); });
+  Object.entries(pcMap).forEach(([k, d]) => {
+    // Sort by date before analysis to handle out-of-order Sheets rows
+    d.pagos.sort((a, b) => a.fecha.localeCompare(b.fecha));
+    analMap[k] = analizarPagosCliente(d.pagos, d.tarifa);
+  });
 
   const CAT_CLS = {
     diario_30k:'cat-diario-30k', diario_34k:'cat-diario-34k',
@@ -3561,7 +3565,7 @@ function renderTablaClientes() {
     if (COBRO_FILTRO_CAT    && c.categoria !== COBRO_FILTRO_CAT) return false;
     return true;
   }).map(c => {
-    const key  = c.nombre.toLowerCase();
+    const key  = normalizarNombreCliente(c.nombre);  // alias-aware, matches pcMap keys
     const anal = analMap[key] || { cicloActual:{acumulado:0,pagos:[]}, cuotasCompletadas:[] };
     const meta  = c.meta_ciclo || 240000;
     const acum  = anal.cicloActual.acumulado || 0;
@@ -3667,7 +3671,7 @@ function renderTablaClientes() {
 
     // ── Columna "Pago hoy/filtro" ───────────────────────────────────────
     const pagosDelDia = filasModulo.filter(r =>
-      r.cliente.trim().toLowerCase() === key && r.fecha === fechaFiltroActiva
+      normalizarNombreCliente(r.cliente) === key && r.fecha === fechaFiltroActiva
     );
     let pagoHoyHtml = '<span style="color:var(--borde);font-size:.75rem;">—</span>';
     if (pagosDelDia.length > 0) {
