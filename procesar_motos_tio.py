@@ -71,7 +71,7 @@ CLIENTES_CONFIG = {
     "elkin":            {"num":  2, "cat": "quincenal",   "dias": 15, "meta": 240_000, "label": "Quincenal 240k",  "tel": "3005106102"},
     "juan andres":      {"num":  3, "cat": "diario_30k",  "dias": 8,  "meta": 240_000, "label": "Diario 30k × 8d"},
     "jorge luis":       {"num":  4, "cat": "semanal",     "dias": 7,  "meta": 240_000, "label": "Semanal 240k"},
-    "henry junior":     {"num":  5, "cat": "semanal",     "dias": 7,  "meta": 240_000, "label": "Semanal 240k"},
+    "henry junior":     {"num":  5, "cat": "diario_34k",  "dias": 7,  "meta": 238_000, "label": "Diario 34k × 7d"},
     "duvan enrique":    {"num":  6, "cat": "semanal",     "dias": 7,  "meta": 240_000, "label": "Semanal 240k"},
     "wilmar ivis":      {"num":  7, "cat": "diario_30k",  "dias": 8,  "meta": 240_000, "label": "Diario 30k × 8d"},
     "jesus morales":    {"num":  8, "cat": "diario_30k",  "dias": 8,  "meta": 240_000, "label": "Diario 30k × 8d"},
