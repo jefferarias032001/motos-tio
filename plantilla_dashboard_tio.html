@@ -3663,6 +3663,129 @@ renderTendencia(DATOS_ACTIVO.tendencia);
 iniciarTabla();
 renderResumenDia(DATOS_ACTIVO.clientes, DATOS_ACTIVO.hoy, null);
 
+// ══════════════════════════════════════════════════════
+// MultiSelect — reusable multi-select-with-search widget
+// ══════════════════════════════════════════════════════
+class MultiSelect {
+  constructor(anchor, opts, cfg = {}) {
+    this.opts = opts;
+    this.selected = new Set();
+    this.ph = cfg.placeholder || '— Todos —';
+    this.onChange = cfg.onChange || (() => {});
+    this._filtered = [...opts];
+    this._build(anchor);
+  }
+  _build(anchor) {
+    this.wrap = document.createElement('div');
+    this.wrap.className = 'ms-wrapper';
+    anchor.parentNode.insertBefore(this.wrap, anchor);
+    anchor.style.display = 'none';
+
+    this.btn = document.createElement('button');
+    this.btn.type = 'button';
+    this.btn.className = 'ms-trigger';
+    this.btn.innerHTML = `<span class="ms-lbl">${this.ph}</span><span style="color:var(--ink-soft);font-size:.7rem;">&#9660;</span>`;
+
+    this.drop = document.createElement('div');
+    this.drop.className = 'ms-dropdown';
+    this.drop.style.display = 'none';
+
+    this.inp = document.createElement('input');
+    this.inp.type = 'text';
+    this.inp.className = 'ms-search';
+    this.inp.placeholder = 'Buscar…';
+
+    this.ul = document.createElement('div');
+    this.ul.className = 'ms-list';
+
+    this.drop.append(this.inp, this.ul);
+    this.wrap.append(this.btn, this.drop);
+
+    this._render();
+    this._events();
+  }
+  _render() {
+    const q = this.inp.value.toLowerCase();
+    this._filtered = this.opts.filter(o =>
+      o.label.toLowerCase().includes(q) || (o.sub || '').toLowerCase().includes(q)
+    );
+    this.ul.innerHTML = '';
+    // "Todos" row
+    const all = document.createElement('div');
+    all.className = 'ms-item ms-item-all';
+    const allChk = document.createElement('input');
+    allChk.type = 'checkbox';
+    if (this.selected.size === 0) allChk.checked = true;
+    allChk.addEventListener('change', () => {
+      this.selected.clear();
+      this._render();
+      this._label();
+      this.onChange([]);
+    });
+    all.append(allChk, document.createTextNode(' ' + this.ph));
+    this.ul.appendChild(all);
+    // Items
+    this._filtered.forEach(o => {
+      const row = document.createElement('div');
+      row.className = 'ms-item';
+      const chk = document.createElement('input');
+      chk.type = 'checkbox';
+      if (this.selected.has(o.value)) chk.checked = true;
+      chk.addEventListener('change', e => {
+        if (e.target.checked) this.selected.add(o.value);
+        else this.selected.delete(o.value);
+        this._render();
+        this._label();
+        this.onChange([...this.selected]);
+      });
+      const lbl = document.createElement('span');
+      lbl.textContent = o.label + (o.sub ? ' \xb7 ' + o.sub : '');
+      row.append(chk, lbl);
+      this.ul.appendChild(row);
+    });
+  }
+  _label() {
+    const lbl = this.btn.querySelector('.ms-lbl');
+    const n = this.selected.size;
+    if (n === 0) {
+      lbl.textContent = this.ph;
+      this.btn.classList.remove('ms-activo');
+      return;
+    }
+    this.btn.classList.add('ms-activo');
+    if (n === 1) {
+      const v = [...this.selected][0];
+      lbl.textContent = (this.opts.find(o => o.value === v) || {}).label || v;
+    } else {
+      const first = (this.opts.find(o => o.value === [...this.selected][0]) || {}).label || '';
+      lbl.innerHTML = `${first.split(' ')[0]} <span class="ms-badge">+${n - 1}</span>`;
+    }
+  }
+  _events() {
+    this.btn.addEventListener('click', e => {
+      e.stopPropagation();
+      const open = this.drop.style.display !== 'none';
+      document.querySelectorAll('.ms-dropdown').forEach(d => d.style.display = 'none');
+      document.querySelectorAll('.ms-trigger').forEach(b => b.classList.remove('ms-activo-open'));
+      if (!open) {
+        this.drop.style.display = 'block';
+        this.btn.classList.add('ms-activo-open');
+        this.inp.focus();
+      }
+    });
+    this.inp.addEventListener('input', () => this._render());
+    document.addEventListener('click', e => {
+      if (!this.wrap.contains(e.target)) {
+        this.drop.style.display = 'none';
+        this.btn.classList.remove('ms-activo-open');
+      }
+    });
+  }
+  get() { return [...this.selected]; }
+  clear() { this.selected.clear(); this._render(); this._label(); }
+  setOpts(opts) { this.opts = opts; this.inp.value = ''; this._render(); }
+}
+
 // ── Filtros nombre/placa en Operativo ───────────────────────────────────────
 (function() {
   const btnLimp = document.getElementById('op-filtro-limpiar');
@@ -5358,128 +5481,6 @@ mostrarFactura = function(data) {
 
 cargarCobroDiario().catch(()=>{});
 
-// ══════════════════════════════════════════════════════
-// MultiSelect — reusable multi-select-with-search widget
-// ══════════════════════════════════════════════════════
-class MultiSelect {
-  constructor(anchor, opts, cfg = {}) {
-    this.opts = opts;
-    this.selected = new Set();
-    this.ph = cfg.placeholder || '— Todos —';
-    this.onChange = cfg.onChange || (() => {});
-    this._filtered = [...opts];
-    this._build(anchor);
-  }
-  _build(anchor) {
-    this.wrap = document.createElement('div');
-    this.wrap.className = 'ms-wrapper';
-    anchor.parentNode.insertBefore(this.wrap, anchor);
-    anchor.style.display = 'none';
-
-    this.btn = document.createElement('button');
-    this.btn.type = 'button';
-    this.btn.className = 'ms-trigger';
-    this.btn.innerHTML = `<span class="ms-lbl">${this.ph}</span><span style="color:var(--ink-soft);font-size:.7rem;">&#9660;</span>`;
-
-    this.drop = document.createElement('div');
-    this.drop.className = 'ms-dropdown';
-    this.drop.style.display = 'none';
-
-    this.inp = document.createElement('input');
-    this.inp.type = 'text';
-    this.inp.className = 'ms-search';
-    this.inp.placeholder = 'Buscar…';
-
-    this.ul = document.createElement('div');
-    this.ul.className = 'ms-list';
-
-    this.drop.append(this.inp, this.ul);
-    this.wrap.append(this.btn, this.drop);
-
-    this._render();
-    this._events();
-  }
-  _render() {
-    const q = this.inp.value.toLowerCase();
-    this._filtered = this.opts.filter(o =>
-      o.label.toLowerCase().includes(q) || (o.sub || '').toLowerCase().includes(q)
-    );
-    this.ul.innerHTML = '';
-    // "Todos" row
-    const all = document.createElement('div');
-    all.className = 'ms-item ms-item-all';
-    const allChk = document.createElement('input');
-    allChk.type = 'checkbox';
-    if (this.selected.size === 0) allChk.checked = true;
-    allChk.addEventListener('change', () => {
-      this.selected.clear();
-      this._render();
-      this._label();
-      this.onChange([]);
-    });
-    all.append(allChk, document.createTextNode(' ' + this.ph));
-    this.ul.appendChild(all);
-    // Items
-    this._filtered.forEach(o => {
-      const row = document.createElement('div');
-      row.className = 'ms-item';
-      const chk = document.createElement('input');
-      chk.type = 'checkbox';
-      if (this.selected.has(o.value)) chk.checked = true;
-      chk.addEventListener('change', e => {
-        if (e.target.checked) this.selected.add(o.value);
-        else this.selected.delete(o.value);
-        this._render();
-        this._label();
-        this.onChange([...this.selected]);
-      });
-      const lbl = document.createElement('span');
-      lbl.textContent = o.label + (o.sub ? ' \xb7 ' + o.sub : '');
-      row.append(chk, lbl);
-      this.ul.appendChild(row);
-    });
-  }
-  _label() {
-    const lbl = this.btn.querySelector('.ms-lbl');
-    const n = this.selected.size;
-    if (n === 0) {
-      lbl.textContent = this.ph;
-      this.btn.classList.remove('ms-activo');
-      return;
-    }
-    this.btn.classList.add('ms-activo');
-    if (n === 1) {
-      const v = [...this.selected][0];
-      lbl.textContent = (this.opts.find(o => o.value === v) || {}).label || v;
-    } else {
-      const first = (this.opts.find(o => o.value === [...this.selected][0]) || {}).label || '';
-      lbl.innerHTML = `${first.split(' ')[0]} <span class="ms-badge">+${n - 1}</span>`;
-    }
-  }
-  _events() {
-    this.btn.addEventListener('click', e => {
-      e.stopPropagation();
-      const open = this.drop.style.display !== 'none';
-      document.querySelectorAll('.ms-dropdown').forEach(d => d.style.display = 'none');
-      document.querySelectorAll('.ms-trigger').forEach(b => b.classList.remove('ms-activo-open'));
-      if (!open) {
-        this.drop.style.display = 'block';
-        this.btn.classList.add('ms-activo-open');
-        this.inp.focus();
-      }
-    });
-    this.inp.addEventListener('input', () => this._render());
-    document.addEventListener('click', e => {
-      if (!this.wrap.contains(e.target)) {
-        this.drop.style.display = 'none';
-        this.btn.classList.remove('ms-activo-open');
-      }
-    });
-  }
-  get() { return [...this.selected]; }
-  clear() { this.selected.clear(); this._render(); this._label(); }
-  setOpts(opts) { this.opts = opts; this.inp.value = ''; this._render(); }
-}
 
 </script>
 </body>
