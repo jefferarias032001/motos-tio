@@ -4075,16 +4075,21 @@ function renderTablaClientes() {
         .forEach(p => eventos.push({ fecha: p.fecha, tipo: 'pago', medio: p.medio, valor: p.valor }));
 
       // 3. Días NO pagados en el ciclo actual
-      // Empieza desde el día SIGUIENTE al cicloStart para no incluir el día de carry-over
-      if (cicloStart) {
-        const startDate = new Date(cicloStart + "T00:00:00");
-        startDate.setDate(startDate.getDate() + 1);
-        const hoyDate = new Date(DATOS_ACTIVO.hoy + "T00:00:00");
-        const maxDias = Math.min(c.dias_ciclo || 7, 31);
+      const hoyDate = new Date(DATOS_ACTIVO.hoy + "T00:00:00");
+      // Para clientes diario: usar ultimo_pago del Python (incluye pagos parciales de Sheets)
+      // Para otros: usar cicloStart de la app
+      const esDiario = (c.categoria || '').startsWith('diario');
+      const baseStart = esDiario && c.ultimo_pago
+        ? c.ultimo_pago          // último pago real (Python), el rango empieza +1 día
+        : cicloStart;            // inicio del ciclo actual de la app
+      if (baseStart) {
+        const startDate = new Date(baseStart + "T00:00:00");
+        startDate.setDate(startDate.getDate() + 1); // +1 para no incluir el día del último pago
+        const maxDias = esDiario ? 60 : Math.min(c.dias_ciclo || 7, 31);
         for (let i = 0; i < maxDias; i++) {
           const d = new Date(startDate);
           d.setDate(d.getDate() + i);
-          if (d >= hoyDate) break;
+          if (d >= hoyDate) break; // no incluir hoy (el día aún no terminó)
           const ds = d.toISOString().slice(0, 10);
           if (!pagoFechasSet.has(ds)) {
             eventos.push({ fecha: ds, tipo: 'falta' });

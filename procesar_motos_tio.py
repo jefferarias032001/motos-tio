@@ -829,6 +829,7 @@ def procesar(filas, clientes_meta, hoy, tel_por_placa=None, ultimos_sheets=None)
             "fecha_fin_prevista_legible": fecha_legible(fecha_fin_prevista),
             "contrato_completo": contrato_completo,
             "dias_sin_pagar":   dias_sin_pagar,
+            "ultimo_pago":      ultimo_pago_real.isoformat() if ultimo_pago_real else None,
             "proximo_pago_esperado": proximo_pago_esperado.isoformat() if proximo_pago_esperado else None,
             "proximo_pago_esperado_legible": fecha_legible(proximo_pago_esperado) if proximo_pago_esperado else "—",
             "ultimos_pagos":    ultimos_pagos_data,
