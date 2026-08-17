@@ -1138,6 +1138,21 @@
     padding-left:5px;
     margin-left:1px;
   }
+
+  /* ── MultiSelect component ── */
+  .ms-wrapper{position:relative;display:inline-block;}
+  .ms-trigger{background:var(--card-soft);border:1px solid var(--borde);border-radius:8px;padding:8px 14px;min-width:200px;display:flex;justify-content:space-between;align-items:center;gap:8px;cursor:pointer;font-size:.88rem;color:var(--ink);font-family:var(--font-body);}
+  .ms-trigger:hover{border-color:var(--plate);}
+  .ms-trigger.ms-activo{border-color:var(--plate);}
+  .ms-trigger.ms-activo-open{border-color:var(--plate);}
+  .ms-badge{background:var(--plate);color:#1A1714;font-size:.65rem;font-weight:800;padding:2px 7px;border-radius:10px;}
+  .ms-dropdown{position:absolute;top:calc(100% + 4px);left:0;min-width:260px;background:var(--card);border:1px solid var(--borde);border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,.35);z-index:9999;overflow:hidden;}
+  .ms-search{width:100%;padding:9px 12px;border:none;border-bottom:1px solid var(--borde);background:var(--asphalt);color:var(--ink);font-size:.86rem;outline:none;font-family:var(--font-body);}
+  .ms-list{max-height:260px;overflow-y:auto;}
+  .ms-item{display:flex;align-items:center;gap:9px;padding:7px 12px;cursor:pointer;font-size:.86rem;color:var(--ink);user-select:none;}
+  .ms-item:hover{background:var(--card-soft);}
+  .ms-item-all{border-bottom:1px solid var(--borde);color:var(--ink-soft);font-style:italic;}
+  .ms-item input[type=checkbox]{accent-color:var(--plate);cursor:pointer;width:15px;height:15px;flex-shrink:0;}
 </style>
 </head>
 <body>
@@ -1390,16 +1405,10 @@
     <!-- Filtros nombre y placa -->
     <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:16px;padding:10px 14px;background:var(--card-soft);border-radius:10px;border:1px solid var(--borde);">
       <label style="font-size:.75rem;color:var(--ink-soft);font-weight:700;white-space:nowrap;">Nombre:</label>
-      <input type="text" id="op-filtro-nombre" list="op-clientes-list" autocomplete="off"
-        placeholder="Buscar o seleccionar…"
-        style="flex:1;min-width:140px;max-width:240px;padding:6px 10px;border-radius:8px;border:1px solid var(--borde);background:var(--card);color:var(--ink);font-size:.85rem;">
-      <datalist id="op-clientes-list"></datalist>
+      <input type="text" id="op-filtro-nombre" autocomplete="off" style="display:none;">
       <label style="font-size:.75rem;color:var(--ink-soft);font-weight:700;white-space:nowrap;">Placa:</label>
-      <input type="text" id="op-filtro-placa" list="op-placas-list" autocomplete="off"
-        placeholder="Buscar…"
-        style="width:110px;padding:6px 10px;border-radius:8px;border:1px solid var(--borde);background:var(--card);color:var(--ink);font-size:.85rem;">
-      <datalist id="op-placas-list"></datalist>
-      <button type="button" id="op-filtro-limpiar" style="display:none;padding:5px 14px;border-radius:20px;border:1px solid var(--borde);background:var(--plate);color:#1A1714;font-size:.75rem;font-weight:700;cursor:pointer;white-space:nowrap;">✕ Limpiar</button>
+      <input type="text" id="op-filtro-placa" autocomplete="off" style="display:none;">
+      <button type="button" id="op-filtro-limpiar" style="display:none;padding:5px 14px;border-radius:20px;border:1px solid var(--borde);background:var(--plate);color:#1A1714;font-size:.75rem;font-weight:700;cursor:pointer;white-space:nowrap;">&#x2715; Limpiar</button>
     </div>
     <!-- Vista móvil: tabla compacta (solo visible en pantallas pequeñas) -->
     <div id="tabla-movil-wrap"></div>
@@ -1765,16 +1774,12 @@
     <div class="fact-selector-wrap" id="fact-selector-wrap">
       <div style="display:flex;gap:14px;flex-wrap:wrap;align-items:flex-end;">
         <div>
-          <label class="fact-selector-label" for="fact-select-nombre">Nombre</label>
-          <select id="fact-select-nombre" class="fact-select">
-            <option value="">— Todos los clientes —</option>
-          </select>
+          <label class="fact-selector-label">Nombre</label>
+          <select id="fact-select-nombre" class="fact-select" style="display:none;"></select>
         </div>
         <div>
-          <label class="fact-selector-label" for="fact-select-placa">Placa</label>
-          <select id="fact-select-placa" class="fact-select">
-            <option value="">— Todas las placas —</option>
-          </select>
+          <label class="fact-selector-label">Placa</label>
+          <select id="fact-select-placa" class="fact-select" style="display:none;"></select>
         </div>
         <div>
           <label class="fact-selector-label" for="fact-filtro-cuota">N° Cuota</label>
@@ -2008,22 +2013,17 @@ function cambiarEmpresa(empresa) {
   renderVencimientos(DATOS_ACTIVO.clientes);
   renderPorCobrar(DATOS_ACTIVO.clientes);
 
-  // 6. Actualizar datalists y filtros del operativo
-  const dlNom = document.getElementById('op-clientes-list');
-  const dlPla = document.getElementById('op-placas-list');
-  const inNom = document.getElementById('op-filtro-nombre');
-  const inPla = document.getElementById('op-filtro-placa');
+  // 6. Actualizar filtros del operativo (MultiSelect)
   const btnLimp = document.getElementById('op-filtro-limpiar');
-  if (inNom) inNom.value = '';
-  if (inPla) inPla.value = '';
   if (btnLimp) btnLimp.style.display = 'none';
-  if (dlNom) {
-    const noms = [...new Set(DATOS_ACTIVO.clientes.map(c => c.nombre))].sort();
-    dlNom.innerHTML = noms.map(n => `<option value="${n}">`).join('');
+  const _opClientes = (DATOS_ACTIVO.clientes || []).slice().sort((a, b) => a.nombre.localeCompare(b.nombre));
+  if (window._msOpNombre) {
+    window._msOpNombre.clear();
+    window._msOpNombre.setOpts(_opClientes.map(c => ({ value: c.nombre, label: c.nombre, sub: c.placa || '' })));
   }
-  if (dlPla) {
-    const pls = [...new Set(DATOS_ACTIVO.clientes.map(c => c.placa).filter(Boolean))].sort();
-    dlPla.innerHTML = pls.map(p => `<option value="${p}">`).join('');
+  if (window._msOpPlaca) {
+    window._msOpPlaca.clear();
+    window._msOpPlaca.setOpts(_opClientes.filter(c => c.placa).map(c => ({ value: c.placa, label: c.placa, sub: c.nombre })));
   }
 
   // 7. Tabla de detalle
@@ -3665,44 +3665,42 @@ renderResumenDia(DATOS_ACTIVO.clientes, DATOS_ACTIVO.hoy, null);
 
 // ── Filtros nombre/placa en Operativo ───────────────────────────────────────
 (function() {
-  const inpNombre = document.getElementById('op-filtro-nombre');
-  const inpPlaca  = document.getElementById('op-filtro-placa');
-  const btnLimp   = document.getElementById('op-filtro-limpiar');
-  const dlNombre  = document.getElementById('op-clientes-list');
-  const dlPlaca   = document.getElementById('op-placas-list');
-
-  // Poblar datalists
-  if (dlNombre) {
-    const nombres = [...new Set(DATOS_ACTIVO.clientes.map(c => c.nombre))].sort();
-    dlNombre.innerHTML = nombres.map(n => `<option value="${n}">`).join('');
-  }
-  if (dlPlaca) {
-    const placas = [...new Set(DATOS_ACTIVO.clientes.map(c => c.placa).filter(Boolean))].sort();
-    dlPlaca.innerHTML = placas.map(p => `<option value="${p}">`).join('');
-  }
+  const btnLimp = document.getElementById('op-filtro-limpiar');
+  const clientes = (DATOS_ACTIVO.clientes || []).slice().sort((a, b) => a.nombre.localeCompare(b.nombre));
 
   function aplicarFiltro() {
-    const nom = inpNombre.value.trim().toLowerCase();
-    const pla = inpPlaca.value.trim().toLowerCase();
-    btnLimp.style.display = (nom || pla) ? '' : 'none';
+    const noms = window._msOpNombre ? window._msOpNombre.get() : [];
+    const plas  = window._msOpPlaca  ? window._msOpPlaca.get()  : [];
+    btnLimp.style.display = (noms.length || plas.length) ? '' : 'none';
     const filtrados = DATOS_ACTIVO.clientes.filter(c => {
-      if (nom && !c.nombre.toLowerCase().includes(nom)) return false;
-      if (pla && !(c.placa||'').toLowerCase().includes(pla)) return false;
+      if (noms.length && !noms.includes(c.nombre)) return false;
+      // placa MS values are placas (not nombres) so match by placa field
+      if (plas.length && !(c.placa && plas.includes(c.placa))) return false;
       return true;
     });
     renderClientes(filtrados);
   }
 
-  let _timer;
-  function onInput() { clearTimeout(_timer); _timer = setTimeout(aplicarFiltro, 200); }
+  window._msOpNombre = new MultiSelect(
+    document.getElementById('op-filtro-nombre'),
+    clientes.map(c => ({ value: c.nombre, label: c.nombre, sub: c.placa || '' })),
+    { placeholder: '— Todos —', onChange: aplicarFiltro }
+  );
 
-  inpNombre.addEventListener('input', onInput);
-  inpPlaca.addEventListener('input', onInput);
-  btnLimp.addEventListener('click', () => {
-    inpNombre.value = ''; inpPlaca.value = '';
-    btnLimp.style.display = 'none';
-    renderClientes(DATOS_ACTIVO.clientes);
-  });
+  window._msOpPlaca = new MultiSelect(
+    document.getElementById('op-filtro-placa'),
+    clientes.filter(c => c.placa).map(c => ({ value: c.placa, label: c.placa, sub: c.nombre })),
+    { placeholder: '— Todas —', onChange: aplicarFiltro }
+  );
+
+  if (btnLimp) {
+    btnLimp.addEventListener('click', () => {
+      if (window._msOpNombre) window._msOpNombre.clear();
+      if (window._msOpPlaca)  window._msOpPlaca.clear();
+      btnLimp.style.display = 'none';
+      renderClientes(DATOS_ACTIVO.clientes);
+    });
+  }
 })();
 
 renderGerencia(DATOS_ACTIVO.global, DATOS_ACTIVO.clientes);
@@ -4849,39 +4847,49 @@ function cargarFacturacion() {
 }
 
 function _iniciarSelectoresFact() {
-  const selNombre = document.getElementById("fact-select-nombre");
-  const selPlaca  = document.getElementById("fact-select-placa");
-  const inpCuota  = document.getElementById("fact-filtro-cuota");
-  const btnLimpiar= document.getElementById("fact-btn-limpiar");
+  const inpCuota   = document.getElementById("fact-filtro-cuota");
+  const btnLimpiar = document.getElementById("fact-btn-limpiar");
 
-  // Poblar selectores
-  const clientes = (DATOS_ACTIVO.clientes || []).slice().sort((a,b) => a.nombre.localeCompare(b.nombre));
-  clientes.forEach(c => {
-    const oN = document.createElement("option");
-    oN.value = c.nombre; oN.textContent = c.nombre;
-    selNombre.appendChild(oN);
+  const clientes = (DATOS_ACTIVO.clientes || []).slice().sort((a, b) => a.nombre.localeCompare(b.nombre));
 
-    if (c.placa) {
-      const oP = document.createElement("option");
-      oP.value = c.nombre; // value = nombre para identificar el cliente
-      oP.textContent = c.placa;
-      selPlaca.appendChild(oP);
+  function _mostrarLimpiar() {
+    const hayFiltro = (window._msFactNombre && window._msFactNombre.get().length > 0) || inpCuota.value;
+    btnLimpiar.style.display = hayFiltro ? "" : "none";
+  }
+
+  // MultiSelect — Nombre
+  window._msFactNombre = new MultiSelect(
+    document.getElementById("fact-select-nombre"),
+    clientes.map(c => ({ value: c.nombre, label: c.nombre, sub: c.placa || '' })),
+    {
+      placeholder: '— Todos los clientes —',
+      onChange: vals => {
+        _factClienteActual = vals.length === 1 ? vals[0] : null;
+        _mostrarLimpiar();
+        _actualizarVistaFact();
+      }
     }
-  });
+  );
 
-  // Sincronizar selectores (nombre ↔ placa)
-  selNombre.addEventListener("change", () => {
-    selPlaca.value = selNombre.value;
-    _factClienteActual = selNombre.value || null;
-    _mostrarLimpiar();
-    _actualizarVistaFact();
-  });
-  selPlaca.addEventListener("change", () => {
-    selNombre.value = selPlaca.value;
-    _factClienteActual = selPlaca.value || null;
-    _mostrarLimpiar();
-    _actualizarVistaFact();
-  });
+  // MultiSelect — Placa (value = nombre, label = placa para mostrar)
+  window._msFactPlaca = new MultiSelect(
+    document.getElementById("fact-select-placa"),
+    clientes.filter(c => c.placa).map(c => ({ value: c.nombre, label: c.placa, sub: c.nombre })),
+    {
+      placeholder: '— Todas las placas —',
+      onChange: vals => {
+        // Sync nombre MS to match same clients
+        if (window._msFactNombre) {
+          window._msFactNombre.selected = new Set(vals);
+          window._msFactNombre._render();
+          window._msFactNombre._label();
+        }
+        _factClienteActual = vals.length === 1 ? vals[0] : null;
+        _mostrarLimpiar();
+        _actualizarVistaFact();
+      }
+    }
+  );
 
   // Filtro por número de cuota
   let _timer;
@@ -4895,38 +4903,45 @@ function _iniciarSelectoresFact() {
 
   // Limpiar todo
   btnLimpiar.addEventListener("click", () => {
-    selNombre.value = "";
-    selPlaca.value  = "";
-    inpCuota.value  = "";
+    if (window._msFactNombre) window._msFactNombre.clear();
+    if (window._msFactPlaca)  window._msFactPlaca.clear();
+    inpCuota.value = "";
     _factClienteActual = null;
     btnLimpiar.style.display = "none";
     _actualizarVistaFact();
   });
-
-  function _mostrarLimpiar() {
-    const hayFiltro = selNombre.value || inpCuota.value;
-    btnLimpiar.style.display = hayFiltro ? "" : "none";
-  }
 }
 
 function _actualizarVistaFact() {
-  const nombre   = document.getElementById("fact-select-nombre").value;
+  const nombres  = window._msFactNombre ? window._msFactNombre.get() : [];
   const numCuota = parseInt(document.getElementById("fact-filtro-cuota").value, 10);
+  const filtCuota = isNaN(numCuota) ? null : numCuota;
 
-  if (nombre) {
-    _mostrarCuotasCliente(nombre, isNaN(numCuota) ? null : numCuota);
+  if (nombres.length === 0) {
+    _mostrarCiclosListos([]);
+  } else if (nombres.length === 1) {
+    _mostrarCuotasCliente(nombres[0], filtCuota);
   } else {
-    _mostrarCiclosListos();
+    _mostrarCiclosListos(nombres);
   }
 }
 
-// Vista por defecto — solo ciclos completos del cobro app
-function _mostrarCiclosListos() {
+// Vista por defecto — solo ciclos completos del cobro app (o filtrado por lista de nombres)
+function _mostrarCiclosListos(filtroNombres) {
+  filtroNombres = filtroNombres || [];
   const contenido = document.getElementById("fact-contenido");
-  const candidatos = (DATOS_ACTIVO.clientes || []).filter(c => {
-    const info = COBRO_POR_CLIENTE[c.nombre.toLowerCase()];
-    return info && info.cuotasCompletadas && info.cuotasCompletadas.length > 0;
-  });
+  let candidatos = (DATOS_ACTIVO.clientes || []);
+
+  if (filtroNombres.length > 0) {
+    // Mostrar todos los clientes seleccionados, independientemente de ciclos completados
+    candidatos = candidatos.filter(c => filtroNombres.includes(c.nombre));
+  } else {
+    // Vista por defecto: solo los que tienen ciclos listos
+    candidatos = candidatos.filter(c => {
+      const info = COBRO_POR_CLIENTE[c.nombre.toLowerCase()];
+      return info && info.cuotasCompletadas && info.cuotasCompletadas.length > 0;
+    });
+  }
 
   if (!candidatos.length) {
     contenido.innerHTML = `<div class="fact-vacia">No hay ciclos de $240.000 completados aún.<br>Abre <strong>Cobro Diario</strong> primero, o usa el selector de nombre/placa para ver el historial de cualquier cliente.</div>`;
@@ -4937,15 +4952,17 @@ function _mostrarCiclosListos() {
   candidatos.forEach(c => {
     const info = COBRO_POR_CLIENTE[c.nombre.toLowerCase()];
     const base = c.pagos_realizados || 0;
-    const nApp = info.cuotasCompletadas.length;
-    const filas = info.cuotasCompletadas.map((q, idx) =>
+    const cuotasComp = (info && info.cuotasCompletadas) ? info.cuotasCompletadas : [];
+    const nApp = cuotasComp.length;
+    const filas = cuotasComp.map((q, idx) =>
       filaFactura({ cliente:c.nombre, moto:c.moto||'', placa:c.placa||'',
                     cuota: base - nApp + idx + 1, fecha: q.fecha, total: q.total, esNueva: true })
     ).join("");
+    const sinCiclos = nApp === 0 ? `<div class="fact-vacia" style="padding:10px 0;font-size:.82rem;">Sin ciclos completados aún</div>` : '';
     html += `<div class="fact-cliente-card" style="margin-bottom:14px;">
       <div class="fact-cliente-nombre">${c.nombre}</div>
       <div class="fact-cliente-sub">${c.moto||''} · ${c.placa||''}</div>
-      <div class="fact-cuotas-grid" style="margin-top:10px;">${filas}</div>
+      <div class="fact-cuotas-grid" style="margin-top:10px;">${filas || sinCiclos}</div>
     </div>`;
   });
   contenido.innerHTML = html;
@@ -5340,6 +5357,129 @@ mostrarFactura = function(data) {
 };
 
 cargarCobroDiario().catch(()=>{});
+
+// ══════════════════════════════════════════════════════
+// MultiSelect — reusable multi-select-with-search widget
+// ══════════════════════════════════════════════════════
+class MultiSelect {
+  constructor(anchor, opts, cfg = {}) {
+    this.opts = opts;
+    this.selected = new Set();
+    this.ph = cfg.placeholder || '— Todos —';
+    this.onChange = cfg.onChange || (() => {});
+    this._filtered = [...opts];
+    this._build(anchor);
+  }
+  _build(anchor) {
+    this.wrap = document.createElement('div');
+    this.wrap.className = 'ms-wrapper';
+    anchor.parentNode.insertBefore(this.wrap, anchor);
+    anchor.style.display = 'none';
+
+    this.btn = document.createElement('button');
+    this.btn.type = 'button';
+    this.btn.className = 'ms-trigger';
+    this.btn.innerHTML = `<span class="ms-lbl">${this.ph}</span><span style="color:var(--ink-soft);font-size:.7rem;">&#9660;</span>`;
+
+    this.drop = document.createElement('div');
+    this.drop.className = 'ms-dropdown';
+    this.drop.style.display = 'none';
+
+    this.inp = document.createElement('input');
+    this.inp.type = 'text';
+    this.inp.className = 'ms-search';
+    this.inp.placeholder = 'Buscar…';
+
+    this.ul = document.createElement('div');
+    this.ul.className = 'ms-list';
+
+    this.drop.append(this.inp, this.ul);
+    this.wrap.append(this.btn, this.drop);
+
+    this._render();
+    this._events();
+  }
+  _render() {
+    const q = this.inp.value.toLowerCase();
+    this._filtered = this.opts.filter(o =>
+      o.label.toLowerCase().includes(q) || (o.sub || '').toLowerCase().includes(q)
+    );
+    this.ul.innerHTML = '';
+    // "Todos" row
+    const all = document.createElement('div');
+    all.className = 'ms-item ms-item-all';
+    const allChk = document.createElement('input');
+    allChk.type = 'checkbox';
+    if (this.selected.size === 0) allChk.checked = true;
+    allChk.addEventListener('change', () => {
+      this.selected.clear();
+      this._render();
+      this._label();
+      this.onChange([]);
+    });
+    all.append(allChk, document.createTextNode(' ' + this.ph));
+    this.ul.appendChild(all);
+    // Items
+    this._filtered.forEach(o => {
+      const row = document.createElement('div');
+      row.className = 'ms-item';
+      const chk = document.createElement('input');
+      chk.type = 'checkbox';
+      if (this.selected.has(o.value)) chk.checked = true;
+      chk.addEventListener('change', e => {
+        if (e.target.checked) this.selected.add(o.value);
+        else this.selected.delete(o.value);
+        this._render();
+        this._label();
+        this.onChange([...this.selected]);
+      });
+      const lbl = document.createElement('span');
+      lbl.textContent = o.label + (o.sub ? ' \xb7 ' + o.sub : '');
+      row.append(chk, lbl);
+      this.ul.appendChild(row);
+    });
+  }
+  _label() {
+    const lbl = this.btn.querySelector('.ms-lbl');
+    const n = this.selected.size;
+    if (n === 0) {
+      lbl.textContent = this.ph;
+      this.btn.classList.remove('ms-activo');
+      return;
+    }
+    this.btn.classList.add('ms-activo');
+    if (n === 1) {
+      const v = [...this.selected][0];
+      lbl.textContent = (this.opts.find(o => o.value === v) || {}).label || v;
+    } else {
+      const first = (this.opts.find(o => o.value === [...this.selected][0]) || {}).label || '';
+      lbl.innerHTML = `${first.split(' ')[0]} <span class="ms-badge">+${n - 1}</span>`;
+    }
+  }
+  _events() {
+    this.btn.addEventListener('click', e => {
+      e.stopPropagation();
+      const open = this.drop.style.display !== 'none';
+      document.querySelectorAll('.ms-dropdown').forEach(d => d.style.display = 'none');
+      document.querySelectorAll('.ms-trigger').forEach(b => b.classList.remove('ms-activo-open'));
+      if (!open) {
+        this.drop.style.display = 'block';
+        this.btn.classList.add('ms-activo-open');
+        this.inp.focus();
+      }
+    });
+    this.inp.addEventListener('input', () => this._render());
+    document.addEventListener('click', e => {
+      if (!this.wrap.contains(e.target)) {
+        this.drop.style.display = 'none';
+        this.btn.classList.remove('ms-activo-open');
+      }
+    });
+  }
+  get() { return [...this.selected]; }
+  clear() { this.selected.clear(); this._render(); this._label(); }
+  setOpts(opts) { this.opts = opts; this.inp.value = ''; this._render(); }
+}
 
 </script>
 </body>
