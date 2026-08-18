@@ -391,6 +391,7 @@ def cargar_clientes(wb):
     return info, tel_por_placa
 
 def _parsear_fecha(val):
+    import calendar as _cal
     if isinstance(val, datetime):
         return val
     if isinstance(val, date) and not isinstance(val, datetime):
@@ -402,6 +403,17 @@ def _parsear_fecha(val):
                 return datetime.strptime(s, fmt)
             except ValueError:
                 pass
+        # Fecha con día inválido (ej. 30/02/2026) → clampear al último día del mes
+        for sep in ('/', '-'):
+            if sep in s:
+                parts = s.split(sep)
+                if len(parts) == 3:
+                    try:
+                        d, m, y = int(parts[0]), int(parts[1]), int(parts[2])
+                        last = _cal.monthrange(y, m)[1]
+                        return datetime(y, m, min(d, last))
+                    except Exception:
+                        pass
     return None
 
 def cargar_registro(wb):
