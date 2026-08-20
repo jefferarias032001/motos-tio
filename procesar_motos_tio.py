@@ -674,7 +674,6 @@ def procesar(filas, clientes_meta, hoy, tel_por_placa=None, ultimos_sheets=None)
         CUOTAS_OVERRIDE = {
             "dorlys jose julio": 60,
             "henry junior":      52,
-            "asmed brenda":       9,   # pagó $2.160.000 de una sola vez el 15/07
         }
         total_cuotas = CUOTAS_OVERRIDE.get(clave, meta.get("total_cuotas", 64))
         pagos_historicos = sorted([r for r in registros if r["fecha"] <= hoy], key=lambda r: r["fecha"])
