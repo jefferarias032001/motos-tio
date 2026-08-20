@@ -4104,8 +4104,8 @@ function renderTablaClientes() {
     // ── Columna "Progreso ciclo" ────────────────────────────────────────
     const nReg = c.pagos_realizados || 0;
     const totalCtto = c.total_cuotas || 64;
-    // cuota actual = la que está pagando ahora (última completada + 1)
-    const cuotaActual = c.contrato_completo ? nReg : nReg + 1;
+    // cuota actual = última cuota completada
+    const cuotaActual = nReg;
     const progHtml = `
       <div style="height:5px;background:var(--borde);border-radius:3px;margin-bottom:4px;overflow:hidden;">
         <div style="height:100%;width:${pct}%;background:${barC};border-radius:3px;transition:width .3s;"></div>
