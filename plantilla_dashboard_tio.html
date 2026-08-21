@@ -1912,6 +1912,8 @@ let _cobroSelectoresIniciados = false;
 
 // Números WhatsApp por cliente (clave = nombre en minúsculas, sin espacios extra)
 const WHATSAPP_CLIENTES = __WHATSAPP_CLIENTES_JSON__;
+const NOMBRE_DISPLAY = __NOMBRE_DISPLAY_JSON__;
+function nombreFactura(n){ return NOMBRE_DISPLAY[(n||'').toLowerCase().trim()] || n; }
 
 // ─── FILTRO DE EMPRESA ────────────────────────────────────────────────────────
 let _moduloActual = 'severa';
@@ -5292,7 +5294,7 @@ function renderFacturaPreview(data) {
       <div class="factura-titulo">Recibo de pago de cuota</div>
 
       <div class="factura-datos">
-        <div class="factura-campo"><label>Cliente</label><span>${data.cliente}</span></div>
+        <div class="factura-campo"><label>Cliente</label><span>${nombreFactura(data.cliente)}</span></div>
         <div class="factura-campo"><label>N° cuota</label><span>${data.cuota} de ${(DATOS_ACTIVO.clientes.find(c=>c.nombre===data.cliente)||{}).total_cuotas || '—'}</span></div>
         <div class="factura-campo"><label>Vehículo</label><span>${data.moto || '—'}</span></div>
         <div class="factura-campo"><label>Placa</label><span>${data.placa || '—'}</span></div>

@@ -119,6 +119,13 @@ ALIAS_NOMBRES = {
     "chacal / caterine":                 "chacal caterine",
 }
 
+# Nombre corto para mostrar en factura (clave → nombre mostrado)
+NOMBRE_DISPLAY = {
+    "wilian viejo":        "Wilian",
+    "edinson el flaco":    "Edinson",
+    "francisco (buñuelo)": "Francisco",
+}
+
 # Identificadores de empresas externas (substrings y placas en minúsculas)
 # Usa coincidencia de substring para cubrir variantes de nombre en el Excel
 _LUNA_SUBS   = ['cesar']
@@ -947,6 +954,7 @@ def generar_html(datos, ruta_plantilla, ruta_salida, hoy,
     html = html.replace("__DATOS_LUNA_JSON__",  json.dumps(datos_luna,  ensure_ascii=False))
     html = html.replace("__DATOS_JOMAR_JSON__", json.dumps(datos_jomar, ensure_ascii=False))
     html = html.replace("__WHATSAPP_CLIENTES_JSON__", json.dumps(wa_dict, ensure_ascii=False))
+    html = html.replace("__NOMBRE_DISPLAY_JSON__", json.dumps(NOMBRE_DISPLAY, ensure_ascii=False))
     html = html.replace("JEFFER MOTOS", NOMBRE_NEGOCIO)
     ruta_salida.write_text(html, encoding="utf-8")
     # También guardar como index.html para que GitHub Pages lo sirva en la raíz
