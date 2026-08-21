@@ -927,9 +927,26 @@ def generar_html(datos, ruta_plantilla, ruta_salida, hoy,
                        "hoy_legible": fecha_legible(hoy), **datos_jomar_excel}
     else:
         datos_jomar = construir_datos_jomar(hoy)
+    # Construir dict WhatsApp desde todos los clientes (Severa + Luna + Jomar)
+    wa_dict = {}
+    for c in payload.get("clientes", []):
+        tel = str(c.get("telefono", "") or "").replace(" ", "").replace("-", "")
+        tel = ''.join(filter(str.isdigit, tel))
+        if tel and len(tel) >= 7:
+            key = str(c.get("nombre", "")).lower().strip()
+            wa_dict[key] = f"57{tel}" if not tel.startswith("57") else tel
+    for modulo in [datos_luna, datos_jomar]:
+        for c in modulo.get("clientes", []):
+            tel = str(c.get("telefono", "") or "").replace(" ", "").replace("-", "")
+            tel = ''.join(filter(str.isdigit, tel))
+            if tel and len(tel) >= 7:
+                key = str(c.get("nombre", "")).lower().strip()
+                wa_dict[key] = f"57{tel}" if not tel.startswith("57") else tel
+
     html = plantilla.replace("__DATOS_JSON_AQUI__", json.dumps(payload, ensure_ascii=False))
     html = html.replace("__DATOS_LUNA_JSON__",  json.dumps(datos_luna,  ensure_ascii=False))
     html = html.replace("__DATOS_JOMAR_JSON__", json.dumps(datos_jomar, ensure_ascii=False))
+    html = html.replace("__WHATSAPP_CLIENTES_JSON__", json.dumps(wa_dict, ensure_ascii=False))
     html = html.replace("JEFFER MOTOS", NOMBRE_NEGOCIO)
     ruta_salida.write_text(html, encoding="utf-8")
     # También guardar como index.html para que GitHub Pages lo sirva en la raíz

@@ -1911,11 +1911,7 @@ let COBRO_FILTRO_CAT    = null;
 let _cobroSelectoresIniciados = false;
 
 // Números WhatsApp por cliente (clave = nombre en minúsculas, sin espacios extra)
-const WHATSAPP_CLIENTES = {
-  "dorlys jose julio":    "573044429690",
-  "elkin espitia payares":"573005106102",
-  "henry junior":         "573235288362",
-};
+const WHATSAPP_CLIENTES = __WHATSAPP_CLIENTES_JSON__;
 
 // ─── FILTRO DE EMPRESA ────────────────────────────────────────────────────────
 let _moduloActual = 'severa';
@@ -2063,7 +2059,8 @@ function _renderizarModulo(datos, tickElId, gridElId, accentColor) {
     const pct      = Math.round((c.cuotas_pagadas / c.total_cuotas) * 100);
     const pctCuota = Math.min(100, Math.round(((c.acumulado_cuota_actual||0) / c.tarifa) * 100));
     const dias     = c.dias_en_cuota_actual || 0;
-    const telefonoHtml = c.telefono ? `<div><div style="font-size:.68rem;color:var(--ink-soft);text-transform:uppercase;font-weight:600;">Teléfono</div><strong>${c.telefono}</strong></div>` : '';
+    const _telNum = c.telefono ? String(c.telefono).replace(/\D/g,'') : '';
+    const telefonoHtml = _telNum ? `<div style="grid-column:1/-1;"><a href="https://wa.me/57${_telNum}" target="_blank" style="display:inline-flex;align-items:center;gap:6px;background:#25D366;color:#fff;border:none;border-radius:8px;padding:7px 14px;font-size:.8rem;font-weight:700;text-decoration:none;cursor:pointer;">📲 WhatsApp ${c.telefono}</a></div>` : '';
     const ultimosPagos = c.pagos.slice(-8).map(p =>
       `<span class="cobro-dia">${p.fecha.slice(5)}: ${formatCompacto(p.valor)}</span>`
     ).join('');
