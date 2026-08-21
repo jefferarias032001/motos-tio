@@ -366,9 +366,15 @@ def resolver_ruta_excel():
 # ---------------------------------------------------------------------------
 
 def _tel_valido(raw):
-    """Retorna el número si es móvil colombiano válido (10 dígitos, empieza en 3), sino ''."""
-    s = str(raw).strip().replace(" ", "").replace("-", "") if raw else ""
-    return s if (s.isdigit() and len(s) == 10 and s.startswith("3")) else ""
+    """Retorna el número si es móvil válido (colombiano 10 dígitos o internacional ≥11), sino ''."""
+    s = str(raw).strip().replace(" ", "").replace("-", "").lstrip("+") if raw else ""
+    if not s.isdigit():
+        return ""
+    if len(s) == 10 and s.startswith("3"):   # colombiano
+        return s
+    if len(s) >= 11:                          # internacional (ya trae código de país)
+        return s
+    return ""
 
 def cargar_clientes(wb):
     """Retorna (info_por_nombre, tel_por_placa)."""
@@ -941,14 +947,14 @@ def generar_html(datos, ruta_plantilla, ruta_salida, hoy,
         tel = ''.join(filter(str.isdigit, tel))
         if tel and len(tel) >= 7:
             key = str(c.get("nombre", "")).lower().strip()
-            wa_dict[key] = f"57{tel}" if not tel.startswith("57") else tel
+            wa_dict[key] = tel if len(tel) >= 11 else f"57{tel}"
     for modulo in [datos_luna, datos_jomar]:
         for c in modulo.get("clientes", []):
             tel = str(c.get("telefono", "") or "").replace(" ", "").replace("-", "")
             tel = ''.join(filter(str.isdigit, tel))
             if tel and len(tel) >= 7:
                 key = str(c.get("nombre", "")).lower().strip()
-                wa_dict[key] = f"57{tel}" if not tel.startswith("57") else tel
+                wa_dict[key] = tel if len(tel) >= 11 else f"57{tel}"
 
     html = plantilla.replace("__DATOS_JSON_AQUI__", json.dumps(payload, ensure_ascii=False))
     html = html.replace("__DATOS_LUNA_JSON__",  json.dumps(datos_luna,  ensure_ascii=False))
