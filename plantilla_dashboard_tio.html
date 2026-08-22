@@ -5497,8 +5497,8 @@ function hacerTablaOrdenable(tabla) {
       if (!tbody) return;
       const rows = Array.from(tbody.querySelectorAll('tr')).filter(r => !r.classList.contains('tm-total-fila'));
       const asc = th.dataset.sortDir !== 'asc';
-      th.dataset.sortDir = asc ? 'asc' : 'desc';
       ths.forEach(t => { t.dataset.sortDir = ''; t.innerHTML = t.innerHTML.replace(/ [▲▼]$/, ''); });
+      th.dataset.sortDir = asc ? 'asc' : 'desc';
       th.innerHTML += asc ? ' ▲' : ' ▼';
       rows.sort((a, b) => {
         const at = (a.cells[i]?.textContent || '').trim();
