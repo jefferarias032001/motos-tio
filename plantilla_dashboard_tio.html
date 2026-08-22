@@ -4331,6 +4331,10 @@ function renderTablaClientes() {
     (_finalizados.length
       ? _sepRow('Contratos Terminados', _finalizados.length) + _finalizados.map(_rowHtml).join('')
       : '');
+
+  // Re-aplicar ordenamiento (la tabla es estática pero los <th> necesitan los handlers)
+  const _tblCobro = document.querySelector('.cobro-tabla-cl');
+  if (_tblCobro) { delete _tblCobro._sorteable; hacerTablaOrdenable(_tblCobro); }
 }
 
 // Genera HTML del bloque "Cobro app" dentro de cada tarjeta de Operativo
@@ -4796,7 +4800,7 @@ function renderCobroFiltrado() {
 
     const anchor = document.getElementById("cobro-sin-cobro") || gridEl;
     anchor.insertAdjacentHTML("afterend", `
-      <div id="cobro-detalle-filas-wrap" style="margin-top:28px;">
+      <div id="cobro-detalle-filas-wrap" style="margin-top:28px;" data-sort-pending="1">
         <h3 style="font-size:.78rem;text-transform:uppercase;letter-spacing:.07em;color:var(--ink-soft);margin:0 0 10px;font-weight:700;">
           Detalle de cobros · ${filasDetalle.length} registros
         </h3>
@@ -4823,6 +4827,9 @@ function renderCobroFiltrado() {
           </table>
         </div>
       </div>`);
+    // Aplicar ordenamiento a la tabla recién creada
+    const _tblDet = document.querySelector('#cobro-detalle-filas-wrap table');
+    if (_tblDet) hacerTablaOrdenable(_tblDet);
   }
 }
 
@@ -5514,26 +5521,16 @@ function hacerTablaOrdenable(tabla) {
   });
 }
 
-// Aplicar a tablas estáticas (se renderizan una vez)
+// Tablas estáticas — ordenables de inmediato
 ['tabla-detalle','tabla-deuda-total','tabla-proyeccion'].forEach(id => {
   const t = document.getElementById(id);
   if (t) hacerTablaOrdenable(t);
 });
 
-// Aplicar a tablas dinámicas con MutationObserver
-const _observarTabla = (cont, selector) => {
-  if (!cont) return;
-  new MutationObserver(() => {
-    cont.querySelectorAll(selector).forEach(t => hacerTablaOrdenable(t));
-  }).observe(cont, { childList: true, subtree: true });
-};
-_observarTabla(document.getElementById('tabla-movil-wrap'), 'table');
-_observarTabla(document.querySelector('.cobro-tabla-cl'), 'table');
-_observarTabla(document.getElementById('cobro-detalle-filas-wrap'), 'table');
-
-// Cobro tabla de clientes: ya está en el DOM, aplicar directo
-const _cobroTabla = document.querySelector('.cobro-tabla-cl');
-if (_cobroTabla) hacerTablaOrdenable(_cobroTabla);
+// Tabla Operativo (tm-tabla): se genera dinámicamente, observar su contenedor
+new MutationObserver(() => {
+  document.querySelectorAll('#tabla-movil-wrap table').forEach(t => hacerTablaOrdenable(t));
+}).observe(document.getElementById('tabla-movil-wrap') || document.body, { childList: true, subtree: true });
 
 
 </script>
