@@ -1821,6 +1821,9 @@
       </div>
     </div>
 
+    <!-- Facturas completadas hoy (se rellena desde renderCobroFiltrado) -->
+    <div id="fact-vista-facturas-hoy" style="margin-bottom:18px;"></div>
+
     <!-- Contenido dinámico -->
     <div id="fact-contenido" style="margin-top:20px;"></div>
   </section>
@@ -4735,15 +4738,14 @@ function renderCobroFiltrado() {
   tickEl.innerHTML = tickerFiltro + tickerAyer;
 
   // ── Facturas completadas hoy ─────────────────────────────────────────────
-  const factHoyEl = document.getElementById("cobro-facturas-hoy");
-  if (factHoyEl) {
-    // 1. Clientes de Sheets: cuotas completadas hoy
+  {
+    // 1. Clientes de Sheets: cuotas completadas hoy (agrupar por nombre canónico)
     const porClienteHoy = {};
     filasModulo.forEach(r => {
-      const key = r.cliente.trim();
+      const key = normalizarNombreCliente(r.cliente); // alias-aware: evita duplicados
       if (!porClienteHoy[key]) {
-        const tarifa = TARIFA_SEMANAL_MAP[key.toLowerCase()] || 240000;
-        porClienteHoy[key] = { cliente: key, placa: r.placa, moto: r.moto, tarifa, pagos: [] };
+        const tarifa = TARIFA_SEMANAL_MAP[key] || TARIFA_SEMANAL_MAP[r.cliente.toLowerCase()] || 240000;
+        porClienteHoy[key] = { cliente: r.cliente.trim(), placa: r.placa, moto: r.moto, tarifa, pagos: [] };
       }
       porClienteHoy[key].pagos.push({ fecha: r.fecha, valor: Number(r.pago_recibido)||0, medio: r.medio_pago||'' });
     });
@@ -4754,44 +4756,50 @@ function renderCobroFiltrado() {
         .filter(cu => cu.fecha === hoy)
         .forEach(cu => factHoy.push({ nombre: c.cliente, placa: c.placa, moto: c.moto, monto: cu.total, fuente: 'app' }));
     });
-    // 2. Clientes del Excel: último pago hoy y estado pagado
+    // 2. Clientes del Excel: último pago hoy (dedup usando nombre canónico)
     (DATOS_ACTIVO.clientes || []).forEach(c => {
       const ultPagos = c.ultimos_pagos || [];
       const pagoHoy = ultPagos.find(p => p.fecha === hoy && p.estado === 'pagado');
-      if (pagoHoy && !factHoy.some(f => f.nombre.toLowerCase() === c.nombre.toLowerCase())) {
+      const canon = normalizarNombreCliente(c.nombre);
+      if (pagoHoy && !factHoy.some(f => normalizarNombreCliente(f.nombre) === canon)) {
         factHoy.push({ nombre: c.nombre, placa: c.placa, moto: c.moto, monto: pagoHoy.recibido, fuente: 'excel' });
       }
     });
 
-    if (factHoy.length > 0) {
-      factHoyEl.style.display = '';
-      factHoyEl.innerHTML = `
-        <div class="fact-hoy-banner">
-          <div class="fact-hoy-titulo">🧾 Facturas completadas hoy · ${factHoy.length}</div>
-          <div class="fact-hoy-grid">
-            ${factHoy.map(f => {
-              const nombreCorto = (f.nombre||'').split(' ').slice(0,2).join(' ');
-              const tel = WHATSAPP_CLIENTES[(f.nombre||'').toLowerCase().trim()];
-              const waBtn = tel
-                ? `<a href="https://wa.me/${tel}" target="_blank" onclick="event.stopPropagation()"
-                     style="background:#25D366;color:#fff;border-radius:6px;padding:3px 9px;font-size:.68rem;font-weight:700;text-decoration:none;white-space:nowrap;">📲</a>`
-                : '';
-              return `<div class="fact-hoy-card" title="Ver factura de ${nombreCorto}"
-                onclick="cambiarVista('facturacion');setTimeout(()=>{ const s=document.getElementById('fact-select-nombre'); if(s){s.value='${f.nombre}';s.dispatchEvent(new Event('change'));}},300);">
-                <div>
-                  <div class="fact-hoy-nombre">${nombreCorto}</div>
-                  <div class="fact-hoy-sub">${f.placa || ''}</div>
-                </div>
-                <div class="fact-hoy-monto">${formatPesos(f.monto)}</div>
-                ${waBtn}
-              </div>`;
-            }).join('')}
-          </div>
-        </div>`;
-    } else {
-      factHoyEl.style.display = 'none';
-      factHoyEl.innerHTML = '';
+    const _factHoyHTML = factHoy.length > 0 ? `
+      <div class="fact-hoy-banner">
+        <div class="fact-hoy-titulo">🧾 Facturas completadas hoy · ${factHoy.length}</div>
+        <div class="fact-hoy-grid">
+          ${factHoy.map(f => {
+            const nombreCorto = (f.nombre||'').split(/[\s/]+/).filter(Boolean).slice(0,2).join(' ');
+            const tel = WHATSAPP_CLIENTES[(f.nombre||'').toLowerCase().trim()]
+                     || WHATSAPP_CLIENTES[normalizarNombreCliente(f.nombre)];
+            const waBtn = tel
+              ? `<a href="https://wa.me/${tel}" target="_blank" onclick="event.stopPropagation()"
+                   style="background:#25D366;color:#fff;border-radius:6px;padding:3px 9px;font-size:.68rem;font-weight:700;text-decoration:none;white-space:nowrap;">📲</a>`
+              : '';
+            return `<div class="fact-hoy-card" title="Ver factura de ${nombreCorto}"
+              onclick="cambiarVista('facturacion');setTimeout(()=>{ const s=document.getElementById('fact-select-nombre'); if(s){s.value='${f.nombre}';s.dispatchEvent(new Event('change'));}},300);">
+              <div>
+                <div class="fact-hoy-nombre">${nombreCorto}</div>
+                <div class="fact-hoy-sub">${f.placa || ''}</div>
+              </div>
+              <div class="fact-hoy-monto">${formatPesos(f.monto)}</div>
+              ${waBtn}
+            </div>`;
+          }).join('')}
+        </div>
+      </div>` : '';
+
+    // Actualizar en tab Cobro
+    const factHoyEl = document.getElementById("cobro-facturas-hoy");
+    if (factHoyEl) {
+      if (factHoy.length > 0) { factHoyEl.style.display = ''; factHoyEl.innerHTML = _factHoyHTML; }
+      else { factHoyEl.style.display = 'none'; factHoyEl.innerHTML = ''; }
     }
+    // Actualizar también en tab Facturación
+    const factVistaEl = document.getElementById("fact-vista-facturas-hoy");
+    if (factVistaEl) { factVistaEl.innerHTML = _factHoyHTML; }
   }
 
   // Tabla por día
