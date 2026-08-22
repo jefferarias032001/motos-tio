@@ -5503,8 +5503,9 @@ function hacerTablaOrdenable(tabla) {
       rows.sort((a, b) => {
         const at = (a.cells[i]?.textContent || '').trim();
         const bt = (b.cells[i]?.textContent || '').trim();
-        const an = parseFloat(at.replace(/[^0-9.-]/g,''));
-        const bn = parseFloat(bt.replace(/[^0-9.-]/g,''));
+        const _parseCOP = s => { const n = parseFloat(s.replace(/\./g,'').replace(',','.').replace(/[^0-9-]/g,'')); return isNaN(n) ? null : n; };
+        const an = _parseCOP(at);
+        const bn = _parseCOP(bt);
         if (!isNaN(an) && !isNaN(bn)) return asc ? an - bn : bn - an;
         return asc ? at.localeCompare(bt,'es') : bt.localeCompare(at,'es');
       });
