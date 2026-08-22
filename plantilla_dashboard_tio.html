@@ -725,6 +725,12 @@
   .rd-progress-bar{height:5px;border-radius:99px;background:rgba(255,255,255,0.07);overflow:hidden;}
   .rd-progress-fill{height:100%;border-radius:99px;background:linear-gradient(90deg,var(--verde),#00BFA5);transition:width .5s ease;box-shadow:0 0 6px var(--neon-green);}
   .rd-cols{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+  .rd-cols-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;}
+  .rd-atras-section{margin-bottom:10px;}
+  .rd-atras-section:last-child{margin-bottom:0;}
+  .rd-atras-sub{font-size:.62rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--ink-soft);margin-bottom:5px;padding-bottom:4px;border-bottom:1px solid var(--borde);}
+  .rd-prox-fecha{font-size:.62rem;font-weight:700;color:var(--ink-soft);margin:6px 0 3px;padding-bottom:3px;border-bottom:1px solid var(--borde);}
+  .rd-prox-fecha:first-child{margin-top:0;}
   .rd-col-label{font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.09em;color:var(--ink-soft);margin-bottom:8px;}
   .rd-lista{border:1px solid var(--borde);border-radius:var(--radio);overflow-y:auto;max-height:220px;}
   .rd-item{display:flex;align-items:center;gap:10px;padding:10px 13px;border-bottom:1px solid rgba(255,255,255,0.04);background:var(--card);}
@@ -3597,6 +3603,29 @@ function renderResumenDia(clientes, hoy, fechaFiltro) {
   const atrasados  = activos.filter(c => c.dias_sin_pagar > 0 && c.proximo_pago_esperado !== hoy && !pagaronHoySet.has(normalizarNombreCliente(c.nombre)))
                              .sort((a,b) => b.dias_sin_pagar - a.dias_sin_pagar);
 
+  // Diarios que no han pagado hoy
+  const diariosSinPagar = activos
+    .filter(c => (c.categoria||'').startsWith('diario') && !pagaronHoySet.has(normalizarNombreCliente(c.nombre)))
+    .sort((a,b) => (a.nombre||'').localeCompare(b.nombre||'','es'));
+
+  // Quincenal/mensual con atraso (dias_sin_pagar > 0)
+  const atrasadosQM = activos
+    .filter(c => ['quincenal','mensual'].includes(c.categoria||'') && c.dias_sin_pagar > 0 && !pagaronHoySet.has(normalizarNombreCliente(c.nombre)))
+    .sort((a,b) => b.dias_sin_pagar - a.dias_sin_pagar);
+
+  // Quincenal/mensual con cobro próximo (próximos 7 días, no han pagado)
+  const en7dias = new Date(hoy + "T00:00:00"); en7dias.setDate(en7dias.getDate() + 7);
+  const en7str  = en7dias.toISOString().slice(0,10);
+  const proximosCobros = activos
+    .filter(c => {
+      const cat = c.categoria||'';
+      if (!['quincenal','mensual'].includes(cat)) return false;
+      if (pagaronHoySet.has(normalizarNombreCliente(c.nombre))) return false;
+      const p = c.proximo_pago_esperado;
+      return p && p >= hoy && p <= en7str;
+    })
+    .sort((a,b) => (a.proximo_pago_esperado||'').localeCompare(b.proximo_pago_esperado||''));
+
   // Cobrado hoy: suma real de DATOS_ACTIVO.detalle para hoy
   const cobradoHoy = (DATOS_ACTIVO.detalle||[]).filter(r => r.fecha === hoy && r.recibido > 0)
                        .reduce((s,r) => s + r.recibido, 0);
@@ -3617,12 +3646,14 @@ function renderResumenDia(clientes, hoy, fechaFiltro) {
   });
 
   function itemCliente(c, tipo) {
-    const dotCls = tipo==="ok"?"ok":tipo==="esp"?"esp":"mal";
+    const dotCls = tipo==="ok"?"ok":tipo==="esp"?"esp":tipo==="prox"?"esp":"mal";
     const clave  = normalizarNombreCliente(c.nombre);
     let sub = "";
-    if (tipo==="ok")  sub = `Pagó hoy · ${fmt(pagadoHoyMap[clave] || c.tarifa_ref)}`;
-    if (tipo==="esp") sub = `Espera · ${fmt(c.tarifa_ref)}`;
-    if (tipo==="mal") sub = `${c.dias_sin_pagar} día${c.dias_sin_pagar>1?"s":""} sin pagar · ${fmt(Math.abs(c.saldo_atrasado||c.tarifa_ref))}`;
+    if (tipo==="ok")    sub = `Pagó hoy · ${fmt(pagadoHoyMap[clave] || c.tarifa_ref)}`;
+    if (tipo==="esp")   sub = `Espera · ${fmt(c.tarifa_ref)}`;
+    if (tipo==="mal")   sub = `${c.dias_sin_pagar} día${c.dias_sin_pagar>1?"s":""} sin pagar · ${fmt(Math.abs(c.saldo_atrasado||c.tarifa_ref))}`;
+    if (tipo==="diario") sub = `Sin pagar hoy · ${fmt(c.tarifa_ref)}`;
+    if (tipo==="prox")  sub = `${labelFecha(c.proximo_pago_esperado)} · ${fmt(c.tarifa_ref)}`;
     return `<div class="rd-item">
       <span class="rd-dot ${dotCls}"></span>
       <div class="rd-item-info">
@@ -3633,8 +3664,38 @@ function renderResumenDia(clientes, hoy, fechaFiltro) {
     </div>`;
   }
 
-  const listaIzq = [...pagaronHoy.map(c=>itemCliente(c,"ok")), ...tocanHoy.map(c=>itemCliente(c,"esp"))];
-  const listaDer = atrasados.map(c=>itemCliente(c,"mal"));
+  // Panel izq: sólo quienes pagaron hoy
+  const listaIzq = pagaronHoy.map(c=>itemCliente(c,"ok"));
+
+  // Panel centro: atrasados separados por categoría
+  let htmlAtrasados = "";
+  if (diariosSinPagar.length) {
+    htmlAtrasados += `<div class="rd-atras-section">
+      <div class="rd-atras-sub">Diarios sin pagar (${diariosSinPagar.length})</div>
+      ${diariosSinPagar.map(c=>itemCliente(c,"diario")).join("")}
+    </div>`;
+  }
+  if (atrasadosQM.length) {
+    htmlAtrasados += `<div class="rd-atras-section">
+      <div class="rd-atras-sub">Quincenal / Mensual atrasados (${atrasadosQM.length})</div>
+      ${atrasadosQM.map(c=>itemCliente(c,"mal")).join("")}
+    </div>`;
+  }
+
+  // Panel der: próximos cobros agrupados por fecha
+  let htmlProximos = "";
+  if (proximosCobros.length) {
+    const gruposFecha = {};
+    proximosCobros.forEach(c => {
+      const f = c.proximo_pago_esperado;
+      if (!gruposFecha[f]) gruposFecha[f] = [];
+      gruposFecha[f].push(c);
+    });
+    Object.keys(gruposFecha).sort().forEach(f => {
+      htmlProximos += `<div class="rd-prox-fecha">${labelFecha(f)}</div>`;
+      htmlProximos += gruposFecha[f].map(c=>itemCliente(c,"prox")).join("");
+    });
+  }
 
   wrap.innerHTML = `
     <div class="rd-header">
@@ -3662,16 +3723,21 @@ function renderResumenDia(clientes, hoy, fechaFiltro) {
       <div class="rd-progress-label"><span>Progreso del día</span><span>${pct}%${pct===100?" ✓":""}</span></div>
       <div class="rd-progress-bar"><div class="rd-progress-fill" style="width:${pct}%"></div></div>
     </div>` : ""}
-    <div class="rd-cols">
+    <div class="rd-cols-3">
       <div>
-        <div class="rd-col-label">Toca cobrar hoy</div>
+        <div class="rd-col-label">Cobrado hoy (${pagaronHoy.length})</div>
         ${listaIzq.length ? `<div class="rd-lista">${listaIzq.join("")}</div>`
-          : `<div class="rd-vacio">Ningún cobro programado para hoy</div>`}
+          : `<div class="rd-vacio">Sin cobros registrados hoy</div>`}
       </div>
       <div>
         <div class="rd-col-label">Clientes atrasados</div>
-        ${listaDer.length ? `<div class="rd-lista">${listaDer.join("")}</div>`
+        ${htmlAtrasados ? `<div class="rd-lista" style="max-height:260px;">${htmlAtrasados}</div>`
           : `<div class="rd-vacio">Sin atrasos — todo al día</div>`}
+      </div>
+      <div>
+        <div class="rd-col-label">Próximos cobros — Q/M</div>
+        ${htmlProximos ? `<div class="rd-lista" style="max-height:260px;">${htmlProximos}</div>`
+          : `<div class="rd-vacio">Sin cobros próximos en 7 días</div>`}
       </div>
     </div>`;
 }
