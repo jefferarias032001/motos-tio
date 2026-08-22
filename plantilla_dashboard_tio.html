@@ -360,19 +360,26 @@
   .tabla-scroll{overflow-x:auto;border:1px solid var(--borde);border-radius:var(--radio);background:var(--card);}
   table.detalle{width:100%;border-collapse:collapse;font-size:0.86rem;min-width:720px;}
   table.detalle th{
-    position:sticky;top:0;background:var(--asphalt);color:rgba(228,233,244,0.7);
+    position:sticky;top:0;background:var(--asphalt);color:rgba(228,233,244,0.8);
     text-align:left;padding:10px 12px;font-weight:700;font-size:0.68rem;
     text-transform:uppercase;letter-spacing:0.08em;cursor:pointer;user-select:none;
     white-space:nowrap;border-bottom:1px solid var(--plate);
   }
-  table.detalle th:hover{background:var(--asphalt-soft);color:var(--ink);}
-  thead th[title="Clic para ordenar"]:hover{background:var(--asphalt-soft);opacity:.85;}
-  thead th[data-sort-dir="asc"],thead th[data-sort-dir="desc"]{color:var(--plate);}
+  table.detalle th:hover{background:var(--asphalt-soft);color:#fff;}
+  thead th[title="Clic para ordenar"]:hover{filter:brightness(1.15);}
+  thead th[data-sort-dir="asc"],thead th[data-sort-dir="desc"]{color:var(--plate) !important;}
   table.detalle th .arrow{opacity:0.55;font-size:0.7rem;margin-left:3px;}
-  table.detalle td{padding:9px 12px;border-bottom:1px solid rgba(255,255,255,0.04);white-space:nowrap;color:var(--ink);}
+  table.detalle td{padding:9px 12px;border-bottom:1px solid var(--borde);white-space:nowrap;color:var(--ink);}
   table.detalle td.nota{white-space:normal;color:var(--ink-soft);font-size:0.8rem;max-width:260px;}
-  table.detalle tbody tr:nth-child(even){background:rgba(255,255,255,0.02);}
-  table.detalle tbody tr:hover{background:rgba(255,77,0,0.04);}
+  table.detalle tbody tr:nth-child(even){background:rgba(128,128,128,0.04);}
+  table.detalle tbody tr:hover{background:rgba(255,77,0,0.05);}
+  /* Tema claro — correcciones de contraste en tablas */
+  body.tema-claro table.detalle th{color:#E8E0D0;}
+  body.tema-claro table.detalle th:hover{color:#fff;}
+  body.tema-claro .cobro-tabla-cl th{color:#D8CFBF;}
+  body.tema-claro .tm-tabla th{color:#D8CFBF;}
+  body.tema-claro thead th[data-sort-dir="asc"],
+  body.tema-claro thead th[data-sort-dir="desc"]{color:var(--plate) !important;}
   table.detalle td.num{font-family:var(--font-mono);text-align:right;}
   .pill{display:inline-flex;align-items:center;gap:5px;font-size:0.72rem;font-weight:700;padding:3px 8px;border-radius:4px;letter-spacing:0.04em;}
   .pill .dot{width:6px;height:6px;border-radius:50%;display:inline-block;}
@@ -790,7 +797,7 @@
   .cobro-mini-chip.no_pago,.cobro-mini-chip.vencido{background:var(--rojo-bg);color:var(--rojo);border:1px solid rgba(255,23,68,0.3);}
   .cobro-tabla-cl{width:100%;border-collapse:collapse;font-size:.85rem;}
   .cobro-tabla-cl th{font-size:.62rem;text-transform:uppercase;letter-spacing:.1em;color:var(--ink-soft);font-weight:700;padding:8px 8px;border-bottom:1px solid var(--plate);text-align:left;white-space:nowrap;background:var(--asphalt);}
-  .cobro-tabla-cl td{padding:9px 8px;vertical-align:middle;border-bottom:1px solid rgba(255,255,255,0.04);}
+  .cobro-tabla-cl td{padding:9px 8px;vertical-align:middle;border-bottom:1px solid var(--borde);}
   .cobro-tabla-cl tbody tr:hover{background:rgba(255,77,0,0.04);}
   .cobro-tabla-cl tbody tr.cuota-hoy{background:rgba(0,230,118,0.05);border-left:2px solid var(--verde);}
   /* Badges de categoría */
