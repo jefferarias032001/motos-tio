@@ -366,6 +366,8 @@
     white-space:nowrap;border-bottom:1px solid var(--plate);
   }
   table.detalle th:hover{background:var(--asphalt-soft);color:var(--ink);}
+  thead th[title="Clic para ordenar"]:hover{background:var(--asphalt-soft);opacity:.85;}
+  thead th[data-sort-dir="asc"],thead th[data-sort-dir="desc"]{color:var(--plate);}
   table.detalle th .arrow{opacity:0.55;font-size:0.7rem;margin-left:3px;}
   table.detalle td{padding:9px 12px;border-bottom:1px solid rgba(255,255,255,0.04);white-space:nowrap;color:var(--ink);}
   table.detalle td.nota{white-space:normal;color:var(--ink-soft);font-size:0.8rem;max-width:260px;}
@@ -4177,7 +4179,7 @@ function renderTablaClientes() {
     }
 
     // ── Chips post-Excel: cuotas app + pagos ciclo + días faltantes (en orden) ──
-    {
+    if (!c.contrato_completo) {
       const DIAS_ES_C    = ['dom','lun','mar','mié','jue','vie','sáb'];
       const ultimaFechaExcel = ultimos.length > 0 ? ultimos[ultimos.length - 1].fecha : "0000-00-00";
       const cicloStart       = anal.cicloActual.inicio;
@@ -4270,7 +4272,7 @@ function renderTablaClientes() {
           </span>`;
         }
       });
-    }
+    } // end if (!c.contrato_completo) chips post-Excel
 
     if (!chipsHtml) chipsHtml = '<span style="color:var(--borde);font-size:.72rem;">Sin registro</span>';
 
@@ -5479,6 +5481,58 @@ mostrarFactura = function(data) {
 };
 
 cargarCobroDiario().catch(()=>{});
+
+// ── Tablas ordenables ─────────────────────────────────────────────────────
+function hacerTablaOrdenable(tabla) {
+  if (!tabla || tabla._sorteable) return;
+  tabla._sorteable = true;
+  const ths = tabla.querySelectorAll('thead th');
+  ths.forEach((th, i) => {
+    if (!th.textContent.trim()) return; // saltar columnas vacías
+    th.style.cursor = 'pointer';
+    th.style.userSelect = 'none';
+    th.title = 'Clic para ordenar';
+    th.addEventListener('click', () => {
+      const tbody = tabla.querySelector('tbody');
+      if (!tbody) return;
+      const rows = Array.from(tbody.querySelectorAll('tr')).filter(r => !r.classList.contains('tm-total-fila'));
+      const asc = th.dataset.sortDir !== 'asc';
+      th.dataset.sortDir = asc ? 'asc' : 'desc';
+      ths.forEach(t => { t.dataset.sortDir = ''; t.innerHTML = t.innerHTML.replace(/ [▲▼]$/, ''); });
+      th.innerHTML += asc ? ' ▲' : ' ▼';
+      rows.sort((a, b) => {
+        const at = (a.cells[i]?.textContent || '').trim();
+        const bt = (b.cells[i]?.textContent || '').trim();
+        const an = parseFloat(at.replace(/[^0-9.-]/g,''));
+        const bn = parseFloat(bt.replace(/[^0-9.-]/g,''));
+        if (!isNaN(an) && !isNaN(bn)) return asc ? an - bn : bn - an;
+        return asc ? at.localeCompare(bt,'es') : bt.localeCompare(at,'es');
+      });
+      rows.forEach(r => tbody.appendChild(r));
+    });
+  });
+}
+
+// Aplicar a tablas estáticas (se renderizan una vez)
+['tabla-detalle','tabla-deuda-total','tabla-proyeccion'].forEach(id => {
+  const t = document.getElementById(id);
+  if (t) hacerTablaOrdenable(t);
+});
+
+// Aplicar a tablas dinámicas con MutationObserver
+const _observarTabla = (cont, selector) => {
+  if (!cont) return;
+  new MutationObserver(() => {
+    cont.querySelectorAll(selector).forEach(t => hacerTablaOrdenable(t));
+  }).observe(cont, { childList: true, subtree: true });
+};
+_observarTabla(document.getElementById('tabla-movil-wrap'), 'table');
+_observarTabla(document.querySelector('.cobro-tabla-cl'), 'table');
+_observarTabla(document.getElementById('cobro-detalle-filas-wrap'), 'table');
+
+// Cobro tabla de clientes: ya está en el DOM, aplicar directo
+const _cobroTabla = document.querySelector('.cobro-tabla-cl');
+if (_cobroTabla) hacerTablaOrdenable(_cobroTabla);
 
 
 </script>
