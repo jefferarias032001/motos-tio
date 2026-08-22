@@ -4461,6 +4461,30 @@ function cobroSeccionHtml(c) {
   return html + `</div>`;
 }
 
+// Divide pagos que son múltiplo exacto de la tarifa del cliente en N cuotas individuales.
+// Ej: Gustavo paga 480k (= 2 × 240k) → 2 filas de 240k, sin saldo a favor.
+function _expandirPagosCuotas(filas) {
+  const tarifaMap = {};
+  (DATOS_ACTIVO.clientes || []).forEach(c => {
+    if (c.tarifa_ref && c.tarifa_ref > 0)
+      tarifaMap[normalizarNombreCliente(c.nombre)] = c.tarifa_ref;
+  });
+  const resultado = [];
+  filas.forEach(r => {
+    const recibido = Number(r.pago_recibido) || 0;
+    if (recibido <= 0) { resultado.push(r); return; }
+    const tarifa = tarifaMap[normalizarNombreCliente(r.cliente)];
+    if (!tarifa || recibido <= tarifa) { resultado.push(r); return; }
+    const n = Math.round(recibido / tarifa);
+    if (n >= 2 && Math.abs(n * tarifa - recibido) < 1) {
+      for (let i = 0; i < n; i++) resultado.push({ ...r, pago_recibido: tarifa });
+    } else {
+      resultado.push(r);
+    }
+  });
+  return resultado;
+}
+
 async function fetchCobroFilas(){
   const resp = await fetch(COBRO_SCRIPT_URL + "?action=data&t=" + Date.now());
   if(!resp.ok) throw new Error("HTTP " + resp.status + " al consultar el script");
@@ -5006,14 +5030,14 @@ async function cargarCobroDiario(){
       return;
     }
 
-    // Guardar todas las filas globalmente
-    COBRO_FILAS_ALL = filas;
+    // Guardar todas las filas globalmente (expandiendo pagos múltiplos en cuotas)
+    COBRO_FILAS_ALL = _expandirPagosCuotas(filas);
 
     // Integrar en DATOS_ACTIVO.detalle para que el Operativo los incluya
     const claveExistente = new Set(
       (DATOS_ACTIVO.detalle||[]).map(d=>`${d.fecha}|${(d.cliente||'').toLowerCase()}|${d.recibido}`)
     );
-    const nuevas = filas
+    const nuevas = COBRO_FILAS_ALL
       .filter(r => !_perteneceModCobro(r,'luna') && !_perteneceModCobro(r,'jomar'))
       .map(r=>({ fecha:r.fecha, cliente:canonicalizarNombre(r.cliente), moto:r.moto||'', placa:r.placa||'',
                   tarifa:Number(r.pago_diario)||240000, recibido:Number(r.pago_recibido)||0, medio_pago:r.medio_pago||'efectivo' }))
