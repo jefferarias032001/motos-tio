@@ -4295,7 +4295,7 @@ function renderTablaClientes() {
         ? c.ultimo_pago          // último pago real (Python), el rango empieza +1 día
         : cicloStart;            // inicio del ciclo actual de la app
       // Para no-diarios al día: no mostrar días faltantes dentro del ciclo (es normal no pagar cada día)
-      if (baseStart && (esDiario || dsp > 0)) {
+      if (baseStart && (esDiario || (c.dias_sin_pagar || 0) > 0)) {
         const startDate = new Date(baseStart + "T00:00:00");
         startDate.setDate(startDate.getDate() + 1); // +1 para no incluir el día del último pago
         const maxDias = esDiario ? 60 : Math.min(c.dias_ciclo || 7, 31);
