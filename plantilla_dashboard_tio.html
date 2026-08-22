@@ -745,6 +745,19 @@
   /* ── COBRO DIARIO ───────────────────────────────────────────────── */
   .cobro-controles{display:flex;align-items:center;gap:16px;margin:0 0 20px;}
   .cobro-ultima-actualizacion{font-size:0.78rem;color:var(--ink-soft);}
+  .fact-hoy-banner{background:linear-gradient(135deg,rgba(0,230,118,.08),rgba(0,200,100,.04));border:1px solid rgba(0,230,118,.25);border-radius:12px;padding:14px 18px;}
+  .fact-hoy-titulo{font-size:.72rem;text-transform:uppercase;letter-spacing:.1em;color:var(--verde);font-weight:700;margin-bottom:10px;display:flex;align-items:center;gap:6px;}
+  .fact-hoy-grid{display:flex;flex-wrap:wrap;gap:8px;}
+  .fact-hoy-card{display:flex;align-items:center;gap:10px;background:var(--card);border:1px solid rgba(0,230,118,.2);border-radius:9px;padding:8px 12px;min-width:200px;cursor:pointer;transition:box-shadow .15s;}
+  .fact-hoy-card:hover{box-shadow:0 0 0 2px var(--verde);}
+  .fact-hoy-nombre{font-size:.82rem;font-weight:700;color:var(--ink);}
+  .fact-hoy-sub{font-size:.7rem;color:var(--ink-soft);}
+  .fact-hoy-monto{font-size:.85rem;font-weight:700;color:var(--verde);margin-left:auto;white-space:nowrap;}
+  body.tema-claro .fact-hoy-banner{background:linear-gradient(135deg,rgba(37,107,69,.07),rgba(37,107,69,.03));border-color:rgba(37,107,69,.25);}
+  body.tema-claro .fact-hoy-titulo{color:var(--verde);}
+  body.tema-claro .fact-hoy-card{border-color:rgba(37,107,69,.2);}
+  body.tema-claro .fact-hoy-card:hover{box-shadow:0 0 0 2px var(--verde);}
+  body.tema-claro .fact-hoy-monto{color:var(--verde);}
   .cobro-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px;margin-bottom:32px;}
   .cobro-card{
     background:var(--card);background-image:var(--carbon);background-size:var(--carbon-size);
@@ -1512,6 +1525,9 @@
       <button class="cobro-cat-pill" data-cat="quincenal">Quincenal</button>
       <button class="cobro-cat-pill" data-cat="mensual">Mensual 420k</button>
     </div>
+
+    <!-- Facturas completadas hoy -->
+    <div id="cobro-facturas-hoy" style="display:none;margin-bottom:20px;"></div>
 
     <!-- Ancla para tabla de días (insertada por renderCobroFiltrado) -->
     <div id="cobros-por-dia-anchor"></div>
@@ -4601,6 +4617,66 @@ function renderCobroFiltrado() {
     </div>`;
 
   tickEl.innerHTML = tickerFiltro + tickerAyer;
+
+  // ── Facturas completadas hoy ─────────────────────────────────────────────
+  const factHoyEl = document.getElementById("cobro-facturas-hoy");
+  if (factHoyEl) {
+    // 1. Clientes de Sheets: cuotas completadas hoy
+    const porClienteHoy = {};
+    filasModulo.forEach(r => {
+      const key = r.cliente.trim();
+      if (!porClienteHoy[key]) {
+        const tarifa = TARIFA_SEMANAL_MAP[key.toLowerCase()] || 240000;
+        porClienteHoy[key] = { cliente: key, placa: r.placa, moto: r.moto, tarifa, pagos: [] };
+      }
+      porClienteHoy[key].pagos.push({ fecha: r.fecha, valor: Number(r.pago_recibido)||0, medio: r.medio_pago||'' });
+    });
+    const factHoy = [];
+    Object.values(porClienteHoy).forEach(c => {
+      const anal = analizarPagosCliente(c.pagos, c.tarifa);
+      anal.cuotasCompletadas
+        .filter(cu => cu.fecha === hoy)
+        .forEach(cu => factHoy.push({ nombre: c.cliente, placa: c.placa, moto: c.moto, monto: cu.total, fuente: 'app' }));
+    });
+    // 2. Clientes del Excel: último pago hoy y estado pagado
+    (DATOS_ACTIVO.clientes || []).forEach(c => {
+      const ultPagos = c.ultimos_pagos || [];
+      const pagoHoy = ultPagos.find(p => p.fecha === hoy && p.estado === 'pagado');
+      if (pagoHoy && !factHoy.some(f => f.nombre.toLowerCase() === c.nombre.toLowerCase())) {
+        factHoy.push({ nombre: c.nombre, placa: c.placa, moto: c.moto, monto: pagoHoy.recibido, fuente: 'excel' });
+      }
+    });
+
+    if (factHoy.length > 0) {
+      factHoyEl.style.display = '';
+      factHoyEl.innerHTML = `
+        <div class="fact-hoy-banner">
+          <div class="fact-hoy-titulo">🧾 Facturas completadas hoy · ${factHoy.length}</div>
+          <div class="fact-hoy-grid">
+            ${factHoy.map(f => {
+              const nombreCorto = (f.nombre||'').split(' ').slice(0,2).join(' ');
+              const tel = WHATSAPP_CLIENTES[(f.nombre||'').toLowerCase().trim()];
+              const waBtn = tel
+                ? `<a href="https://wa.me/${tel}" target="_blank" onclick="event.stopPropagation()"
+                     style="background:#25D366;color:#fff;border-radius:6px;padding:3px 9px;font-size:.68rem;font-weight:700;text-decoration:none;white-space:nowrap;">📲</a>`
+                : '';
+              return `<div class="fact-hoy-card" title="Ver factura de ${nombreCorto}"
+                onclick="cambiarVista('facturacion');setTimeout(()=>{ const s=document.getElementById('fact-select-nombre'); if(s){s.value='${f.nombre}';s.dispatchEvent(new Event('change'));}},300);">
+                <div>
+                  <div class="fact-hoy-nombre">${nombreCorto}</div>
+                  <div class="fact-hoy-sub">${f.placa || ''}</div>
+                </div>
+                <div class="fact-hoy-monto">${formatPesos(f.monto)}</div>
+                ${waBtn}
+              </div>`;
+            }).join('')}
+          </div>
+        </div>`;
+    } else {
+      factHoyEl.style.display = 'none';
+      factHoyEl.innerHTML = '';
+    }
+  }
 
   // Tabla por día
   const porDia = {};
