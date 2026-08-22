@@ -87,7 +87,7 @@ CLIENTES_CONFIG = {
     "brayan":           {"num": 18, "cat": "diario_30k",  "dias": 8,  "meta": 240_000, "label": "Diario 30k × 8d"},
     "gustavo primo":    {"num": 19, "cat": "semanal",     "dias": 7,  "meta": 240_000, "label": "Semanal 240k"},
     "erik":             {"num": 20, "cat": "mensual",     "dias": 30, "meta": 420_000, "label": "Mensual 420k"},
-    "efrain":           {"num": 21, "cat": "quincenal",   "dias": 15, "meta": 240_000, "label": "Quincenal 240k"},
+    "efrain":           {"num": 21, "cat": "quincenal",   "dias": 15, "meta": 240_000, "label": "Quincenal 240k",  "tel": "3003111956"},
     "katherine":        {"num": 22, "cat": "semanal",     "dias": 7,  "meta": 240_000, "label": "Semanal 240k"},
     "juan david":       {"num": 23, "cat": "semanal",     "dias": 7,  "meta": 240_000, "label": "Semanal 240k"},
     "sr luis":          {"num": 24, "cat": "diario_30k",  "dias": 8,  "meta": 240_000, "label": "Diario 30k × 8d"},
