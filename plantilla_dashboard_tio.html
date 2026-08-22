@@ -4587,8 +4587,8 @@ function _perteneceModCobro(r, mod) {
 function _filasModulo(filas) {
   const m = _moduloActual || 'severa';
   if (_MOD_COBRO[m]) return filas.filter(r => _perteneceModCobro(r, m));
-  // severa: excluir clientes de otros módulos
-  return filas.filter(r => !_perteneceModCobro(r,'luna') && !_perteneceModCobro(r,'jomar'));
+  // severa: mostrar todas las empresas (severa + luna + jomar)
+  return filas;
 }
 
 function renderCobroFiltrado() {
