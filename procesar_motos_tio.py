@@ -118,6 +118,9 @@ ALIAS_NOMBRES = {
     "wilian junior / darlis esther":     "wilian viejo",
     "wilian junior":                     "wilian viejo",
     "chacal / caterine":                 "chacal caterine",
+    # Negro: mismo cliente, diferentes nombres en app vs Excel
+    "negro / maria / jose":              "negro luis ney",
+    "negro maria jose":                  "negro luis ney",
 }
 
 # Nombre corto para mostrar en factura (clave → nombre mostrado)

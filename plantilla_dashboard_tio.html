@@ -3442,6 +3442,10 @@ const ALIAS_NOMBRES_JS = {
   "darwin yaimis ysabel":             "darwin yaimis ysabel",
   "ana milena-juan david":            "juan david-ana milena",
   "juan david-ana milena":            "juan david-ana milena",
+  // Negro: mismo cliente, diferentes nombres en app vs Excel
+  "negro / maria / jose":             "negro luis ney",
+  "negro maria jose":                 "negro luis ney",
+  "negro luis ney":                   "negro luis ney",
 };
 function normalizarNombreCliente(raw) {
   const key = (raw || "").trim().toLowerCase();
