@@ -1531,6 +1531,7 @@
       <button class="cobro-cat-pill" data-cat="quincenal">Quincenal</button>
       <button class="cobro-cat-pill" data-cat="mensual">Mensual 420k</button>
     </div>
+    <div id="cobro-cat-estado" style="font-size:.72rem;color:var(--ink-soft);margin-bottom:10px;margin-top:-6px;min-height:1.2em;"></div>
 
     <!-- Facturas completadas hoy -->
     <div id="cobro-facturas-hoy" style="display:none;margin-bottom:20px;"></div>
@@ -4293,7 +4294,8 @@ function renderTablaClientes() {
       const baseStart = esDiario && c.ultimo_pago
         ? c.ultimo_pago          // último pago real (Python), el rango empieza +1 día
         : cicloStart;            // inicio del ciclo actual de la app
-      if (baseStart) {
+      // Para no-diarios al día: no mostrar días faltantes dentro del ciclo (es normal no pagar cada día)
+      if (baseStart && (esDiario || dsp > 0)) {
         const startDate = new Date(baseStart + "T00:00:00");
         startDate.setDate(startDate.getDate() + 1); // +1 para no incluir el día del último pago
         const maxDias = esDiario ? 60 : Math.min(c.dias_ciclo || 7, 31);
@@ -4630,8 +4632,24 @@ function renderCobroFiltrado() {
   if (COBRO_FILTRO_NOMBRE) filas = filas.filter(r => r.cliente.toLowerCase().includes(COBRO_FILTRO_NOMBRE.toLowerCase()));
   if (COBRO_FILTRO_PLACA)  filas = filas.filter(r => (r.placa||'').toLowerCase().includes(COBRO_FILTRO_PLACA.toLowerCase()));
   if (COBRO_FILTRO_CAT) {
-    const catNames = new Set((DATOS_ACTIVO.clientes||[]).filter(c => c.categoria === COBRO_FILTRO_CAT).map(c => c.nombre.toLowerCase()));
-    filas = filas.filter(r => catNames.has(r.cliente.toLowerCase()));
+    // Mapa: cualquier forma del nombre → categoria (usando nombre, clave, y alias)
+    const catMap = {};
+    (DATOS_ACTIVO.clientes||[]).forEach(c => {
+      const cat = c.categoria || 'sin_categoria';
+      [c.nombre, c.clave].filter(Boolean).forEach(v => {
+        catMap[v.toLowerCase()] = cat;
+        catMap[normalizarNombreCliente(v)] = cat;
+      });
+    });
+    // También poblar con claves del alias inverso
+    Object.entries(ALIAS_NOMBRES_JS).forEach(([alias, canon]) => {
+      if (catMap[canon]) catMap[alias] = catMap[canon];
+    });
+    filas = filas.filter(r => {
+      const key1 = r.cliente.toLowerCase();
+      const key2 = normalizarNombreCliente(r.cliente);
+      return catMap[key1] === COBRO_FILTRO_CAT || catMap[key2] === COBRO_FILTRO_CAT;
+    });
   }
 
   gridEl.innerHTML = ""; sinEl.innerHTML = ""; tickEl.innerHTML = "";
@@ -4648,6 +4666,10 @@ function renderCobroFiltrado() {
   } else if (COBRO_FILTRO_MES) {
     const [y,mo] = COBRO_FILTRO_MES.split("-").map(Number);
     labelPeriodo = MESES_C[mo] + " " + y;
+  }
+  if (COBRO_FILTRO_CAT) {
+    const catLabel = {diario_30k:'Diario 30k', diario_34k:'Diario 34k', semanal:'Semanal 240k', quincenal:'Quincenal', mensual:'Mensual'}[COBRO_FILTRO_CAT] || COBRO_FILTRO_CAT;
+    labelPeriodo = (labelPeriodo === 'Todo' ? '' : labelPeriodo + ' · ') + catLabel;
   }
 
   // Tickers del período filtrado (usando filas ya filtradas por módulo)
@@ -5084,17 +5106,6 @@ async function cargarCobroDiario(){
       const placas = [...new Set((DATOS_ACTIVO.clientes||[]).map(c => c.placa).filter(Boolean))].sort();
       dlPlaca.innerHTML = placas.map(p => `<option value="${p}">`).join('');
     }
-
-    // Pills de categoría
-    document.querySelectorAll('.cobro-cat-pill').forEach(btn => {
-      btn.addEventListener('click', () => {
-        document.querySelectorAll('.cobro-cat-pill').forEach(b => b.classList.remove('activo'));
-        btn.classList.add('activo');
-        COBRO_FILTRO_CAT = btn.dataset.cat || null;
-        renderTablaClientes();
-        if (COBRO_FILAS_ALL.length) renderCobroFiltrado();
-      });
-    });
 
     // Generar pills de mes y renderizar con filtro activo
     generarPillsMes(filas);
@@ -5705,6 +5716,30 @@ new MutationObserver(() => {
   document.querySelectorAll('#tabla-movil-wrap table').forEach(t => hacerTablaOrdenable(t));
 }).observe(document.getElementById('tabla-movil-wrap') || document.body, { childList: true, subtree: true });
 
+// ── Pills de categoría en cobro — registro independiente ─────────────────────
+document.querySelectorAll('.cobro-cat-pill').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.cobro-cat-pill').forEach(b => b.classList.remove('activo'));
+    btn.classList.add('activo');
+    COBRO_FILTRO_CAT = btn.dataset.cat || null;
+    renderTablaClientes();
+    renderCobroFiltrado();
+    // Mostrar conteo de clientes filtrados
+    const estadoEl = document.getElementById('cobro-cat-estado');
+    if (estadoEl) {
+      const total = (DATOS_ACTIVO.clientes||[]).length;
+      if (COBRO_FILTRO_CAT) {
+        const n = (DATOS_ACTIVO.clientes||[]).filter(c => c.categoria === COBRO_FILTRO_CAT).length;
+        const catLabel = {diario_30k:'Diario 30k',diario_34k:'Diario 34k',semanal:'Semanal',quincenal:'Quincenal',mensual:'Mensual'}[COBRO_FILTRO_CAT]||COBRO_FILTRO_CAT;
+        estadoEl.textContent = `Filtro activo: ${catLabel} — ${n} de ${total} clientes`;
+        estadoEl.style.color = 'var(--ambar)';
+      } else {
+        estadoEl.textContent = `Todos — ${total} clientes`;
+        estadoEl.style.color = 'var(--ink-soft)';
+      }
+    }
+  });
+});
 
 </script>
 </body>
