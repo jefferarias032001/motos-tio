@@ -700,13 +700,26 @@ def procesar(filas, clientes_meta, hoy, tel_por_placa=None, ultimos_sheets=None)
         }
         total_cuotas = CUOTAS_OVERRIDE.get(clave, meta.get("total_cuotas", 64))
         pagos_historicos = sorted([r for r in registros if r["fecha"] <= hoy], key=lambda r: r["fecha"])
-        pagos_realizados = len(pagos_historicos)
-        # Si hubo un pago en bloque que cubre varias cuotas, contar por monto
+        # Expandir filas de Excel por acumulación: cada vez que se acumula 1 meta = 1 cuota
+        # (igual que agrupar_en_cuotas pero para datos del Excel)
         meta_cuota = cfg["meta"] if cfg else 240_000
+        cuotas_expandidas = []
         if meta_cuota > 0:
-            cuotas_por_monto = int(recibido_total // meta_cuota)
-            if cuotas_por_monto > pagos_realizados:
-                pagos_realizados = cuotas_por_monto
+            acum_excel = 0.0
+            for r in pagos_historicos:
+                acum_excel += (r["pago_recibido"] or 0)
+                while acum_excel >= meta_cuota:
+                    cuotas_expandidas.append({
+                        **r,
+                        "pago_recibido": meta_cuota,
+                        "pago_diario":   meta_cuota,
+                        "excedente":     0,
+                    })
+                    acum_excel -= meta_cuota
+        else:
+            cuotas_expandidas = list(pagos_historicos)
+        pagos_realizados = len(cuotas_expandidas)
+        # Include Google Sheets cuotas already aggregated separately
         pagos_restantes  = max(0, total_cuotas - pagos_realizados)
         porc_completado  = round(pagos_realizados / total_cuotas * 100, 1) if total_cuotas > 0 else 0
 
@@ -749,7 +762,7 @@ def procesar(filas, clientes_meta, hoy, tel_por_placa=None, ultimos_sheets=None)
                 dias_sin_pagar = (hoy - prox_sinpagar).days
 
         # últimos 8 pagos semanales para mostrar en la tarjeta
-        ultimos_8 = pagos_historicos[-8:]
+        ultimos_8 = cuotas_expandidas[-8:]
         base_num  = pagos_realizados - len(ultimos_8) + 1
         ultimos_pagos_data = []
         for i_p, r in enumerate(ultimos_8):
