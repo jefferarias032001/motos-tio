@@ -3660,7 +3660,7 @@ function renderResumenDia(clientes, hoy, fechaFiltro) {
     if (tipo==="ok")    sub = `Pagó hoy · ${fmt(pagadoHoyMap[clave] || c.tarifa_ref)}`;
     if (tipo==="esp")   sub = `Espera · ${fmt(c.tarifa_ref)}`;
     if (tipo==="mal")   sub = `${c.dias_sin_pagar} día${c.dias_sin_pagar>1?"s":""} sin pagar · ${fmt(Math.abs(c.saldo_atrasado||c.tarifa_ref))}`;
-    if (tipo==="diario") sub = `Sin pagar hoy · ${fmt(c.tarifa_ref)}`;
+    if (tipo==="diario") sub = `Sin pagar hoy · ${fmt(c.pago_diario || c.tarifa_ref)}`;
     if (tipo==="prox")  sub = `${labelFecha(c.proximo_pago_esperado)} · ${fmt(c.tarifa_ref)}`;
     return `<div class="rd-item">
       <span class="rd-dot ${dotCls}"></span>
