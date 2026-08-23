@@ -4993,7 +4993,7 @@ function renderCobroFiltrado() {
       const medio    = r.medio_pago || "Efectivo";
       const esNequi  = medio.toLowerCase().includes("nequi");
       const obs      = r.observaciones || "";
-      const rowStyle = esHoy ? ' style="background:var(--asphalt);color:#F4EFE2;"' : '';
+      const rowStyle = esHoy ? ' style="background:var(--asphalt);color:var(--ink);"' : '';
       const fechaStyle = esHoy ? 'font-weight:700;' : 'font-weight:600;';
       return `<tr${rowStyle}>
         <td style="white-space:nowrap;${fechaStyle}">${d}/${m}/${y}${esHoy?'<span style="font-size:.6rem;background:var(--plate);color:#1A1714;padding:1px 5px;border-radius:4px;margin-left:5px;font-weight:700;">HOY</span>':''}</td>
