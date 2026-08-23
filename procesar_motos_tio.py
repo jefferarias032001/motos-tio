@@ -573,19 +573,19 @@ def agrupar_en_cuotas(filas_online, tarifa_default=240_000):
             if plantilla is None:
                 plantilla = p
             acum += recibido
-            if acum >= tarifa:
+            while acum >= tarifa:
                 excedente = acum - tarifa
                 cuota_entry = {
                     **plantilla,
                     "fecha":          p["fecha"],      # fecha en que se completó
                     "pago_diario":    tarifa,
-                    "pago_recibido":  acum,            # total real (para el saldo)
-                    "excedente":      excedente,       # saldo a favor para la próxima cuota
+                    "pago_recibido":  tarifa,          # una cuota exacta
+                    "excedente":      excedente,
                     "saldo_cache":    None,
                     "observaciones":  "cobro_app",
                 }
                 cuotas.append(cuota_entry)
-                acum = max(0.0, excedente)             # llevar exceso al siguiente ciclo
+                acum = max(0.0, excedente)
                 plantilla = p if acum > 0 else None
 
     print(f"   → {len(cuotas)} cuotas completas agrupadas desde Google Sheets")
