@@ -556,13 +556,16 @@ def agrupar_en_cuotas(filas_online, tarifa_default=240_000):
 
     cuotas = []
     for clave, pagos in por_cliente.items():
-        # Intentar detectar tarifa del cliente desde los registros
-        tarifas = [p["pago_diario"] for p in pagos if p["pago_diario"] and p["pago_diario"] > 0]
-        tarifa = tarifa_default
-        if tarifas:
-            # La tarifa de la cuota = suma de 8 días (pago_diario × 8)
-            diario = max(set(tarifas), key=tarifas.count)
-            tarifa = diario * 8 if diario <= 50_000 else diario
+        # Prioridad 1: usar meta de CLIENTES_CONFIG (es la fuente correcta de verdad)
+        cfg = get_config(clave)
+        tarifa = cfg["meta"] if cfg else tarifa_default
+
+        # Prioridad 2: inferir desde pago_diario solo si no hay config
+        if not cfg:
+            tarifas = [p["pago_diario"] for p in pagos if p["pago_diario"] and p["pago_diario"] > 0]
+            if tarifas:
+                diario = max(set(tarifas), key=tarifas.count)
+                tarifa = diario * 8 if diario <= 50_000 else diario
 
         acum = 0.0
         plantilla = None  # primer pago del ciclo (para copiar metadatos)
