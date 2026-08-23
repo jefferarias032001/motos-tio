@@ -5004,7 +5004,23 @@ function renderCobroFiltrado() {
     });
   });
 
-  const filasDetalle = [...filas, ..._filasExcel].sort((a,b) => b.fecha.localeCompare(a.fecha));
+  // Si un pago cubre varias cuotas (ej: 480k = 2×240k), expandir en filas individuales
+  const _tarifaMap = {};
+  (DATOS_ACTIVO.clientes||[]).forEach(c => { _tarifaMap[normalizarNombreCliente(c.nombre)] = c.tarifa_ref || 240000; });
+  const _expandirFilas = (fila) => {
+    const tarifa = _tarifaMap[normalizarNombreCliente(fila.cliente)] || 240000;
+    const rec = Number(fila.pago_recibido)||0;
+    const n = tarifa > 0 ? Math.floor(rec / tarifa) : 1;
+    if (n >= 2) {
+      const filas2 = [];
+      for (let i = 0; i < n; i++) filas2.push({...fila, pago_recibido: tarifa});
+      const rem = rec - n * tarifa;
+      if (rem > 500) filas2.push({...fila, pago_recibido: rem});
+      return filas2;
+    }
+    return [fila];
+  };
+  const filasDetalle = [...filas, ..._filasExcel].flatMap(_expandirFilas).sort((a,b) => b.fecha.localeCompare(a.fecha));
   if (filasDetalle.length) {
     const totalDet   = filasDetalle.reduce((s,r) => s + (Number(r.pago_recibido)||0), 0);
     const nequiDet   = filasDetalle.filter(r=>(r.medio_pago||"").toLowerCase().includes("nequi")).reduce((s,r)=>s+(Number(r.pago_recibido)||0),0);
