@@ -580,10 +580,11 @@ def agrupar_en_cuotas(filas_online, tarifa_default=240_000):
                 excedente = acum - tarifa
                 cuota_entry = {
                     **plantilla,
-                    "fecha":          p["fecha"],      # fecha en que se completó
+                    "fecha":          p["fecha"],
                     "pago_diario":    tarifa,
-                    "pago_recibido":  tarifa,          # una cuota exacta
-                    "excedente":      excedente,
+                    "pago_recibido":  tarifa,
+                    # solo mostrar excedente si no alcanza para otra cuota (no genera chip "sdo" falso)
+                    "excedente":      excedente if excedente < tarifa else 0,
                     "saldo_cache":    None,
                     "observaciones":  "cobro_app",
                 }
