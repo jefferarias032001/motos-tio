@@ -4982,11 +4982,29 @@ function renderCobroFiltrado() {
     sinEl.innerHTML = sinHtml;
   }
 
-  // ── TABLA DETALLE — filas individuales de Google Sheets ─────────────────
+  // ── TABLA DETALLE — filas individuales de Google Sheets + Excel ─────────
   const detalleAnterior = document.getElementById("cobro-detalle-filas-wrap");
   if (detalleAnterior) detalleAnterior.remove();
 
-  const filasDetalle = filas.slice().sort((a,b) => b.fecha.localeCompare(a.fecha));
+  // Agregar pagos del Excel que no estén ya en Google Sheets
+  const _sheetKeys = new Set(filas.map(r => `${r.fecha}|${normalizarNombreCliente(r.cliente)}`));
+  const _filasExcel = [];
+  (DATOS_ACTIVO.clientes||[]).forEach(c => {
+    (c.ultimos_pagos||[]).forEach(p => {
+      if ((p.estado === 'pagado' || p.estado === 'parcial') && (p.recibido||0) > 0) {
+        const key = `${p.fecha}|${normalizarNombreCliente(c.nombre)}`;
+        if (!_sheetKeys.has(key)) {
+          // Aplicar el mismo filtro de fecha que tiene `filas`
+          if (!COBRO_FILTRO_DIA || p.fecha === COBRO_FILTRO_DIA) {
+            _filasExcel.push({ fecha: p.fecha, cliente: c.nombre, placa: c.placa||'', pago_recibido: p.recibido, medio_pago: '', observaciones: '' });
+            _sheetKeys.add(key);
+          }
+        }
+      }
+    });
+  });
+
+  const filasDetalle = [...filas, ..._filasExcel].sort((a,b) => b.fecha.localeCompare(a.fecha));
   if (filasDetalle.length) {
     const totalDet   = filasDetalle.reduce((s,r) => s + (Number(r.pago_recibido)||0), 0);
     const nequiDet   = filasDetalle.filter(r=>(r.medio_pago||"").toLowerCase().includes("nequi")).reduce((s,r)=>s+(Number(r.pago_recibido)||0),0);
