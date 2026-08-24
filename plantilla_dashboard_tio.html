@@ -1125,6 +1125,26 @@
     border-color:rgba(232,169,58,0.3);
     box-shadow:0 4px 24px rgba(36,31,26,0.14);
   }
+  /* ── TEMA CLARO: bordes y separadores invisibles (rgba blanco → rgba oscuro) ── */
+  body.tema-claro .ticket-cliente{border-color:var(--borde);}
+  body.tema-claro .tc-fila-tear{border-top-color:var(--borde);}
+  body.tema-claro .panel{border-top-color:var(--borde);}
+  body.tema-claro .progreso-bar{background:rgba(36,31,26,0.08);}
+  body.tema-claro .rd-item{border-bottom-color:var(--borde);}
+  body.tema-claro .rd-progress-bar{background:rgba(36,31,26,0.08);}
+  body.tema-claro .deuda-fila{border-bottom-color:var(--borde);}
+  body.tema-claro .cobro-barra-fondo,
+  body.tema-claro .cobro-barra-wrap{background:rgba(36,31,26,0.08);}
+  body.tema-claro .cobro-dias{border-top-color:var(--borde);}
+  body.tema-claro .cobro-op-wrap{border-top-color:var(--borde);}
+  body.tema-claro .cobro-op-barra-fondo{background:rgba(36,31,26,0.08);}
+  body.tema-claro .cobro-op-nulo{border-top-color:var(--borde);}
+  body.tema-claro .cobro-op-dia{background:rgba(36,31,26,0.06);color:var(--ink-soft);}
+  body.tema-claro .cobro-card-num{background:rgba(36,31,26,0.06);}
+  body.tema-claro .proy-tabla td{border-bottom-color:var(--borde);}
+  body.tema-claro .proy-tabla tr:hover td{background:rgba(36,31,26,0.03);}
+  body.tema-claro .spd-dia-header:hover{background:rgba(36,31,26,0.04);}
+  body.tema-claro .cobro-tabla-cl tbody tr:hover{background:rgba(36,31,26,0.04);}
   body.tema-claro .filtro-periodo-campo input[type=date]{
     border-color:rgba(232,169,58,0.35);
   }
@@ -5033,7 +5053,7 @@ function renderCobroFiltrado() {
       const medio    = r.medio_pago || "Efectivo";
       const esNequi  = medio.toLowerCase().includes("nequi");
       const obs      = r.observaciones || "";
-      const rowStyle = esHoy ? ' style="background:var(--asphalt);color:var(--ink);"' : '';
+      const rowStyle = esHoy ? ' style="background:var(--asphalt);color:#F4EFE2;"' : '';
       const fechaStyle = esHoy ? 'font-weight:700;' : 'font-weight:600;';
       return `<tr${rowStyle}>
         <td style="white-space:nowrap;${fechaStyle}">${d}/${m}/${y}${esHoy?'<span style="font-size:.6rem;background:var(--plate);color:#1A1714;padding:1px 5px;border-radius:4px;margin-left:5px;font-weight:700;">HOY</span>':''}</td>

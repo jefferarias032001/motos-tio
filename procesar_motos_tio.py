@@ -700,11 +700,13 @@ def procesar(filas, clientes_meta, hoy, tel_por_placa=None, ultimos_sheets=None)
         }
         total_cuotas = CUOTAS_OVERRIDE.get(clave, meta.get("total_cuotas", 64))
         pagos_historicos = sorted([r for r in registros if r["fecha"] <= hoy], key=lambda r: r["fecha"])
-        # Expandir filas de Excel por acumulación: cada vez que se acumula 1 meta = 1 cuota
-        # (igual que agrupar_en_cuotas pero para datos del Excel)
+        # Expandir filas del Excel por acumulación solo para clientes no-diarios.
+        # Para diarios cada fila es 1 pago suelto (30k/34k) y la meta semanal no aplica aquí.
         meta_cuota = cfg["meta"] if cfg else 240_000
+        cat_para_acum = cfg["cat"] if cfg else ""
+        es_diario = cat_para_acum.startswith("diario")
         cuotas_expandidas = []
-        if meta_cuota > 0:
+        if not es_diario and meta_cuota > 0:
             acum_excel = 0.0
             for r in pagos_historicos:
                 acum_excel += (r["pago_recibido"] or 0)
@@ -716,9 +718,17 @@ def procesar(filas, clientes_meta, hoy, tel_por_placa=None, ultimos_sheets=None)
                         "excedente":     0,
                     })
                     acum_excel -= meta_cuota
+                # Si quedó un parcial menor a meta, mostrarlo como chip parcial
+                if acum_excel > 0 and pagos_historicos and r is pagos_historicos[-1]:
+                    cuotas_expandidas.append({
+                        **r,
+                        "pago_recibido": round(acum_excel),
+                        "pago_diario":   meta_cuota,
+                        "excedente":     0,
+                    })
         else:
             cuotas_expandidas = list(pagos_historicos)
-        pagos_realizados = len(cuotas_expandidas)
+        pagos_realizados = len([c for c in cuotas_expandidas if (c["pago_recibido"] or 0) >= meta_cuota]) if not es_diario and meta_cuota > 0 else len(cuotas_expandidas)
         # Include Google Sheets cuotas already aggregated separately
         pagos_restantes  = max(0, total_cuotas - pagos_realizados)
         porc_completado  = round(pagos_realizados / total_cuotas * 100, 1) if total_cuotas > 0 else 0
