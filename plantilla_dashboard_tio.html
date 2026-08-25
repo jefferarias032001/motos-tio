@@ -5018,15 +5018,21 @@ function renderCobroFiltrado() {
   if (detalleAnterior) detalleAnterior.remove();
 
   // Agregar pagos del Excel que no estén ya en Google Sheets
-  const _sheetKeys = new Set(filas.map(r => `${r.fecha}|${normalizarNombreCliente(r.cliente)}`));
+  // Usar filas con filtro de fecha pero SIN filtro de nombre para el dedup
+  let _filasFecha = filasModulo;
+  if (COBRO_FILTRO_DIA)       _filasFecha = _filasFecha.filter(r => r.fecha === COBRO_FILTRO_DIA);
+  else if (COBRO_FILTRO_MES)  _filasFecha = _filasFecha.filter(r => r.fecha.startsWith(COBRO_FILTRO_MES));
+  const _sheetKeys = new Set(_filasFecha.map(r => `${r.fecha}|${normalizarNombreCliente(r.cliente)}`));
   const _filasExcel = [];
   (DATOS_ACTIVO.clientes||[]).forEach(c => {
     (c.ultimos_pagos||[]).forEach(p => {
       if ((p.estado === 'pagado' || p.estado === 'parcial') && (p.recibido||0) > 0) {
         const key = `${p.fecha}|${normalizarNombreCliente(c.nombre)}`;
         if (!_sheetKeys.has(key)) {
-          // Aplicar el mismo filtro de fecha que tiene `filas`
-          if (!COBRO_FILTRO_DIA || p.fecha === COBRO_FILTRO_DIA) {
+          const pasaFecha = COBRO_FILTRO_DIA ? p.fecha === COBRO_FILTRO_DIA
+                          : COBRO_FILTRO_MES ? p.fecha.startsWith(COBRO_FILTRO_MES)
+                          : true;
+          if (pasaFecha) {
             _filasExcel.push({ fecha: p.fecha, cliente: c.nombre, placa: c.placa||'', pago_recibido: p.recibido, medio_pago: '', observaciones: '' });
             _sheetKeys.add(key);
           }
@@ -5051,7 +5057,10 @@ function renderCobroFiltrado() {
     }
     return [fila];
   };
-  const filasDetalle = [...filas, ..._filasExcel].flatMap(_expandirFilas).sort((a,b) => b.fecha.localeCompare(a.fecha));
+  const _filasExcelFilt = COBRO_FILTRO_NOMBRE
+    ? _filasExcel.filter(r => r.cliente.toLowerCase().includes(COBRO_FILTRO_NOMBRE.toLowerCase()))
+    : _filasExcel;
+  const filasDetalle = [...filas, ..._filasExcelFilt].flatMap(_expandirFilas).sort((a,b) => b.fecha.localeCompare(a.fecha));
   if (filasDetalle.length) {
     const totalDet   = filasDetalle.reduce((s,r) => s + (Number(r.pago_recibido)||0), 0);
     const nequiDet   = filasDetalle.filter(r=>(r.medio_pago||"").toLowerCase().includes("nequi")).reduce((s,r)=>s+(Number(r.pago_recibido)||0),0);
