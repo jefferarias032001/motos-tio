@@ -4673,7 +4673,10 @@ function renderCobroFiltrado() {
   let filas = filasModulo;
   if (COBRO_FILTRO_DIA)  filas = filas.filter(r => r.fecha === COBRO_FILTRO_DIA);
   else if (COBRO_FILTRO_MES) filas = filas.filter(r => r.fecha.startsWith(COBRO_FILTRO_MES));
-  if (COBRO_FILTRO_NOMBRE) filas = filas.filter(r => r.cliente.toLowerCase().includes(COBRO_FILTRO_NOMBRE.toLowerCase()));
+  if (COBRO_FILTRO_NOMBRE) {
+    const _nf = normalizarNombreCliente(COBRO_FILTRO_NOMBRE);
+    filas = filas.filter(r => { const _nc = normalizarNombreCliente(r.cliente); return _nc.includes(_nf) || _nf.includes(_nc); });
+  }
   if (COBRO_FILTRO_PLACA)  filas = filas.filter(r => (r.placa||'').toLowerCase().includes(COBRO_FILTRO_PLACA.toLowerCase()));
   if (COBRO_FILTRO_CAT) {
     // Mapa: cualquier forma del nombre → categoria (usando nombre, clave, y alias)
@@ -5058,9 +5061,10 @@ function renderCobroFiltrado() {
     return [fila];
   };
   const _filasExcelFilt = COBRO_FILTRO_NOMBRE
-    ? _filasExcel.filter(r => r.cliente.toLowerCase().includes(COBRO_FILTRO_NOMBRE.toLowerCase()))
+    ? (() => { const _nf = normalizarNombreCliente(COBRO_FILTRO_NOMBRE); return _filasExcel.filter(r => { const _nc = normalizarNombreCliente(r.cliente); return _nc.includes(_nf) || _nf.includes(_nc); }); })()
     : _filasExcel;
-  const filasDetalle = [...filas, ..._filasExcelFilt].flatMap(_expandirFilas).sort((a,b) => b.fecha.localeCompare(a.fecha));
+  const _isoFecha = f => { if(!f) return ''; if(/^\d{4}-\d{2}-\d{2}$/.test(f)) return f; const p=f.split(/[-\/]/); return p.length===3&&p[0].length===4?f:`${p[2]||''}-${(p[1]||'').padStart(2,'0')}-${(p[0]||'').padStart(2,'0')}`; };
+  const filasDetalle = [...filas, ..._filasExcelFilt].flatMap(_expandirFilas).sort((a,b) => _isoFecha(b.fecha).localeCompare(_isoFecha(a.fecha)));
   if (filasDetalle.length) {
     const totalDet   = filasDetalle.reduce((s,r) => s + (Number(r.pago_recibido)||0), 0);
     const nequiDet   = filasDetalle.filter(r=>(r.medio_pago||"").toLowerCase().includes("nequi")).reduce((s,r)=>s+(Number(r.pago_recibido)||0),0);
