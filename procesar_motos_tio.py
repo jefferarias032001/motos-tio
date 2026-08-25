@@ -798,6 +798,15 @@ def procesar(filas, clientes_meta, hoy, tel_por_placa=None, ultimos_sheets=None)
                 "excedente": round(excedente),
             })
 
+        # Solo mostrar el saldo del cobro más reciente — los saldos viejos ya están resueltos
+        _ult_exc = max(
+            (i for i, p in enumerate(ultimos_pagos_data) if (p.get("excedente") or 0) > 0),
+            default=None
+        )
+        for i, p in enumerate(ultimos_pagos_data):
+            if i != _ult_exc:
+                p["excedente"] = 0
+
         meses_con_actividad = sorted({(r["fecha"].year, r["fecha"].month) for r in registros if r["fecha"] <= hoy})
         for anio_m, mes_m in meses_con_actividad:
             inicio_mes = date(anio_m, mes_m, 1)
