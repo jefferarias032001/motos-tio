@@ -5024,21 +5024,21 @@ function renderCobroFiltrado() {
   else if (COBRO_FILTRO_MES)  _filasFecha = _filasFecha.filter(r => r.fecha.startsWith(COBRO_FILTRO_MES));
   const _sheetKeys = new Set(_filasFecha.map(r => `${r.fecha}|${normalizarNombreCliente(r.cliente)}`));
   const _filasExcel = [];
-  (DATOS_ACTIVO.clientes||[]).forEach(c => {
-    (c.ultimos_pagos||[]).forEach(p => {
-      if ((p.estado === 'pagado' || p.estado === 'parcial') && (p.recibido||0) > 0) {
-        const key = `${p.fecha}|${normalizarNombreCliente(c.nombre)}`;
-        if (!_sheetKeys.has(key)) {
-          const pasaFecha = COBRO_FILTRO_DIA ? p.fecha === COBRO_FILTRO_DIA
-                          : COBRO_FILTRO_MES ? p.fecha.startsWith(COBRO_FILTRO_MES)
-                          : true;
-          if (pasaFecha) {
-            _filasExcel.push({ fecha: p.fecha, cliente: c.nombre, placa: c.placa||'', pago_recibido: p.recibido, medio_pago: '', observaciones: '' });
-            _sheetKeys.add(key);
-          }
+  // Usar DATOS_ACTIVO.detalle para ver TODO el historial (no solo últimos 8)
+  (DATOS_ACTIVO.detalle||[]).forEach(d => {
+    const rec = Number(d.recibido)||0;
+    if (rec > 0) {
+      const key = `${d.fecha}|${normalizarNombreCliente(d.cliente)}`;
+      if (!_sheetKeys.has(key)) {
+        const pasaFecha = COBRO_FILTRO_DIA ? d.fecha === COBRO_FILTRO_DIA
+                        : COBRO_FILTRO_MES ? d.fecha.startsWith(COBRO_FILTRO_MES)
+                        : true;
+        if (pasaFecha) {
+          _filasExcel.push({ fecha: d.fecha, cliente: d.cliente, placa: d.placa||'', pago_recibido: rec, medio_pago: d.medio_pago||'', observaciones: d.nota||'' });
+          _sheetKeys.add(key);
         }
       }
-    });
+    }
   });
 
   // Si un pago cubre varias cuotas (ej: 480k = 2×240k), expandir en filas individuales
