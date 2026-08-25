@@ -373,6 +373,7 @@
   table.detalle td.nota{white-space:normal;color:var(--ink-soft);font-size:0.8rem;max-width:260px;}
   table.detalle tbody tr:nth-child(even){background:rgba(128,128,128,0.04);}
   table.detalle tbody tr:hover{background:rgba(255,77,0,0.05);}
+  table.detalle tbody tr.fila-hoy td{color:#F4EFE2 !important;}
   /* Tema claro — correcciones de contraste en tablas */
   body.tema-claro table.detalle th{color:#E8E0D0;}
   body.tema-claro table.detalle th:hover{color:#fff;}
@@ -5064,8 +5065,9 @@ function renderCobroFiltrado() {
       const esNequi  = medio.toLowerCase().includes("nequi");
       const obs      = r.observaciones || "";
       const rowStyle = esHoy ? ' style="background:var(--asphalt);color:#F4EFE2;"' : '';
+      const rowClass = esHoy ? ' class="fila-hoy"' : '';
       const fechaStyle = esHoy ? 'font-weight:700;' : 'font-weight:600;';
-      return `<tr${rowStyle}>
+      return `<tr${rowClass}${rowStyle}>
         <td style="white-space:nowrap;${fechaStyle}">${d}/${m}/${y}${esHoy?'<span style="font-size:.6rem;background:var(--plate);color:#1A1714;padding:1px 5px;border-radius:4px;margin-left:5px;font-weight:700;">HOY</span>':''}</td>
         <td style="font-size:.82rem;">${r.cliente||''}</td>
         <td style="font-size:.78rem;color:var(--ink-soft);">${r.placa||''}</td>
