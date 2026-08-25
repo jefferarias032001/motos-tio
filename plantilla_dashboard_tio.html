@@ -4259,7 +4259,8 @@ function renderTablaClientes() {
         <span>${fd}/${fm}</span>
         <span class="dia">${p.dia_nombre}</span>
       </span>`;
-      const chipSaldo = excedente > 0
+      // Badge "sdo" solo en el excedente más reciente; los viejos solo se ven en el tooltip del chip
+      const chipSaldo = (excedente > 0 && p.excedente_activo)
         ? `<span class="cobro-mini-chip" style="background:#F59E0B22;color:#B45309;border:1px solid #F59E0B44;font-size:.62rem;" title="Saldo a favor que se arrastra a la próxima cuota">
             <span>${formatCompacto(excedente)}</span>
             <span class="dia">sdo</span>

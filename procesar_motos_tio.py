@@ -798,14 +798,13 @@ def procesar(filas, clientes_meta, hoy, tel_por_placa=None, ultimos_sheets=None)
                 "excedente": round(excedente),
             })
 
-        # Solo mostrar el saldo del cobro más reciente — los saldos viejos ya están resueltos
-        _ult_exc = max(
+        # Marcar cuál excedente es el más reciente (el único que muestra badge "sdo" inline)
+        _ult_exc_idx = max(
             (i for i, p in enumerate(ultimos_pagos_data) if (p.get("excedente") or 0) > 0),
             default=None
         )
         for i, p in enumerate(ultimos_pagos_data):
-            if i != _ult_exc:
-                p["excedente"] = 0
+            p["excedente_activo"] = (i == _ult_exc_idx) if _ult_exc_idx is not None else False
 
         meses_con_actividad = sorted({(r["fecha"].year, r["fecha"].month) for r in registros if r["fecha"] <= hoy})
         for anio_m, mes_m in meses_con_actividad:
