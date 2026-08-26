@@ -4801,13 +4801,15 @@ function renderCobroFiltrado() {
         .filter(cu => cu.fecha === diaRef)
         .forEach(cu => factHoy.push({ nombre: c.cliente, placa: c.placa, moto: c.moto, monto: cu.total, fuente: 'app' }));
     });
-    // 2. Clientes del Excel: pago en diaRef (usando DATOS_ACTIVO.detalle para historial completo)
-    const _detalleRef = (DATOS_ACTIVO.detalle||[]).filter(d => d.fecha === diaRef && (d.recibido||0) > 0);
-    _detalleRef.forEach(d => {
-      const canon = normalizarNombreCliente(d.cliente);
-      if (!factHoy.some(f => normalizarNombreCliente(f.nombre) === canon)) {
-        const cli = (DATOS_ACTIVO.clientes||[]).find(c => normalizarNombreCliente(c.nombre) === canon);
-        factHoy.push({ nombre: d.cliente, placa: d.placa||(cli&&cli.placa)||'', moto: (cli&&cli.moto)||'', monto: d.recibido, fuente: 'excel' });
+    // 2. Clientes del Excel: cuota COMPLETA en diaRef (ultimos_pagos ya están acumulados por Python)
+    (DATOS_ACTIVO.clientes || []).forEach(c => {
+      const meta = c.meta_ciclo || 240000;
+      const canon = normalizarNombreCliente(c.nombre);
+      const cuotaCompleta = (c.ultimos_pagos||[]).find(p =>
+        p.fecha === diaRef && p.estado === 'pagado' && (p.recibido||0) >= meta
+      );
+      if (cuotaCompleta && !factHoy.some(f => normalizarNombreCliente(f.nombre) === canon)) {
+        factHoy.push({ nombre: c.nombre, placa: c.placa||'', moto: c.moto||'', monto: cuotaCompleta.recibido, fuente: 'excel' });
       }
     });
 
