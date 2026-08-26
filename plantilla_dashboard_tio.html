@@ -4777,12 +4777,17 @@ function renderCobroFiltrado() {
 
   tickEl.innerHTML = tickerFiltro + tickerAyer;
 
-  // ── Facturas completadas hoy ─────────────────────────────────────────────
+  // ── Facturas completadas hoy / día filtrado ──────────────────────────────
   {
-    // 1. Clientes de Sheets: cuotas completadas hoy (agrupar por nombre canónico)
+    const diaRef = COBRO_FILTRO_DIA || hoy;
+    const esHoyRef = diaRef === hoy;
+    const [_fy,_fm,_fd] = diaRef.split("-");
+    const labelFactDia = esHoyRef ? 'hoy' : `${_fd}/${_fm}/${_fy}`;
+
+    // 1. Clientes de Sheets: cuotas completadas en diaRef (agrupar por nombre canónico)
     const porClienteHoy = {};
     filasModulo.forEach(r => {
-      const key = normalizarNombreCliente(r.cliente); // alias-aware: evita duplicados
+      const key = normalizarNombreCliente(r.cliente);
       if (!porClienteHoy[key]) {
         const tarifa = TARIFA_SEMANAL_MAP[key] || TARIFA_SEMANAL_MAP[r.cliente.toLowerCase()] || 240000;
         porClienteHoy[key] = { cliente: r.cliente.trim(), placa: r.placa, moto: r.moto, tarifa, pagos: [] };
@@ -4793,22 +4798,22 @@ function renderCobroFiltrado() {
     Object.values(porClienteHoy).forEach(c => {
       const anal = analizarPagosCliente(c.pagos, c.tarifa);
       anal.cuotasCompletadas
-        .filter(cu => cu.fecha === hoy)
+        .filter(cu => cu.fecha === diaRef)
         .forEach(cu => factHoy.push({ nombre: c.cliente, placa: c.placa, moto: c.moto, monto: cu.total, fuente: 'app' }));
     });
-    // 2. Clientes del Excel: último pago hoy (dedup usando nombre canónico)
-    (DATOS_ACTIVO.clientes || []).forEach(c => {
-      const ultPagos = c.ultimos_pagos || [];
-      const pagoHoy = ultPagos.find(p => p.fecha === hoy && p.estado === 'pagado');
-      const canon = normalizarNombreCliente(c.nombre);
-      if (pagoHoy && !factHoy.some(f => normalizarNombreCliente(f.nombre) === canon)) {
-        factHoy.push({ nombre: c.nombre, placa: c.placa, moto: c.moto, monto: pagoHoy.recibido, fuente: 'excel' });
+    // 2. Clientes del Excel: pago en diaRef (usando DATOS_ACTIVO.detalle para historial completo)
+    const _detalleRef = (DATOS_ACTIVO.detalle||[]).filter(d => d.fecha === diaRef && (d.recibido||0) > 0);
+    _detalleRef.forEach(d => {
+      const canon = normalizarNombreCliente(d.cliente);
+      if (!factHoy.some(f => normalizarNombreCliente(f.nombre) === canon)) {
+        const cli = (DATOS_ACTIVO.clientes||[]).find(c => normalizarNombreCliente(c.nombre) === canon);
+        factHoy.push({ nombre: d.cliente, placa: d.placa||(cli&&cli.placa)||'', moto: (cli&&cli.moto)||'', monto: d.recibido, fuente: 'excel' });
       }
     });
 
     const _factHoyHTML = factHoy.length > 0 ? `
       <div class="fact-hoy-banner">
-        <div class="fact-hoy-titulo">🧾 Facturas completadas hoy · ${factHoy.length}</div>
+        <div class="fact-hoy-titulo">🧾 Facturas completadas ${labelFactDia} · ${factHoy.length}</div>
         <div class="fact-hoy-grid">
           ${factHoy.map(f => {
             const nombreCorto = (f.nombre||'').split(/[\s/]+/).filter(Boolean).slice(0,2).join(' ');
