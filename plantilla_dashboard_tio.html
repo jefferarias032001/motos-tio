@@ -5210,7 +5210,16 @@ function renderCobroFiltrado() {
         <div style="display:flex;justify-content:space-between;margin-top:7px;font-size:.76rem;flex-wrap:wrap;gap:4px;">
           <span style="color:var(--ink-soft);">Recibido: <strong style="color:${_barColor};">${formatPesos(totalDet)}</strong></span>
           <span style="color:var(--ink-soft);">Esperado: <strong>${totalEspDet>0?formatPesos(totalEspDet):'—'}</strong></span>
-          ${totalEspDet>0 && totalDet<totalEspDet ? `<span style="color:var(--ink-soft);">Diferencia: <strong style="color:#EF4444;">-${formatPesos(totalEspDet-totalDet)}</strong></span>` : totalEspDet>0 ? `<span style="color:var(--ink-soft);">Diferencia: <strong style="color:var(--verde);">$0</strong></span>` : ''}
+          ${(() => {
+            if (!totalEspDet) return '';
+            const _diff = totalEspDet - totalDet;
+            if (_diff <= 0) return `<span style="color:var(--ink-soft);">Diferencia: <strong style="color:var(--verde);">$0</strong></span>`;
+            const _nfProg = COBRO_FILTRO_NOMBRE ? normalizarNombreCliente(COBRO_FILTRO_NOMBRE) : null;
+            const _tarifaDia = _nfProg ? (Object.entries(_tarifaDiariaMap).find(([k]) => k.includes(_nfProg)||_nfProg.includes(k)) || [])[1] : null;
+            const _diasAtr = _tarifaDia ? Math.round(_diff / _tarifaDia) : null;
+            const _atrTxt = _diasAtr ? ` <span style="font-size:.7rem;color:#EF4444;">(${_diasAtr} día${_diasAtr!==1?'s':''} atrás)</span>` : '';
+            return `<span style="color:var(--ink-soft);">Diferencia: <strong style="color:#EF4444;">-${formatPesos(_diff)}</strong>${_atrTxt}</span>`;
+          })()}
         </div>
       </div>` : '';
     const anchor = document.getElementById("cobro-sin-cobro") || gridEl;
