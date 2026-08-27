@@ -5085,14 +5085,13 @@ function renderCobroFiltrado() {
       const _fin = new Date(perFin + 'T12:00:00Z');
       while (_cur <= _fin) {
         const _f = _cur.toISOString().slice(0,10);
-        // Solo los clientes de 34k/día (diario_34k) no trabajan domingos
-        const _esDomingo = _cur.getUTCDay() === 0;
-        if (!(c.categoria||'').includes('34') || !_esDomingo) {
-          const _k = `${_f}|${normalizarNombreCliente(c.nombre)}`;
-          if (!_sheetKeys.has(_k)) {
-            _filasExcel.push({ fecha: _f, cliente: c.nombre, placa: c.placa||'', pago_recibido: 0, pago_diario: tarifaDia, medio_pago: '', observaciones: '' });
-            _sheetKeys.add(_k);
-          }
+        const _k = `${_f}|${normalizarNombreCliente(c.nombre)}`;
+        if (!_sheetKeys.has(_k)) {
+          // Domingos para diario_34k: aparecen con esperado $0 (descanso)
+          const _esDomingo = _cur.getUTCDay() === 0;
+          const _esp = (_esDomingo && _cat.includes('34')) ? 0 : tarifaDia;
+          _filasExcel.push({ fecha: _f, cliente: c.nombre, placa: c.placa||'', pago_recibido: 0, pago_diario: _esp, medio_pago: '', observaciones: '' });
+          _sheetKeys.add(_k);
         }
         _cur.setDate(_cur.getDate() + 1);
       }
