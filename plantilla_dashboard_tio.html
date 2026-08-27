@@ -5090,8 +5090,9 @@ function renderCobroFiltrado() {
       const _fin = new Date(perFin + 'T12:00:00Z');
       while (_cur <= _fin) {
         const _f = _cur.toISOString().slice(0,10);
-        // Saltar domingos (getUTCDay() === 0)
-        if (_cur.getUTCDay() !== 0) {
+        // Solo los clientes de 34k/día (diario_34k) no trabajan domingos
+        const _esDomingo = _cur.getUTCDay() === 0;
+        if (!(c.categoria||'').includes('34') || !_esDomingo) {
           const _k = `${_f}|${normalizarNombreCliente(c.nombre)}`;
           if (!_sheetKeys.has(_k)) {
             _filasExcel.push({ fecha: _f, cliente: c.nombre, placa: c.placa||'', pago_recibido: 0, pago_diario: tarifaDia, medio_pago: '', observaciones: '' });
