@@ -5105,17 +5105,12 @@ function renderCobroFiltrado() {
   }
 
   // Mapa tarifa DIARIA real por cliente (para clientes diarios: 30k ó 34k, no la meta del ciclo)
+  // Se calcula desde meta_ciclo/dias_ciclo del config (no desde el detalle, cuyos datos pueden tener valores viejos)
   const _tarifaDiariaMap = {};
   (DATOS_ACTIVO.clientes||[]).forEach(c => {
-    const _nk = normalizarNombreCliente(c.nombre);
     if ((c.categoria||'').startsWith('diario')) {
-      // Tomar el valor mínimo de "esperado" en detalle que sea razonable (<100k = tarifa diaria)
-      const _vals = (DATOS_ACTIVO.detalle||[])
-        .filter(d => { const _nd = normalizarNombreCliente(d.cliente||''); return (_nd.includes(_nk)||_nk.includes(_nd)) && Number(d.esperado)>0 && Number(d.esperado)<100000; })
-        .map(d => Number(d.esperado));
-      const _fromDetalle = _vals.length ? Math.min(..._vals) : null;
-      const _fromConfig  = (c.meta_ciclo && c.dias_ciclo) ? Math.round(c.meta_ciclo / c.dias_ciclo) : null;
-      _tarifaDiariaMap[_nk] = _fromDetalle || _fromConfig || 30000;
+      const _nk = normalizarNombreCliente(c.nombre);
+      _tarifaDiariaMap[_nk] = (c.meta_ciclo && c.dias_ciclo) ? Math.round(c.meta_ciclo / c.dias_ciclo) : 30000;
     }
   });
 
