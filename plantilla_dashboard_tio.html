@@ -5034,10 +5034,13 @@ function renderCobroFiltrado() {
   else if (COBRO_FILTRO_MES)  _filasFecha = _filasFecha.filter(r => r.fecha.startsWith(COBRO_FILTRO_MES));
   const _sheetKeys = new Set(_filasFecha.map(r => `${r.fecha}|${normalizarNombreCliente(r.cliente)}`));
   const _filasExcel = [];
+  // Mostrar días sin pago cuando hay filtro activo de nombre o día
+  const _incluirNoPagados = !!(COBRO_FILTRO_NOMBRE || COBRO_FILTRO_DIA);
   // Usar DATOS_ACTIVO.detalle para ver TODO el historial (no solo últimos 8)
   (DATOS_ACTIVO.detalle||[]).forEach(d => {
     const rec = Number(d.recibido)||0;
-    if (rec > 0) {
+    const esp = Number(d.esperado)||0;
+    if (rec > 0 || (_incluirNoPagados && esp > 0)) {
       const key = `${d.fecha}|${normalizarNombreCliente(d.cliente)}`;
       if (!_sheetKeys.has(key)) {
         const pasaFecha = COBRO_FILTRO_DIA ? d.fecha === COBRO_FILTRO_DIA
@@ -5073,9 +5076,10 @@ function renderCobroFiltrado() {
   const _isoFecha = f => { if(!f) return ''; if(/^\d{4}-\d{2}-\d{2}$/.test(f)) return f; const p=f.split(/[-\/]/); return p.length===3&&p[0].length===4?f:`${p[2]||''}-${(p[1]||'').padStart(2,'0')}-${(p[0]||'').padStart(2,'0')}`; };
   const filasDetalle = [...filas, ..._filasExcelFilt].flatMap(_expandirFilas).sort((a,b) => _isoFecha(b.fecha).localeCompare(_isoFecha(a.fecha)));
   if (filasDetalle.length) {
-    const totalDet   = filasDetalle.reduce((s,r) => s + (Number(r.pago_recibido)||0), 0);
-    const nequiDet   = filasDetalle.filter(r=>(r.medio_pago||"").toLowerCase().includes("nequi")).reduce((s,r)=>s+(Number(r.pago_recibido)||0),0);
-    const efectivoDet= totalDet - nequiDet;
+    const totalDet    = filasDetalle.reduce((s,r) => s + (Number(r.pago_recibido)||0), 0);
+    const totalEspDet = filasDetalle.reduce((s,r) => s + (Number(r.pago_diario)||0), 0);
+    const nequiDet    = filasDetalle.filter(r=>(r.medio_pago||"").toLowerCase().includes("nequi")).reduce((s,r)=>s+(Number(r.pago_recibido)||0),0);
+    const efectivoDet = totalDet - nequiDet;
 
     const filasHtml = filasDetalle.map(r => {
       const [y,m,d] = r.fecha.split("-");
@@ -5119,14 +5123,15 @@ function renderCobroFiltrado() {
               <th>Fecha</th>
               <th>Cliente</th>
               <th>Placa</th>
-              <th style="text-align:right;color:var(--ink-soft);">Esperado</th>
+              <th style="text-align:right;">Esperado</th>
               <th style="text-align:right;">Recibido</th>
               <th style="text-align:center;">Medio</th>
               <th>Observaciones</th>
             </tr></thead>
             <tbody>${filasHtml}</tbody>
             <tfoot><tr style="background:var(--card-soft);">
-              <td colspan="4" style="font-weight:700;">TOTAL</td>
+              <td colspan="3" style="font-weight:700;">TOTAL</td>
+              <td style="text-align:right;font-weight:700;color:var(--ink-soft);">${totalEspDet>0?formatPesos(totalEspDet):'—'}</td>
               <td style="text-align:right;font-weight:700;color:var(--verde);">${formatPesos(totalDet)}</td>
               <td colspan="2" style="font-size:.75rem;color:var(--ink-soft);">
                 <span style="color:#3B82F6;font-weight:600;">N ${formatPesos(nequiDet)}</span>
