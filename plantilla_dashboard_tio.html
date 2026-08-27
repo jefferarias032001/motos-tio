@@ -5161,12 +5161,46 @@ function renderCobroFiltrado() {
       </tr>`;
     }).join("");
 
+    const _pct = totalEspDet > 0 ? Math.min(Math.round(totalDet / totalEspDet * 100), 100) : (totalDet > 0 ? 100 : 0);
+    const _pctReal = totalEspDet > 0 ? (totalDet / totalEspDet * 100) : (totalDet > 0 ? 100 : 0);
+    const _barColor = _pctReal >= 100 ? 'var(--verde)' : _pctReal >= 60 ? '#F59E0B' : '#EF4444';
+    const _periodoLabel = (() => {
+      if (COBRO_FILTRO_DIA) {
+        const [_y,_m,_d] = COBRO_FILTRO_DIA.split('-');
+        return `${_d}/${_m}/${_y}`;
+      }
+      if (COBRO_FILTRO_MES) {
+        const _mNames = ['','Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+        const [_y,_m] = COBRO_FILTRO_MES.split('-').map(Number);
+        return `${_mNames[_m]} ${_y}`;
+      }
+      const _mNames = ['','Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+      const _mn = Number(hoy.split('-')[1]);
+      return `${_mNames[_mn]} ${hoy.split('-')[0]}`;
+    })();
+    const _progHtml = (COBRO_FILTRO_NOMBRE || COBRO_FILTRO_MES || COBRO_FILTRO_DIA) ? `
+      <div style="background:var(--card-soft);border-radius:10px;padding:14px 18px;margin-bottom:14px;">
+        <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:8px;gap:12px;flex-wrap:wrap;">
+          <span style="font-size:.75rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--ink-soft);">
+            ${COBRO_FILTRO_NOMBRE ? (COBRO_FILTRO_NOMBRE + ' · ') : ''}${_periodoLabel}
+          </span>
+          <span style="font-size:.82rem;font-weight:700;color:${_barColor};">${_pctReal.toFixed(1)}%</span>
+        </div>
+        <div style="height:8px;background:var(--card);border-radius:99px;overflow:hidden;">
+          <div style="height:100%;width:${_pct}%;background:${_barColor};border-radius:99px;transition:width .4s;"></div>
+        </div>
+        <div style="display:flex;justify-content:space-between;margin-top:7px;font-size:.76rem;">
+          <span style="color:var(--ink-soft);">Recibido: <strong style="color:${_barColor};">${formatPesos(totalDet)}</strong></span>
+          <span style="color:var(--ink-soft);">Esperado: <strong>${totalEspDet>0?formatPesos(totalEspDet):'—'}</strong></span>
+        </div>
+      </div>` : '';
     const anchor = document.getElementById("cobro-sin-cobro") || gridEl;
     anchor.insertAdjacentHTML("afterend", `
       <div id="cobro-detalle-filas-wrap" style="margin-top:28px;" data-sort-pending="1">
         <h3 style="font-size:.78rem;text-transform:uppercase;letter-spacing:.07em;color:var(--ink-soft);margin:0 0 10px;font-weight:700;">
           Detalle de cobros · ${filasDetalle.length} registros
         </h3>
+        ${_progHtml}
         <div class="tabla-scroll">
           <table class="detalle" style="min-width:520px;">
             <thead><tr>
