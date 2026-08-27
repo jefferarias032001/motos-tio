@@ -5054,6 +5054,45 @@ function renderCobroFiltrado() {
     }
   });
 
+  // Generar filas esperadas para clientes DIARIOS (días sin pago) cuando se filtra por nombre
+  if (COBRO_FILTRO_NOMBRE) {
+    const _nfDiario = normalizarNombreCliente(COBRO_FILTRO_NOMBRE);
+    (DATOS_ACTIVO.clientes||[]).forEach(c => {
+      const _ncDiario = normalizarNombreCliente(c.nombre||'');
+      if (!_ncDiario.includes(_nfDiario) && !_nfDiario.includes(_ncDiario)) return;
+      if (!(c.categoria||'').startsWith('diario')) return;
+      const tarifaDia = Number(c.tarifa_ref) || 30000;
+      const inicio = (c.inicio||'').slice(0,10) || '2020-01-01';
+      // Determinar período visible
+      let perIni, perFin;
+      if (COBRO_FILTRO_DIA) {
+        perIni = perFin = COBRO_FILTRO_DIA;
+      } else if (COBRO_FILTRO_MES) {
+        const _mPartes = COBRO_FILTRO_MES.split('-').map(Number);
+        const _lastD = new Date(_mPartes[0], _mPartes[1], 0).getDate();
+        perIni = COBRO_FILTRO_MES + '-01';
+        perFin = `${COBRO_FILTRO_MES}-${String(_lastD).padStart(2,'0')}`;
+        if (perFin > hoy) perFin = hoy;
+      } else {
+        perIni = hoy.slice(0,7) + '-01';
+        perFin = hoy;
+      }
+      if (perIni < inicio) perIni = inicio;
+      // Iterar día por día y agregar filas faltantes
+      let _cur = new Date(perIni + 'T12:00:00Z');
+      const _fin = new Date(perFin + 'T12:00:00Z');
+      while (_cur <= _fin) {
+        const _f = _cur.toISOString().slice(0,10);
+        const _k = `${_f}|${normalizarNombreCliente(c.nombre)}`;
+        if (!_sheetKeys.has(_k)) {
+          _filasExcel.push({ fecha: _f, cliente: c.nombre, placa: c.placa||'', pago_recibido: 0, pago_diario: tarifaDia, medio_pago: '', observaciones: '' });
+          _sheetKeys.add(_k);
+        }
+        _cur.setDate(_cur.getDate() + 1);
+      }
+    });
+  }
+
   // Si un pago cubre varias cuotas (ej: 480k = 2×240k), expandir en filas individuales
   const _tarifaMap = {};
   (DATOS_ACTIVO.clientes||[]).forEach(c => { _tarifaMap[normalizarNombreCliente(c.nombre)] = c.tarifa_ref || 240000; });
