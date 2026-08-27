@@ -5104,6 +5104,21 @@ function renderCobroFiltrado() {
     });
   }
 
+  // Mapa tarifa DIARIA real por cliente (para clientes diarios: 30k ó 34k, no la meta del ciclo)
+  const _tarifaDiariaMap = {};
+  (DATOS_ACTIVO.clientes||[]).forEach(c => {
+    const _nk = normalizarNombreCliente(c.nombre);
+    if ((c.categoria||'').startsWith('diario')) {
+      // Tomar el valor mínimo de "esperado" en detalle que sea razonable (<100k = tarifa diaria)
+      const _vals = (DATOS_ACTIVO.detalle||[])
+        .filter(d => { const _nd = normalizarNombreCliente(d.cliente||''); return (_nd.includes(_nk)||_nk.includes(_nd)) && Number(d.esperado)>0 && Number(d.esperado)<100000; })
+        .map(d => Number(d.esperado));
+      const _fromDetalle = _vals.length ? Math.min(..._vals) : null;
+      const _fromConfig  = (c.meta_ciclo && c.dias_ciclo) ? Math.round(c.meta_ciclo / c.dias_ciclo) : null;
+      _tarifaDiariaMap[_nk] = _fromDetalle || _fromConfig || 30000;
+    }
+  });
+
   // Si un pago cubre varias cuotas (ej: 480k = 2×240k), expandir en filas individuales
   const _tarifaMap = {};
   (DATOS_ACTIVO.clientes||[]).forEach(c => { _tarifaMap[normalizarNombreCliente(c.nombre)] = c.tarifa_ref || 240000; });
@@ -5124,7 +5139,12 @@ function renderCobroFiltrado() {
     ? (() => { const _nf = normalizarNombreCliente(COBRO_FILTRO_NOMBRE); return _filasExcel.filter(r => { const _nc = normalizarNombreCliente(r.cliente); return _nc.includes(_nf) || _nf.includes(_nc); }); })()
     : _filasExcel;
   const _isoFecha = f => { if(!f) return ''; if(/^\d{4}-\d{2}-\d{2}$/.test(f)) return f; const p=f.split(/[-\/]/); return p.length===3&&p[0].length===4?f:`${p[2]||''}-${(p[1]||'').padStart(2,'0')}-${(p[0]||'').padStart(2,'0')}`; };
-  const filasDetalle = [...filas, ..._filasExcelFilt].flatMap(_expandirFilas).sort((a,b) => _isoFecha(b.fecha).localeCompare(_isoFecha(a.fecha)));
+  const filasDetalle = [...filas, ..._filasExcelFilt].flatMap(_expandirFilas).map(r => {
+    // Corregir pago_diario para clientes diarios: usar tarifa real (30k/34k), no la meta del ciclo (240k)
+    const _nkr = normalizarNombreCliente(r.cliente||'');
+    if (_tarifaDiariaMap[_nkr]) return {...r, pago_diario: _tarifaDiariaMap[_nkr]};
+    return r;
+  }).sort((a,b) => _isoFecha(b.fecha).localeCompare(_isoFecha(a.fecha)));
   if (filasDetalle.length) {
     const totalDet    = filasDetalle.reduce((s,r) => s + (Number(r.pago_recibido)||0), 0);
     const totalEspDet = filasDetalle.reduce((s,r) => s + (Number(r.pago_diario)||0), 0);
