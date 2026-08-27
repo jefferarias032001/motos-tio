@@ -5061,7 +5061,14 @@ function renderCobroFiltrado() {
       const _ncDiario = normalizarNombreCliente(c.nombre||'');
       if (!_ncDiario.includes(_nfDiario) && !_nfDiario.includes(_ncDiario)) return;
       if (!(c.categoria||'').startsWith('diario')) return;
-      const tarifaDia = Number(c.tarifa_ref) || 30000;
+      // Tarifa diaria real: tomada del primer registro del detalle del cliente,
+      // o calculada como meta_ciclo / dias_ciclo (no tarifa_ref que es el meta del ciclo)
+      const _detCli = (DATOS_ACTIVO.detalle||[]).find(d => {
+        const _nd = normalizarNombreCliente(d.cliente||'');
+        return (_nd.includes(_ncDiario) || _ncDiario.includes(_nd)) && Number(d.esperado) > 0;
+      });
+      const tarifaDia = _detCli ? Number(_detCli.esperado)
+                      : (c.meta_ciclo && c.dias_ciclo ? Math.round(c.meta_ciclo / c.dias_ciclo) : 30000);
       const inicio = (c.inicio||'').slice(0,10) || '2020-01-01';
       // Determinar período visible
       let perIni, perFin;
@@ -5083,10 +5090,13 @@ function renderCobroFiltrado() {
       const _fin = new Date(perFin + 'T12:00:00Z');
       while (_cur <= _fin) {
         const _f = _cur.toISOString().slice(0,10);
-        const _k = `${_f}|${normalizarNombreCliente(c.nombre)}`;
-        if (!_sheetKeys.has(_k)) {
-          _filasExcel.push({ fecha: _f, cliente: c.nombre, placa: c.placa||'', pago_recibido: 0, pago_diario: tarifaDia, medio_pago: '', observaciones: '' });
-          _sheetKeys.add(_k);
+        // Saltar domingos (getUTCDay() === 0)
+        if (_cur.getUTCDay() !== 0) {
+          const _k = `${_f}|${normalizarNombreCliente(c.nombre)}`;
+          if (!_sheetKeys.has(_k)) {
+            _filasExcel.push({ fecha: _f, cliente: c.nombre, placa: c.placa||'', pago_recibido: 0, pago_diario: tarifaDia, medio_pago: '', observaciones: '' });
+            _sheetKeys.add(_k);
+          }
         }
         _cur.setDate(_cur.getDate() + 1);
       }
