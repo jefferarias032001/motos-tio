@@ -5131,7 +5131,8 @@ function renderCobroFiltrado() {
   const filasDetalle = [...filas, ..._filasExcelFilt].flatMap(_expandirFilas).map(r => {
     // Corregir pago_diario para clientes diarios: usar tarifa real (30k/34k), no la meta del ciclo (240k)
     const _nkr = normalizarNombreCliente(r.cliente||'');
-    if (_tarifaDiariaMap[_nkr]) return {...r, pago_diario: _tarifaDiariaMap[_nkr]};
+    // No tocar los $0 intencionales (domingos de diario_34k)
+    if (_tarifaDiariaMap[_nkr] && Number(r.pago_diario) !== 0) return {...r, pago_diario: _tarifaDiariaMap[_nkr]};
     return r;
   }).sort((a,b) => _isoFecha(b.fecha).localeCompare(_isoFecha(a.fecha)));
   if (filasDetalle.length) {
