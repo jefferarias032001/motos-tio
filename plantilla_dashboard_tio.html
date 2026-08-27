@@ -5044,7 +5044,7 @@ function renderCobroFiltrado() {
                         : COBRO_FILTRO_MES ? d.fecha.startsWith(COBRO_FILTRO_MES)
                         : true;
         if (pasaFecha) {
-          _filasExcel.push({ fecha: d.fecha, cliente: d.cliente, placa: d.placa||'', pago_recibido: rec, medio_pago: d.medio_pago||'', observaciones: d.nota||'' });
+          _filasExcel.push({ fecha: d.fecha, cliente: d.cliente, placa: d.placa||'', pago_recibido: rec, pago_diario: d.esperado||0, medio_pago: d.medio_pago||'', observaciones: d.nota||'' });
           _sheetKeys.add(key);
         }
       }
@@ -5081,17 +5081,27 @@ function renderCobroFiltrado() {
       const [y,m,d] = r.fecha.split("-");
       const esHoy    = r.fecha === hoy;
       const recibido = Number(r.pago_recibido)||0;
+      const esperado = Number(r.pago_diario)||0;
       const medio    = r.medio_pago || "Efectivo";
       const esNequi  = medio.toLowerCase().includes("nequi");
       const obs      = r.observaciones || "";
       const rowStyle = esHoy ? ' style="background:var(--asphalt);color:#F4EFE2;"' : '';
       const rowClass = esHoy ? ' class="fila-hoy"' : '';
       const fechaStyle = esHoy ? 'font-weight:700;' : 'font-weight:600;';
+      // Color recibido según comparación con esperado
+      const colorRec = recibido === 0 ? 'var(--ink-soft)'
+                     : esperado > 0 && recibido >= esperado ? 'var(--verde)'
+                     : esperado > 0 ? '#F59E0B'  // parcial
+                     : 'var(--verde)';
+      const iconRec  = esperado > 0 && recibido >= esperado ? ' ✓'
+                     : esperado > 0 && recibido > 0 ? ' △'
+                     : '';
       return `<tr${rowClass}${rowStyle}>
         <td style="white-space:nowrap;${fechaStyle}">${d}/${m}/${y}${esHoy?'<span style="font-size:.6rem;background:var(--plate);color:#1A1714;padding:1px 5px;border-radius:4px;margin-left:5px;font-weight:700;">HOY</span>':''}</td>
         <td style="font-size:.82rem;">${r.cliente||''}</td>
         <td style="font-size:.78rem;color:var(--ink-soft);">${r.placa||''}</td>
-        <td style="text-align:right;font-weight:700;color:${recibido>0?'var(--verde)':'var(--ink-soft)'};">${recibido>0?formatPesos(recibido):'—'}</td>
+        <td style="text-align:right;color:var(--ink-soft);font-size:.8rem;">${esperado>0?formatPesos(esperado):'—'}</td>
+        <td style="text-align:right;font-weight:700;color:${colorRec};">${recibido>0?formatPesos(recibido)+'<span style="font-size:.65rem;margin-left:2px;">'+iconRec+'</span>':'—'}</td>
         <td style="text-align:center;"><span style="font-size:.72rem;font-weight:600;color:${esNequi?'#3B82F6':'var(--verde)'};">${medio}</span></td>
         <td style="font-size:.75rem;color:var(--ink-soft);">${obs}</td>
       </tr>`;
@@ -5109,13 +5119,14 @@ function renderCobroFiltrado() {
               <th>Fecha</th>
               <th>Cliente</th>
               <th>Placa</th>
+              <th style="text-align:right;color:var(--ink-soft);">Esperado</th>
               <th style="text-align:right;">Recibido</th>
               <th style="text-align:center;">Medio</th>
               <th>Observaciones</th>
             </tr></thead>
             <tbody>${filasHtml}</tbody>
             <tfoot><tr style="background:var(--card-soft);">
-              <td colspan="3" style="font-weight:700;">TOTAL</td>
+              <td colspan="4" style="font-weight:700;">TOTAL</td>
               <td style="text-align:right;font-weight:700;color:var(--verde);">${formatPesos(totalDet)}</td>
               <td colspan="2" style="font-size:.75rem;color:var(--ink-soft);">
                 <span style="color:#3B82F6;font-weight:600;">N ${formatPesos(nequiDet)}</span>
