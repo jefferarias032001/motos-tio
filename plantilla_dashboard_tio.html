@@ -5061,14 +5061,9 @@ function renderCobroFiltrado() {
       const _ncDiario = normalizarNombreCliente(c.nombre||'');
       if (!_ncDiario.includes(_nfDiario) && !_nfDiario.includes(_ncDiario)) return;
       if (!(c.categoria||'').startsWith('diario')) return;
-      // Tarifa diaria real: tomada del primer registro del detalle del cliente,
-      // o calculada como meta_ciclo / dias_ciclo (no tarifa_ref que es el meta del ciclo)
-      const _detCli = (DATOS_ACTIVO.detalle||[]).find(d => {
-        const _nd = normalizarNombreCliente(d.cliente||'');
-        return (_nd.includes(_ncDiario) || _ncDiario.includes(_nd)) && Number(d.esperado) > 0;
-      });
-      const tarifaDia = _detCli ? Number(_detCli.esperado)
-                      : (c.meta_ciclo && c.dias_ciclo ? Math.round(c.meta_ciclo / c.dias_ciclo) : 30000);
+      // Tarifa diaria exacta según categoría: diario_30k → 30000, diario_34k → 34000
+      const _cat = c.categoria||'';
+      const tarifaDia = _cat.includes('34') ? 34000 : 30000;
       const inicio = (c.inicio||'').slice(0,10) || '2020-01-01';
       // Determinar período visible
       let perIni, perFin;
@@ -5104,13 +5099,13 @@ function renderCobroFiltrado() {
     });
   }
 
-  // Mapa tarifa DIARIA real por cliente (para clientes diarios: 30k ó 34k, no la meta del ciclo)
-  // Se calcula desde meta_ciclo/dias_ciclo del config (no desde el detalle, cuyos datos pueden tener valores viejos)
+  // Mapa tarifa DIARIA exacta por cliente: diario_30k → 30000, diario_34k → 34000
   const _tarifaDiariaMap = {};
   (DATOS_ACTIVO.clientes||[]).forEach(c => {
-    if ((c.categoria||'').startsWith('diario')) {
+    const _cat = c.categoria||'';
+    if (_cat.startsWith('diario')) {
       const _nk = normalizarNombreCliente(c.nombre);
-      _tarifaDiariaMap[_nk] = (c.meta_ciclo && c.dias_ciclo) ? Math.round(c.meta_ciclo / c.dias_ciclo) : 30000;
+      _tarifaDiariaMap[_nk] = _cat.includes('34') ? 34000 : 30000;
     }
   });
 
