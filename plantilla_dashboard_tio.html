@@ -5135,6 +5135,12 @@ function renderCobroFiltrado() {
     if (_tarifaDiariaMap[_nkr] && Number(r.pago_diario) !== 0) return {...r, pago_diario: _tarifaDiariaMap[_nkr]};
     return r;
   }).sort((a,b) => _isoFecha(b.fecha).localeCompare(_isoFecha(a.fecha)));
+  // Si hay varios pagos el mismo día para el mismo cliente, solo la primera fila lleva el esperado
+  const _vistoDiaCliente = new Set();
+  filasDetalle.forEach(r => {
+    const _dk = `${r.fecha}|${normalizarNombreCliente(r.cliente||'')}`;
+    if (_vistoDiaCliente.has(_dk)) { r.pago_diario = 0; } else { _vistoDiaCliente.add(_dk); }
+  });
   if (filasDetalle.length) {
     const totalDet    = filasDetalle.reduce((s,r) => s + (Number(r.pago_recibido)||0), 0);
     const totalEspDet = filasDetalle.reduce((s,r) => s + (Number(r.pago_diario)||0), 0);
