@@ -102,6 +102,7 @@ CLIENTES_CONFIG = {
     "yorkis":           {"num": 33, "cat": "semanal",     "dias": 7,  "meta": 240_000, "label": "Semanal 240k"},
     "josue":            {"num": 34, "cat": "quincenal",   "dias": 15, "meta": 260_000, "label": "Quincenal 260k"},
     "laura vanesa":     {"num": 35, "cat": "quincenal",   "dias": 15, "meta": 260_000, "label": "Quincenal 260k"},
+    "analeidys larry":  {"num": 36, "cat": "semanal",     "dias": 7,  "meta": 240_000, "label": "Semanal 240k",     "inicio": date(2026, 8, 26), "total_cuotas": 68},
     # Empresas externas (Luna / Jomar) — se procesan por separado pero necesitan config de ciclo
     "cesar":            {"num":  1, "cat": "diario_30k",  "dias": 8,  "meta": 240_000, "label": "Diario 30k × 8d"},
     "william villa":    {"num":  1, "cat": "diario_30k",  "dias": 8,  "meta": 240_000, "label": "Diario 30k × 8d"},
@@ -916,6 +917,60 @@ def procesar(filas, clientes_meta, hoy, tel_por_placa=None, ultimos_sheets=None)
         total_global["atrasado_historico"]  += saldo_atrasado
         total_global["atrasado_mes"]        += atrasado_mes
         total_global["restante_programado_total"] += restante_programado
+
+    # Incluir clientes del Excel que aún no tienen pagos (ej: empezaron hoy)
+    claves_ya_en_resultado = {normalizar_nombre(c["nombre"]) for c in resultado_clientes}
+    for clave, meta in clientes_meta.items():
+        if clave in claves_ya_en_resultado:
+            continue
+        cfg = get_config(clave)
+        if not cfg:
+            continue
+        inicio_c = (cfg.get("inicio") or meta.get("inicio")) or hoy
+        total_c  = cfg.get("total_cuotas") or meta.get("total_cuotas") or 64
+        resultado_clientes.append({
+            "nombre": meta.get("nombre", clave.title()),
+            "moto":   meta.get("moto", ""),
+            "placa":  meta.get("placa", ""),
+            "numero": cfg.get("num", 99),
+            "categoria": cfg.get("cat", "sin_categoria"),
+            "label_categoria": cfg.get("label", ""),
+            "inicio": inicio_c.isoformat() if hasattr(inicio_c, "isoformat") else str(inicio_c),
+            "inicio_legible": fecha_legible(inicio_c) if hasattr(inicio_c, "isoformat") else str(inicio_c),
+            "total_cuotas": total_c,
+            "cuotas_pagadas": 0,
+            "cuotas_restantes": total_c,
+            "contrato_completo": False,
+            "tarifa_ref": float(cfg.get("meta", 240_000)),
+            "meta_ciclo": cfg.get("meta", 240_000),
+            "dias_ciclo": cfg.get("dias", 7),
+            "saldo_atrasado": 0.0,
+            "saldo_en_tarifas": 0.0,
+            "estado_general": "al_dia",
+            "dias_atraso": 0,
+            "recibido_historico": 0.0,
+            "esperado_historico": 0.0,
+            "recibido_mes": 0.0,
+            "esperado_mes": 0.0,
+            "atrasado_mes": 0.0,
+            "pendiente_por_cobrar": float(cfg.get("meta", 240_000) * total_c),
+            "total_contrato": float(cfg.get("meta", 240_000) * total_c),
+            "ultimos_pagos": [],
+            "historial_mensual": [],
+            "proximo_pago_esperado": inicio_c.isoformat() if hasattr(inicio_c, "isoformat") else str(inicio_c),
+            "dias_desde_ultimo_pago": None,
+            "restante_programado": float(cfg.get("meta", 240_000) * total_c),
+            "cobro_app_hoy": 0.0,
+            "cobro_app_hoy_pct": 0,
+            "dias_atrasados_semana": 0,
+            "resumen_semana": "",
+            "monto_atrasado_semana": 0.0,
+            "fecha_fin_contrato": hoy.isoformat(),
+            "fecha_fin_contrato_legible": fecha_legible(hoy),
+            "fecha_fin_prevista": (inicio_c + timedelta(days=cfg.get("dias", 7) * total_c)).isoformat() if hasattr(inicio_c, "isoformat") else hoy.isoformat(),
+            "fecha_fin_prevista_legible": fecha_legible(inicio_c + timedelta(days=cfg.get("dias", 7) * total_c)) if hasattr(inicio_c, "isoformat") else "",
+            "clave": clave,
+        })
 
     # Orden fijo por número de categoría (finalizados al final)
     resultado_clientes.sort(key=lambda c: (1 if c["contrato_completo"] else 0, c["numero"]))
