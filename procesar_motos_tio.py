@@ -919,12 +919,13 @@ def procesar(filas, clientes_meta, hoy, tel_por_placa=None, ultimos_sheets=None)
         total_global["restante_programado_total"] += restante_programado
 
     # Incluir clientes del Excel que aún no tienen pagos (ej: empezaron hoy)
-    claves_ya_en_resultado = {normalizar_nombre(c["nombre"]) for c in resultado_clientes}
+    # Deduplicar por número de config (evita duplicados por diferencias de ortografía en nombres)
+    nums_ya_en_resultado = {c["numero"] for c in resultado_clientes}
     for clave, meta in clientes_meta.items():
-        if clave in claves_ya_en_resultado:
-            continue
         cfg = get_config(clave)
         if not cfg:
+            continue
+        if cfg["num"] in nums_ya_en_resultado:
             continue
         inicio_c = (cfg.get("inicio") or meta.get("inicio")) or hoy
         total_c  = cfg.get("total_cuotas") or meta.get("total_cuotas") or 64
