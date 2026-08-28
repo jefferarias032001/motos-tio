@@ -5297,8 +5297,11 @@ async function cargarCobroDiario(){
     const claveExistente = new Set(
       (DATOS_ACTIVO.detalle||[]).map(d=>`${d.fecha}|${(d.cliente||'').toLowerCase()}|${d.recibido}`)
     );
-    const nuevas = COBRO_FILAS_ALL
-      .filter(r => !_perteneceModCobro(r,'luna') && !_perteneceModCobro(r,'jomar'))
+    // Filtrar filas al módulo activo: luna/jomar solo sus motos; severa excluye luna y jomar
+    const _filasDelMod = _MOD_COBRO[_moduloActual]
+      ? _filasModulo(COBRO_FILAS_ALL)
+      : COBRO_FILAS_ALL.filter(r => !_perteneceModCobro(r,'luna') && !_perteneceModCobro(r,'jomar'));
+    const nuevas = _filasDelMod
       .map(r=>({ fecha:r.fecha, cliente:canonicalizarNombre(r.cliente), moto:r.moto||'', placa:r.placa||'',
                   tarifa:Number(r.pago_diario)||240000, recibido:Number(r.pago_recibido)||0, medio_pago:r.medio_pago||'efectivo' }))
       .filter(r=>r.recibido>0 && !claveExistente.has(`${r.fecha}|${r.cliente.toLowerCase()}|${r.recibido}`));
@@ -5319,9 +5322,12 @@ async function cargarCobroDiario(){
       }
     }
 
-    // Actualizar COBRO_POR_CLIENTE para las tarjetas de Operativo (con TODAS las filas)
+    // Actualizar COBRO_POR_CLIENTE para las tarjetas de Operativo (solo filas del módulo activo)
     const porClienteAll = {};
-    filas.sort((a,b)=>a.fecha.localeCompare(b.fecha)).forEach(r=>{
+    const _filasParaOp = _MOD_COBRO[_moduloActual]
+      ? _filasModulo(filas)
+      : filas.filter(r => !_perteneceModCobro(r,'luna') && !_perteneceModCobro(r,'jomar'));
+    _filasParaOp.sort((a,b)=>a.fecha.localeCompare(b.fecha)).forEach(r=>{
       const key = r.cliente.trim();
       if(!porClienteAll[key]){ const t=TARIFA_SEMANAL_MAP[key.toLowerCase()]||240000; porClienteAll[key]={cliente:key,moto:r.moto,placa:r.placa,tarifa:t,pagos:[]}; }
       porClienteAll[key].pagos.push({fecha:r.fecha,valor:Number(r.pago_recibido)||0,medio:r.medio_pago||''});
