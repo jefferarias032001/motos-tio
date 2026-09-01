@@ -101,8 +101,8 @@ CLIENTES_CONFIG = {
     "alvania":          {"num": 32, "cat": "diario_34k",  "dias": 7,  "meta": 240_000, "label": "Diario 34k × 7d"},
     "yorkis":           {"num": 33, "cat": "semanal",     "dias": 7,  "meta": 240_000, "label": "Semanal 240k"},
     "josue":            {"num": 34, "cat": "quincenal",   "dias": 15, "meta": 260_000, "label": "Quincenal 260k"},
-    "laura vanesa":     {"num": 35, "cat": "quincenal",   "dias": 15, "meta": 260_000, "label": "Quincenal 260k"},
-    "analeidys larry":  {"num": 36, "cat": "semanal",     "dias": 7,  "meta": 240_000, "label": "Semanal 240k",     "inicio": date(2026, 8, 26), "total_cuotas": 68},
+    "laura vanesa":     {"num": 35, "cat": "quincenal",   "dias": 15, "meta": 260_000, "label": "Quincenal 260k",  "tel": "3003546422"},
+    "analeidys larry":  {"num": 36, "cat": "semanal",     "dias": 7,  "meta": 240_000, "label": "Semanal 240k",     "inicio": date(2026, 8, 26), "total_cuotas": 68, "tel": "3225337073"},
     # Empresas externas (Luna / Jomar) — se procesan por separado pero necesitan config de ciclo
     "cesar":            {"num":  1, "cat": "diario_30k",  "dias": 8,  "meta": 240_000, "label": "Diario 30k × 8d"},
     "william villa":    {"num":  1, "cat": "diario_30k",  "dias": 8,  "meta": 240_000, "label": "Diario 30k × 8d",  "tel": "3207593591"},
@@ -122,6 +122,8 @@ ALIAS_NOMBRES = {
     # Negro: mismo cliente, diferentes nombres en app vs Excel
     "negro / maria / jose":              "negro luis ney",
     "negro maria jose":                  "negro luis ney",
+    # Josue: corregir variante con 'z' → canónico con 'c'
+    "josue alzazar":                     "josue alcazar",
 }
 
 # Nombre corto para mostrar en factura (clave → nombre mostrado)
@@ -696,7 +698,7 @@ def procesar(filas, clientes_meta, hoy, tel_por_placa=None, ultimos_sheets=None)
         CUOTAS_OVERRIDE = {
             "dorlys jose julio": 60,
             "henry junior":      52,
-            "josue alzazar":     48,
+            "josue alcazar":     48,
             "laura vanesa":      48,
         }
         total_cuotas = CUOTAS_OVERRIDE.get(clave, meta.get("total_cuotas", 64))
