@@ -1966,6 +1966,7 @@ let DATOS_ACTIVO = DATOS; // empresa activa — reasignada por cambiarEmpresa()
 const TARIFA_SEMANAL_MAP = {}; // poblado más abajo y reconstruido en cambiarEmpresa()
 let COBRO_POR_CLIENTE = {};
 
+
 // Datos de cobro globales — declarados al inicio para evitar TDZ antes de renderResumenDia
 let COBRO_FILAS_ALL    = [];
 let COBRO_FILTRO_MES    = null;
@@ -5337,6 +5338,7 @@ async function cargarCobroDiario(){
       const res = analizarPagosCliente(c.pagos, c.tarifa);
       COBRO_POR_CLIENTE[c.cliente.toLowerCase()] = { ...res, tarifa:c.tarifa };
     });
+
     renderClientes(DATOS_ACTIVO.clientes);
 
     // Poblar datalists de nombre y placa
