@@ -3638,19 +3638,28 @@ function renderResumenDia(clientes, hoy, fechaFiltro) {
 
   const activos = clientes.filter(c => !c.contrato_completo);
   const pagaronHoy = activos.filter(c => pagaronHoySet.has(normalizarNombreCliente(c.nombre)));
-  const tocanHoy   = activos.filter(c => c.proximo_pago_esperado === hoy && !pagaronHoySet.has(normalizarNombreCliente(c.nombre)));
-  const atrasados  = activos.filter(c => c.dias_sin_pagar > 0 && c.proximo_pago_esperado !== hoy && !pagaronHoySet.has(normalizarNombreCliente(c.nombre)))
-                             .sort((a,b) => b.dias_sin_pagar - a.dias_sin_pagar);
 
-  // Diarios que no han pagado hoy
+  // Atrasado = dias_sin_pagar > 0 (ya pasó la fecha, sin pagar)
+  const atrasados = activos
+    .filter(c => (c.dias_sin_pagar||0) > 0 && !pagaronHoySet.has(normalizarNombreCliente(c.nombre)))
+    .sort((a,b) => b.dias_sin_pagar - a.dias_sin_pagar);
+  const atrasadosSet = new Set(atrasados.map(c => normalizarNombreCliente(c.nombre)));
+
+  // Pendiente hoy = cuota vence HOY y NO está atrasado (primera vez que toca)
+  const tocanHoy = activos.filter(c =>
+    c.proximo_pago_esperado === hoy &&
+    !atrasadosSet.has(normalizarNombreCliente(c.nombre)) &&
+    !pagaronHoySet.has(normalizarNombreCliente(c.nombre))
+  );
+
+  // Diarios sin pagar hoy (y no atrasados — los atrasados ya están arriba)
   const diariosSinPagar = activos
-    .filter(c => (c.categoria||'').startsWith('diario') && !pagaronHoySet.has(normalizarNombreCliente(c.nombre)))
+    .filter(c => (c.categoria||'').startsWith('diario') && !pagaronHoySet.has(normalizarNombreCliente(c.nombre)) && !atrasadosSet.has(normalizarNombreCliente(c.nombre)))
     .sort((a,b) => (a.nombre||'').localeCompare(b.nombre||'','es'));
 
-  // Quincenal/mensual con atraso (dias_sin_pagar > 0)
-  const atrasadosQM = activos
-    .filter(c => ['quincenal','mensual'].includes(c.categoria||'') && c.dias_sin_pagar > 0 && !pagaronHoySet.has(normalizarNombreCliente(c.nombre)))
-    .sort((a,b) => b.dias_sin_pagar - a.dias_sin_pagar);
+  // Quincenal/mensual atrasados (subconjunto de atrasados, para mostrarlos separado en el panel)
+  const atrasadosQM = atrasados
+    .filter(c => ['quincenal','mensual','semanal'].includes(c.categoria||''));
 
   // Quincenal/mensual con cobro próximo (próximos 7 días, no han pagado)
   const en7dias = new Date(hoy + "T00:00:00"); en7dias.setDate(en7dias.getDate() + 7);
@@ -3665,13 +3674,22 @@ function renderResumenDia(clientes, hoy, fechaFiltro) {
     })
     .sort((a,b) => (a.proximo_pago_esperado||'').localeCompare(b.proximo_pago_esperado||''));
 
-  // Cobrado hoy: suma real de DATOS_ACTIVO.detalle para hoy
+  // Cobrado hoy
   const cobradoHoy = (DATOS_ACTIVO.detalle||[]).filter(r => r.fecha === hoy && r.recibido > 0)
                        .reduce((s,r) => s + r.recibido, 0);
-  const pendienteHoy= tocanHoy.reduce((s,c) => s + (c.tarifa_ref||0), 0);
-  const deudaAtras  = atrasados.reduce((s,c) => s + Math.abs(c.saldo_atrasado||0), 0);
-  const metaDia     = cobradoHoy + pendienteHoy;
-  const pct         = metaDia > 0 ? Math.round(cobradoHoy / metaDia * 100) : (pagaronHoy.length ? 100 : 0);
+
+  // Pendiente hoy: diarios sin pagar HOY + semanales/otros con cuota vence hoy
+  const pendienteDiario = diariosSinPagar.reduce((s,c) => s + (c.categoria==='diario_34k' ? 34000 : 30000), 0);
+  const pendienteQM     = tocanHoy.reduce((s,c) => s + (c.tarifa_ref||0), 0);
+  const pendienteHoy    = pendienteDiario + pendienteQM;
+  const countPendiente  = diariosSinPagar.length + tocanHoy.length;
+
+  // En atraso: una cuota por cliente (tarifa_ref = valor de un ciclo: 240k, 260k, etc.)
+  const deudaAtras = atrasados.reduce((s,c) => s + (c.tarifa_ref||0), 0);
+  const countAtras = atrasados.length;
+
+  const metaDia = cobradoHoy + pendienteHoy;
+  const pct     = metaDia > 0 ? Math.round(cobradoHoy / metaDia * 100) : (pagaronHoy.length ? 100 : 0);
 
   // Monto real pagado hoy por cliente (Sheets primero, luego Excel)
   const pagadoHoyMap = {};
@@ -3690,7 +3708,7 @@ function renderResumenDia(clientes, hoy, fechaFiltro) {
     let sub = "";
     if (tipo==="ok")    sub = `Pagó hoy · ${fmt(pagadoHoyMap[clave] || c.tarifa_ref)}`;
     if (tipo==="esp")   sub = `Espera · ${fmt(c.tarifa_ref)}`;
-    if (tipo==="mal")   sub = `${c.dias_sin_pagar} día${c.dias_sin_pagar>1?"s":""} sin pagar · ${fmt(Math.abs(c.saldo_atrasado||c.tarifa_ref))}`;
+    if (tipo==="mal")   sub = `${c.dias_sin_pagar} día${c.dias_sin_pagar>1?"s":""} sin pagar · ${fmt(c.tarifa_ref||0)}`;
     if (tipo==="diario") {
       const tarifaDia = c.pago_diario > 0 && c.pago_diario < 100000 ? c.pago_diario
         : c.categoria === 'diario_34k' ? 34000
@@ -3756,12 +3774,12 @@ function renderResumenDia(clientes, hoy, fechaFiltro) {
       <div class="rd-card pendiente">
         <div class="rd-card-label">Pendiente hoy</div>
         <div class="rd-card-valor">${fmt(pendienteHoy)}</div>
-        <div class="rd-card-sub">${tocanHoy.length} por cobrar</div>
+        <div class="rd-card-sub">${countPendiente} por cobrar</div>
       </div>
       <div class="rd-card atrasado">
         <div class="rd-card-label">En atraso</div>
         <div class="rd-card-valor">${fmt(deudaAtras)}</div>
-        <div class="rd-card-sub">${atrasados.length} cliente${atrasados.length!==1?"s":""}</div>
+        <div class="rd-card-sub">${countAtras} cliente${countAtras!==1?"s":""}</div>
       </div>
     </div>
     ${metaDia > 0 ? `<div class="rd-progress-wrap">
