@@ -1142,5 +1142,25 @@ def main():
     imprimir_resumen_terminal(datos, hoy)
     print(f"\nDashboard generado en: {ruta_salida}")
 
+    # Generar facturas automáticamente para las 3 empresas
+    try:
+        import generar_facturas as gf
+        empresas_fact = [
+            (filas_severa, datos),
+            (filas_luna,   datos_luna_exc),
+            (filas_jomar,  datos_jomar_exc),
+        ]
+        total_nuevas = 0
+        for filas_emp, datos_emp in empresas_fact:
+            if filas_emp or datos_emp.get("clientes"):
+                ok, _ = gf.generar_facturas(filas_emp, datos_emp)
+                total_nuevas += ok
+        if total_nuevas:
+            print(f"  {total_nuevas} nueva(s) factura(s) guardada(s) en /facturas/")
+        else:
+            print("  Facturas: sin cambios")
+    except Exception as e:
+        print(f"  [!] Error generando facturas: {e}")
+
 if __name__ == "__main__":
     main()
