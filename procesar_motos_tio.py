@@ -202,7 +202,7 @@ _JOMAR_RAW = [
         "total_cuotas": 72,
         "tarifa": 240_000,
         "pago_diario": 30_000,
-        "telefono": "3207593591",
+        "telefono": "3147759512",
         "observaciones": "Paga $30.000/dia x 8 dias = $240.000 por cuota | Va puntual",
         "pagos": [
             {"fecha": "2026-03-06", "valor": 240_000},   # Cuota 1
