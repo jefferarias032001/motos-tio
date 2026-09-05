@@ -361,20 +361,26 @@ def main():
         except Exception as e:
             print(f"  [!] Sheets no disponible: {e}")
 
-    filas_severa = [f for f in filas if pmt._empresa_de(f["cliente_clave"], f.get("placa")) == 'severa']
-    clientes_severa = {k: v for k, v in clientes_meta.items()
-                       if pmt._empresa_de(k, v.get("placa")) == 'severa'}
-
-    datos = pmt.procesar(filas_severa, clientes_severa, hoy, tel_por_placa, ultimos_sheets)
-
     print(f"\nGenerando facturas...")
-    total_ok, total_skip = generar_facturas(filas_severa, datos)
+    total_ok_all   = 0
+    total_skip_all = 0
+
+    for empresa in ('severa', 'luna', 'jomar'):
+        filas_emp    = [f for f in filas if pmt._empresa_de(f["cliente_clave"], f.get("placa")) == empresa]
+        clientes_emp = {k: v for k, v in clientes_meta.items()
+                        if pmt._empresa_de(k, v.get("placa")) == empresa}
+        if not filas_emp and not clientes_emp:
+            continue
+        datos_emp = pmt.procesar(filas_emp, clientes_emp, hoy, tel_por_placa, ultimos_sheets)
+        ok, skip  = generar_facturas(filas_emp, datos_emp)
+        total_ok_all   += ok
+        total_skip_all += skip
 
     # Contar total de PDFs existentes en la carpeta
     total_existentes = sum(1 for p in SALIDA.rglob("*.pdf"))
     print(f"\n{'='*60}")
-    if total_ok:
-        print(f"  Nuevas generadas   : {total_ok}")
+    if total_ok_all:
+        print(f"  Nuevas generadas   : {total_ok_all}")
     else:
         print(f"  Sin facturas nuevas — todo al día ✓")
     print(f"  Total acumulado    : {total_existentes} facturas")

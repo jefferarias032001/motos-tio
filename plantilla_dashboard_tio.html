@@ -5527,10 +5527,12 @@ function _mostrarCiclosListos(filtroNombres) {
     // Mostrar todos los clientes seleccionados, independientemente de ciclos completados
     candidatos = candidatos.filter(c => filtroNombres.includes(c.nombre));
   } else {
-    // Vista por defecto: solo los que tienen ciclos listos
+    // Vista por defecto: ciclos en Sheets O cuotas históricas del Excel
     candidatos = candidatos.filter(c => {
       const info = COBRO_POR_CLIENTE[c.nombre.toLowerCase()];
-      return info && info.cuotasCompletadas && info.cuotasCompletadas.length > 0;
+      const tieneSheets = info && info.cuotasCompletadas && info.cuotasCompletadas.length > 0;
+      const tieneExcel  = (c.pagos_realizados || 0) > 0;
+      return tieneSheets || tieneExcel;
     });
   }
 
