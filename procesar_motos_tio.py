@@ -1145,14 +1145,22 @@ def main():
     # Generar facturas automáticamente para las 3 empresas
     try:
         import generar_facturas as gf
+
+        # Luna y Jomar: combinar pagos hardcodeados + Sheets (igual que _construir_datos_empresa)
+        def _filas_completas(raw_list, filas_sheets):
+            hist = _raw_a_filas(raw_list)
+            ultimo = max((f["fecha"] for f in hist), default=date.min)
+            nuevas = [f for f in filas_sheets if f["fecha"] > ultimo]
+            return hist + nuevas
+
         empresas_fact = [
-            (filas_severa, datos),
-            (filas_luna,   datos_luna_exc),
-            (filas_jomar,  datos_jomar_exc),
+            (filas_severa,                              datos),
+            (_filas_completas(_LUNA_RAW,  filas_luna),  datos_luna_exc),
+            (_filas_completas(_JOMAR_RAW, filas_jomar), datos_jomar_exc),
         ]
         total_nuevas = 0
         for filas_emp, datos_emp in empresas_fact:
-            if filas_emp or datos_emp.get("clientes"):
+            if datos_emp and (filas_emp or datos_emp.get("clientes")):
                 ok, _ = gf.generar_facturas(filas_emp, datos_emp)
                 total_nuevas += ok
         if total_nuevas:
