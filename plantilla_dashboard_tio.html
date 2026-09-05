@@ -4563,7 +4563,17 @@ function _expandirPagosCuotas(filas) {
 }
 
 async function fetchCobroFilas(){
-  const resp = await fetch(COBRO_SCRIPT_URL + "?action=data&t=" + Date.now());
+  const ctrl = new AbortController();
+  const tid  = setTimeout(() => ctrl.abort(), 20000);
+  let resp;
+  try {
+    resp = await fetch(COBRO_SCRIPT_URL + "?action=data&t=" + Date.now(), { signal: ctrl.signal });
+  } catch(e) {
+    clearTimeout(tid);
+    if (e.name === "AbortError") throw new Error("Tiempo de espera agotado (>20s). Intenta de nuevo.");
+    throw e;
+  }
+  clearTimeout(tid);
   if(!resp.ok) throw new Error("HTTP " + resp.status + " al consultar el script");
   const filas = await resp.json();
   return filas
@@ -5391,7 +5401,10 @@ async function cargarCobroDiario(){
     actEl.textContent = "Actualizado: " + new Date().toLocaleTimeString("es-CO",{hour:"2-digit",minute:"2-digit"});
 
   } catch(e){
-    estadoEl.innerHTML = `<p style="color:var(--rojo)">Error: ${e.message}</p>`;
+    estadoEl.innerHTML = `<p style="color:var(--rojo)">Error: ${e.message} &nbsp;
+      <button onclick="cargarCobroDiario()" style="font-size:.8rem;padding:4px 10px;cursor:pointer;border:1px solid var(--rojo);border-radius:6px;background:transparent;color:var(--rojo)">
+        Reintentar
+      </button></p>`;
     console.error("cobro diario:", e);
   }
 }
