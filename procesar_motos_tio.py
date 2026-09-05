@@ -172,6 +172,7 @@ _LUNA_RAW = [
         "total_cuotas": 64,
         "tarifa": 240_000,
         "pago_diario": 30_000,
+        "telefono": "3021074225",
         "observaciones": "Paga $30.000/dia x 8 dias = $240.000 por cuota",
         "pagos": [
             {"fecha": "2026-05-14", "valor": 240_000},
