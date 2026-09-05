@@ -2100,7 +2100,19 @@ function cambiarEmpresa(empresa) {
   // 9. Proyección
   actualizarProyeccion();
 
-  // 10. Reconstruir mapa de tarifas para cobro diario
+  // 10. Actualizar selectores de facturación con clientes del módulo activo
+  _factClienteActual = null;
+  const _factClientes = (DATOS_ACTIVO.clientes || []).slice().sort((a,b) => a.nombre.localeCompare(b.nombre));
+  if (window._msFactNombre) {
+    window._msFactNombre.clear();
+    window._msFactNombre.setOpts(_factClientes.map(c => ({ value: c.nombre, label: c.nombre, sub: c.placa||'' })));
+  }
+  if (window._msFactPlaca) {
+    window._msFactPlaca.clear();
+    window._msFactPlaca.setOpts(_factClientes.filter(c=>c.placa).map(c => ({ value: c.nombre, label: c.placa, sub: c.nombre })));
+  }
+
+  // 11. Reconstruir mapa de tarifas para cobro diario
   Object.keys(TARIFA_SEMANAL_MAP).forEach(k => delete TARIFA_SEMANAL_MAP[k]);
   DATOS_ACTIVO.clientes.forEach(c => {
     TARIFA_SEMANAL_MAP[c.nombre.toLowerCase()] = c.tarifa_ref || 240000;
