@@ -103,6 +103,7 @@ CLIENTES_CONFIG = {
     "josue":            {"num": 34, "cat": "quincenal",   "dias": 15, "meta": 260_000, "label": "Quincenal 260k"},
     "laura vanesa":     {"num": 35, "cat": "quincenal",   "dias": 15, "meta": 260_000, "label": "Quincenal 260k",  "tel": "3003546422"},
     "analeidys larry":  {"num": 36, "cat": "semanal",     "dias": 7,  "meta": 240_000, "label": "Semanal 240k",     "inicio": date(2026, 8, 26), "total_cuotas": 68, "tel": "3225337073"},
+    "daniel natalia":   {"num": 37, "cat": "quincenal",   "dias": 15, "meta": 260_000, "label": "Quincenal 260k",   "inicio": date(2026, 9, 8),  "total_cuotas": 48},
     # Empresas externas (Luna / Jomar) — se procesan por separado pero necesitan config de ciclo
     "cesar":            {"num":  1, "cat": "diario_30k",  "dias": 8,  "meta": 240_000, "label": "Diario 30k × 8d"},
     "william villa":    {"num":  1, "cat": "diario_30k",  "dias": 8,  "meta": 240_000, "label": "Diario 30k × 8d",  "tel": "3207593591"},
