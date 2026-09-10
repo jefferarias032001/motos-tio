@@ -77,7 +77,7 @@ CLIENTES_CONFIG = {
     "jesus morales":    {"num":  8, "cat": "diario_30k",  "dias": 8,  "meta": 240_000, "label": "Diario 30k × 8d"},
     "asmed":            {"num":  9, "cat": "semanal",     "dias": 7,  "meta": 240_000, "label": "Semanal 240k"},
     "chacal":           {"num": 10, "cat": "diario_30k",  "dias": 8,  "meta": 240_000, "label": "Diario 30k × 8d"},
-    "wilian viejo":     {"num": 11, "cat": "diario_30k",  "dias": 8,  "meta": 240_000, "label": "Diario 30k × 8d"},
+    "wilian viejo":     {"num": 11, "cat": "diario_30k",  "dias": 8,  "meta": 240_000, "label": "Diario 30k × 8d", "tel": "3117020109"},
     "darwin":           {"num": 12, "cat": "semanal",     "dias": 7,  "meta": 240_000, "label": "Semanal 240k"},
     "heiner rodriguez": {"num": 13, "cat": "diario_34k",  "dias": 7,  "meta": 240_000, "label": "Diario 34k × 7d"},
     "negro luis":       {"num": 14, "cat": "quincenal",   "dias": 15, "meta": 240_000, "label": "Quincenal 240k",   "tel": "3017986930"},
