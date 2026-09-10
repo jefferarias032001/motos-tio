@@ -4832,7 +4832,7 @@ function renderCobroFiltrado() {
       const key = normalizarNombreCliente(r.cliente);
       if (!porClienteHoy[key]) {
         const tarifa = TARIFA_SEMANAL_MAP[key] || TARIFA_SEMANAL_MAP[r.cliente.toLowerCase()] || 240000;
-        porClienteHoy[key] = { cliente: r.cliente.trim(), placa: r.placa, moto: r.moto, tarifa, pagos: [] };
+        porClienteHoy[key] = { cliente: canonicalizarNombre(r.cliente.trim()), placa: r.placa, moto: r.moto, tarifa, pagos: [] };
       }
       porClienteHoy[key].pagos.push({ fecha: r.fecha, valor: Number(r.pago_recibido)||0, medio: r.medio_pago||'' });
     });
