@@ -3243,7 +3243,7 @@ function renderTabla(){
     const est = estadoFila(r);
     return `<tr>
       <td>${r.fecha}</td>
-      <td>${r.cliente}</td>
+      <td>${canonicalizarNombre(r.cliente)}</td>
       <td>${r.placa || '—'}</td>
       <td class="num">${formatPesos(r.esperado)}</td>
       <td class="num">${formatPesos(r.recibido)}</td>
@@ -5218,7 +5218,7 @@ function renderCobroFiltrado() {
                      : '-' + formatPesos(diff);
       return `<tr${rowClass}${rowStyle}>
         <td style="white-space:nowrap;${fechaStyle}">${d}/${m}/${y}${esHoy?'<span style="font-size:.6rem;background:var(--plate);color:#1A1714;padding:1px 5px;border-radius:4px;margin-left:5px;font-weight:700;">HOY</span>':''}</td>
-        <td style="font-size:.82rem;">${r.cliente||''}</td>
+        <td style="font-size:.82rem;">${canonicalizarNombre(r.cliente||'')}</td>
         <td style="font-size:.78rem;color:var(--ink-soft);">${r.placa||''}</td>
         <td style="text-align:right;color:var(--ink-soft);font-size:.8rem;">${esperado>0?formatPesos(esperado):'—'}</td>
         <td style="text-align:right;font-weight:700;color:${colorRec};">${recibido>0?formatPesos(recibido)+'<span style="font-size:.65rem;margin-left:2px;">'+iconRec+'</span>':'—'}</td>
