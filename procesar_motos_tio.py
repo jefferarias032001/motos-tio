@@ -118,6 +118,7 @@ ALIAS_NOMBRES = {
     "kevin rodriguez":                   "heiner rodriguez",
     "roberto":                           "edinson",
     "wilian junior / darlis esther":     "wilian viejo",
+    "wilian junior darlis esther":       "wilian viejo",
     "wilian junior":                     "wilian viejo",
     "chacal / caterine":                 "chacal caterine",
     # Negro: mismo cliente, diferentes nombres en app vs Excel
