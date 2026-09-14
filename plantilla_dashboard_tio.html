@@ -1649,33 +1649,6 @@
     </div>
   </section>
 
-  <section id="seccion-gerencia-flota">
-    <h2 class="titulo-seccion">Proyección: crecer la flota</h2>
-    <div class="panel simulador">
-      <div class="campo">
-        <div>
-          <label for="proy-precio-moto">Precio de la moto nueva</label>
-          <input type="number" id="proy-precio-moto" placeholder="Ej: 6300000" min="0" step="50000" value="6300000">
-        </div>
-        <div>
-          <label for="proy-ya-tienes">Ya tienes ahorrado</label>
-          <input type="number" id="proy-ya-tienes" placeholder="0" min="0" step="10000" value="0">
-        </div>
-        <div>
-          <label for="proy-meta-motos">Motos a las que quieres llegar</label>
-          <input type="number" id="proy-meta-motos" placeholder="Ej: 10" min="1" max="60" step="1" value="10">
-        </div>
-      </div>
-      <div class="tabla-scroll">
-        <table class="detalle" id="tabla-proyeccion">
-          <thead><tr><th>Evento</th><th>Fecha</th><th>Días desde el anterior</th><th>Motos activas</th><th>Ingreso diario</th><th>Ingreso mensual</th><th>Observación</th></tr></thead>
-          <tbody></tbody>
-          <tfoot id="tabla-proyeccion-pie"></tfoot>
-        </table>
-      </div>
-      <div class="nota-sim" id="nota-proyeccion"></div>
-    </div>
-  </section>
 
   <section id="seccion-por-cobrar">
     <h2 class="titulo-seccion">¿Cuánto me falta por cobrar?</h2>
@@ -1861,17 +1834,94 @@
 
   <!-- ═══ VISTA PROYECCIÓN ═══ -->
   <div id="vista-proyeccion" class="vista">
+
+  <!-- ── Crecer la flota ── -->
+  <section id="seccion-flota-proyeccion">
+    <h2 class="titulo-seccion">🏍️ Proyección: crecer la flota</h2>
+    <div class="panel simulador">
+      <div class="campo">
+        <div>
+          <label for="proy-precio-moto">Precio de la moto nueva</label>
+          <input type="number" id="proy-precio-moto" placeholder="Ej: 6300000" min="0" step="50000" value="6300000" oninput="actualizarProyeccion()">
+        </div>
+        <div>
+          <label for="proy-ya-tienes">Ya tienes ahorrado</label>
+          <input type="number" id="proy-ya-tienes" placeholder="0" min="0" step="100000" value="0" oninput="actualizarProyeccion()">
+        </div>
+        <div>
+          <label for="proy-meta-motos">Motos a las que quieres llegar</label>
+          <input type="number" id="proy-meta-motos" placeholder="Ej: 10" min="1" max="60" step="1" value="10" oninput="actualizarProyeccion()">
+        </div>
+      </div>
+      <div class="tabla-scroll">
+        <table class="detalle" id="tabla-proyeccion">
+          <thead><tr><th>Evento</th><th>Fecha</th><th>Días</th><th>Motos activas</th><th>Ingreso mensual</th><th>Observación</th></tr></thead>
+          <tbody></tbody>
+          <tfoot id="tabla-proyeccion-pie"></tfoot>
+        </table>
+      </div>
+      <div class="nota-sim" id="nota-proyeccion"></div>
+    </div>
+  </section>
+
+  <!-- ── Planificador con reserva mensual ── -->
+  <section id="seccion-planificador-reserva">
+    <h2 class="titulo-seccion">💰 Planificador con reserva mensual</h2>
+    <p style="color:var(--ink-soft);font-size:.85rem;margin-bottom:16px;">
+      ¿Cuánto entra al mes si todos pagan? Con base en eso, ¿cuándo puedo comprar motos nuevas reservando un colchón fijo cada mes para no quedar en cero?
+    </p>
+    <div class="panel simulador">
+      <div class="campo">
+        <div>
+          <label for="plan-ingreso">Mi ingreso mensual actual</label>
+          <input type="number" id="plan-ingreso" placeholder="Ej: 23000000" min="0" step="100000" oninput="calcularPlanificador()">
+          <small id="plan-ingreso-auto" style="color:var(--ink-soft);font-size:.72rem;margin-top:3px;display:block;"></small>
+        </div>
+        <div>
+          <label for="plan-precio">Precio de la moto nueva</label>
+          <input type="number" id="plan-precio" placeholder="Ej: 6300000" min="0" step="50000" value="6300000" oninput="calcularPlanificador()">
+        </div>
+        <div>
+          <label for="plan-meta">Meta de motos</label>
+          <input type="number" id="plan-meta" placeholder="Ej: 10" min="1" max="100" step="1" value="10" oninput="calcularPlanificador()">
+        </div>
+        <div>
+          <label for="plan-reserva">Reserva mensual (colchón)</label>
+          <input type="number" id="plan-reserva" placeholder="Ej: 2000000" min="0" step="100000" value="2000000" oninput="calcularPlanificador()">
+          <small style="color:var(--ink-soft);font-size:.72rem;margin-top:3px;display:block;">Este valor se guarda cada mes y nunca se toca para comprar motos</small>
+        </div>
+      </div>
+      <div id="plan-resumen" style="margin:14px 0;"></div>
+      <div class="tabla-scroll" id="plan-tabla-wrap" style="display:none;">
+        <table class="proy-tabla" id="plan-tabla">
+          <thead>
+            <tr>
+              <th>Mes</th>
+              <th>Ingresos</th>
+              <th>Reserva del mes</th>
+              <th>Caja disponible</th>
+              <th>Motos compradas</th>
+              <th>Total motos</th>
+              <th>Reserva acumulada</th>
+            </tr>
+          </thead>
+          <tbody id="plan-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── Proyección financiera mes a mes ── -->
   <section id="seccion-proyeccion">
-    <h2 class="titulo-seccion">📈 Proyección financiera</h2>
+    <h2 class="titulo-seccion">📈 Proyección financiera mes a mes</h2>
     <div id="proyeccion-resumen" class="proy-resumen"></div>
-    <p class="proy-section-titulo">Mes a mes · 2026–2027</p>
     <div class="proy-tabla-wrap">
       <table class="proy-tabla" id="proyeccion-tabla">
         <thead>
           <tr>
             <th>Mes</th>
             <th>Motos activas</th>
-            <th>Ingreso esperado</th>
+            <th>Ingreso si todos pagan</th>
             <th>Terminan contrato</th>
             <th>Ingreso que cae</th>
             <th>Recomendación</th>
@@ -1881,10 +1931,10 @@
       </table>
     </div>
     <p style="margin-top:16px;font-size:.75rem;color:var(--ink-soft);">
-      Ingreso esperado = suma de cuotas que caen en cada mes asumiendo pago puntual.<br>
-      Fecha fin = inicio contrato + total cuotas × ciclo días (proyección basada en Excel).
+      Ingreso = suma de lo que pagaría cada cliente activo ese mes si paga puntual su cuota (tarifa ÷ días de ciclo × 30).
     </p>
   </section>
+
   </div>
 
   <!-- ═══ VISTA LUNA ═══ -->
@@ -2099,6 +2149,7 @@ function cambiarEmpresa(empresa) {
 
   // 9. Proyección
   actualizarProyeccion();
+  _autoRellenarIngresoPlaner();
 
   // 10. Actualizar selectores de facturación con clientes del módulo activo
   _factClienteActual = null;
@@ -2938,6 +2989,131 @@ function actualizarProyeccion(){
   nota.textContent = `Llegarías a ${metaMotos} motos el ${fechaFinal}${avisoLimite}. `
     + `Ya tiene en cuenta que Jean Carlos, Carlos y Francisco dejan de generar ingreso cuando terminen de pagar su moto actual (filas en rojo arriba). `
     + `Para las motos nuevas que vayas comprando, asume que TODO su ingreso diario (sin descontar gasolina, mantenimiento u otros gastos) se destina a ahorrar para la siguiente, a razón de ${formatPesos(tarifaPorMotoNueva)}/moto/día, y que esas no tienen fecha de vencimiento propia.`;
+}
+
+// Auto-rellena el campo de ingreso del planificador con el ingreso real calculado
+function _autoRellenarIngresoPlaner(){
+  if (!DATOS_ACTIVO) return;
+  const hoy = new Date(DATOS_ACTIVO.hoy + "T00:00:00");
+  const diasMesHoy = diasEnMes(hoy);
+  // Suma tarifa_ref/dias_ciclo*30 por cada cliente activo este mes
+  const ingresoTotal = Math.round((DATOS_ACTIVO.clientes || []).reduce((s, c) => {
+    const dc = c.dias_ciclo || 7;
+    const meta = c.meta_ciclo || c.tarifa_ref || 240000;
+    return s + (diasMesHoy / dc) * meta;
+  }, 0));
+  const inp = document.getElementById("plan-ingreso");
+  const hint = document.getElementById("plan-ingreso-auto");
+  if (!inp.value || parseFloat(inp.value) === 0){
+    inp.value = ingresoTotal;
+  }
+  if (hint) hint.textContent = `Auto-calculado: ${formatPesos(ingresoTotal)} (si todos pagan este mes)`;
+  calcularPlanificador();
+}
+
+// ── Planificador con reserva mensual ────────────────────────────
+function calcularPlanificador(){
+  const ingresoInput = parseFloat(document.getElementById("plan-ingreso").value) || 0;
+  const precio       = parseFloat(document.getElementById("plan-precio").value)  || 0;
+  const metaMots     = Math.floor(parseFloat(document.getElementById("plan-meta").value) || 0);
+  const reservaMes   = parseFloat(document.getElementById("plan-reserva").value) || 0;
+
+  const resumenEl  = document.getElementById("plan-resumen");
+  const tablaWrap  = document.getElementById("plan-tabla-wrap");
+  const tbody      = document.getElementById("plan-tbody");
+
+  if (ingresoInput <= 0 || precio <= 0 || metaMots < 1){
+    resumenEl.innerHTML = `<p style="color:var(--ink-soft);font-size:.85rem;">Completa los campos para ver la proyección.</p>`;
+    tablaWrap.style.display = "none";
+    return;
+  }
+
+  const motosActuales = DATOS_ACTIVO ? (DATOS_ACTIVO.global.cantidad_motos || 0) : 0;
+  if (metaMots <= motosActuales){
+    resumenEl.innerHTML = `<p style="color:var(--ink-soft);font-size:.85rem;">Ya tienes ${motosActuales} moto(s) activas — pon una meta mayor.</p>`;
+    tablaWrap.style.display = "none";
+    return;
+  }
+
+  // Ingreso base: crece conforme se compran motos (proporcional)
+  const ingresoPorMoto = motosActuales > 0 ? ingresoInput / motosActuales : 0;
+
+  let caja          = 0;  // dinero disponible para comprar (excluye la reserva)
+  let reservaAcum   = 0;
+  let motos         = motosActuales;
+  let ingresoActual = ingresoInput;
+  const filas       = [];
+  const LIMITE_MESES = 240; // 20 años
+
+  for (let i = 0; i < LIMITE_MESES && motos < metaMots; i++){
+    const ingresoMes = Math.round(ingresoActual);
+    const reservaMesActual = Math.round(Math.min(reservaMes, ingresoMes)); // no superar ingreso
+    const disponibleMes = ingresoMes - reservaMesActual;
+    caja += disponibleMes;
+    reservaAcum += reservaMesActual;
+
+    let motasCompradasMes = 0;
+    while (motos < metaMots && caja >= precio){
+      caja -= precio;
+      motos++;
+      motasCompradasMes++;
+      if (ingresoPorMoto > 0) ingresoActual += ingresoPorMoto;
+    }
+
+    const fecha = new Date(DATOS_ACTIVO ? DATOS_ACTIVO.hoy + "T00:00:00" : Date.now());
+    fecha.setMonth(fecha.getMonth() + i + 1);
+    const label = `${NOMBRES_MESES_ES[fecha.getMonth()]} ${fecha.getFullYear()}`;
+
+    filas.push({
+      label, ingresoMes, reservaMesActual,
+      cajaDisponible: Math.round(caja),
+      motasCompradas: motasCompradasMes,
+      totalMotos: motos,
+      reservaAcum: Math.round(reservaAcum),
+    });
+  }
+
+  if (motos < metaMots){
+    resumenEl.innerHTML = `<p style="color:var(--rojo);font-size:.85rem;">Con estos datos no se alcanza la meta en 20 años. Sube el ingreso, baja el precio o reduce la reserva.</p>`;
+    tablaWrap.style.display = "none";
+    return;
+  }
+
+  const mesLlegada = filas.length;
+  const ultimaFila = filas[filas.length - 1];
+  resumenEl.innerHTML = `
+    <div style="display:flex;gap:16px;flex-wrap:wrap;margin-bottom:8px;">
+      <div class="proy-card" style="flex:1;min-width:140px;">
+        <div class="proy-card-label">Meta alcanzada en</div>
+        <div class="proy-card-val" style="color:var(--verde);">${mesLlegada} mes${mesLlegada!==1?"es":""}</div>
+        <div class="proy-card-sub">${ultimaFila.label}</div>
+      </div>
+      <div class="proy-card" style="flex:1;min-width:140px;">
+        <div class="proy-card-label">Reserva acumulada</div>
+        <div class="proy-card-val" style="color:#8B5CF6;">${formatCompacto(ultimaFila.reservaAcum)}</div>
+        <div class="proy-card-sub">colchón guardado</div>
+      </div>
+      <div class="proy-card" style="flex:1;min-width:140px;">
+        <div class="proy-card-label">Caja sobrante</div>
+        <div class="proy-card-val" style="color:#0EA5E9;">${formatCompacto(ultimaFila.cajaDisponible)}</div>
+        <div class="proy-card-sub">después de comprar</div>
+      </div>
+    </div>`;
+
+  tbody.innerHTML = filas.map(f => `
+    <tr${f.motasCompradas > 0 ? ' style="background:var(--verde-faint,#d1fae510);"' : ''}>
+      <td>${f.label}</td>
+      <td class="num">${formatPesos(f.ingresoMes)}</td>
+      <td class="num" style="color:#8B5CF6;">${formatPesos(f.reservaMesActual)}</td>
+      <td class="num">${formatPesos(f.cajaDisponible)}</td>
+      <td class="num" style="font-weight:${f.motasCompradas>0?'700':'400'};color:${f.motasCompradas>0?'var(--verde)':'inherit'};">
+        ${f.motasCompradas > 0 ? `+${f.motasCompradas} moto${f.motasCompradas>1?'s':''}` : '—'}
+      </td>
+      <td class="num">${f.totalMotos}</td>
+      <td class="num" style="color:#8B5CF6;">${formatCompacto(f.reservaAcum)}</td>
+    </tr>`).join("");
+
+  tablaWrap.style.display = "";
 }
 
 function calcularSaldoFinalFiltrado(filas){
@@ -4166,9 +4342,14 @@ document.getElementById("sim-objetivo").addEventListener("input", actualizarSimu
 document.getElementById("sim-ya-tienes").addEventListener("input", actualizarSimulador);
 
 actualizarProyeccion();
+_autoRellenarIngresoPlaner();
 document.getElementById("proy-precio-moto").addEventListener("input", actualizarProyeccion);
 document.getElementById("proy-ya-tienes").addEventListener("input", actualizarProyeccion);
 document.getElementById("proy-meta-motos").addEventListener("input", actualizarProyeccion);
+document.getElementById("plan-ingreso").addEventListener("input", calcularPlanificador);
+document.getElementById("plan-precio").addEventListener("input", calcularPlanificador);
+document.getElementById("plan-meta").addEventListener("input", calcularPlanificador);
+document.getElementById("plan-reserva").addEventListener("input", calcularPlanificador);
 
 iniciarTabs();
 
