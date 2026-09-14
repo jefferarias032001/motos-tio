@@ -4746,18 +4746,22 @@ function _expandirPagosCuotas(filas) {
 
 async function fetchCobroFilas(){
   const ctrl = new AbortController();
-  const tid  = setTimeout(() => ctrl.abort(), 20000);
+  const tid  = setTimeout(() => ctrl.abort(), 12000);
   let resp;
   try {
     resp = await fetch(COBRO_SCRIPT_URL + "?action=data&t=" + Date.now(), { signal: ctrl.signal });
   } catch(e) {
     clearTimeout(tid);
-    if (e.name === "AbortError") throw new Error("Tiempo de espera agotado (>20s). Intenta de nuevo.");
+    if (e.name === "AbortError") throw new Error("Sin respuesta en 12 s. Intenta de nuevo.");
     throw e;
   }
   clearTimeout(tid);
   if(!resp.ok) throw new Error("HTTP " + resp.status + " al consultar el script");
-  const filas = await resp.json();
+  // Timeout adicional para el parseo JSON
+  const filas = await Promise.race([
+    resp.json(),
+    new Promise((_,rej) => setTimeout(() => rej(new Error("Tiempo agotado leyendo respuesta. Intenta de nuevo.")), 8000))
+  ]);
   return filas
     .map(r => ({
       fecha:         String(r.fecha         || ""),
