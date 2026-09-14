@@ -5508,8 +5508,20 @@ async function cargarCobroDiario(){
   if (sinEl) sinEl.innerHTML = "";
   if (tickEl) tickEl.innerHTML = "";
 
+  // Contador visible mientras carga
+  let seg = 0;
+  const timerVis = setInterval(() => {
+    seg++;
+    if (estadoEl) estadoEl.textContent = `Cargando datos del cobrador… (${seg}s)`;
+  }, 1000);
+
+  const _timeout = new Promise((_,rej) =>
+    setTimeout(() => rej(new Error("Sin respuesta en 15 s. Intenta de nuevo.")), 15000)
+  );
+
   try{
-    const filas = await fetchCobroFilas();
+    const filas = await Promise.race([fetchCobroFilas(), _timeout]);
+    clearInterval(timerVis);
     const hoy   = DATOS_ACTIVO.hoy;
 
     if(!filas.length){
@@ -5587,6 +5599,7 @@ async function cargarCobroDiario(){
     actEl.textContent = "Actualizado: " + new Date().toLocaleTimeString("es-CO",{hour:"2-digit",minute:"2-digit"});
 
   } catch(e){
+    clearInterval(timerVis);
     estadoEl.innerHTML = `<p style="color:var(--rojo)">Error: ${e.message} &nbsp;
       <button onclick="cargarCobroDiario()" style="font-size:.8rem;padding:4px 10px;cursor:pointer;border:1px solid var(--rojo);border-radius:6px;background:transparent;color:var(--rojo)">
         Reintentar
