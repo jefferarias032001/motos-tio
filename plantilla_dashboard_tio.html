@@ -2885,9 +2885,19 @@ function actualizarProyeccion(){
   const nota = document.getElementById("nota-proyeccion");
 
   const motosActualesInicio = DATOS_ACTIVO.global.cantidad_motos;
+
+  // Ingreso mensual real: suma de (meta_ciclo / dias_ciclo * 30) por cliente activo
+  const _ingresoMensualBase = Math.round((DATOS_ACTIVO.clientes || []).reduce((s,c) => {
+    const dc = c.dias_ciclo || 7;
+    const meta = c.meta_ciclo || c.tarifa_ref || 240000;
+    return s + (30 / dc) * meta;
+  }, 0));
+  const ingresoMensualPorMoto = motosActualesInicio > 0 ? _ingresoMensualBase / motosActualesInicio : 0;
+
+  // Para la simulación diaria seguimos usando tarifa diaria internamente
   const tarifaPorMotoNueva = motosActualesInicio > 0 ? (DATOS_ACTIVO.global.tarifa_diaria_combinada / motosActualesInicio) : 0;
 
-  if (precio <= 0 || tarifaPorMotoNueva <= 0){
+  if (precio <= 0 || _ingresoMensualBase <= 0){
     tbody.innerHTML = "";
     pie.innerHTML = "";
     nota.textContent = "Escribe el precio de la moto nueva para ver la proyección.";
@@ -2931,6 +2941,7 @@ function actualizarProyeccion(){
         fecha: new Date(fechaCursor),
         dias: Math.round((fechaCursor - fechaAnterior) / 86400000),
         motos, ingresoDiario,
+        ingresoMensual: Math.round(ingresoMensualPorMoto * motos),
       });
       fechaAnterior = new Date(fechaCursor);
       idxVenc++;
@@ -2950,13 +2961,14 @@ function actualizarProyeccion(){
         fecha: new Date(fechaCursor),
         dias: Math.round((fechaCursor - fechaAnterior) / 86400000),
         motos, ingresoDiario,
+        ingresoMensual: Math.round(ingresoMensualPorMoto * motos),
       });
       fechaAnterior = new Date(fechaCursor);
     }
   }
 
   if (!filas.length || motos < metaMotos){
-    tbody.innerHTML = `<tr><td colspan="7"><div class="aviso-vacio">Con estos datos no se alcanza la meta en un tiempo razonable — prueba con un precio menor o una meta más baja.</div></td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="6"><div class="aviso-vacio">Con estos datos no se alcanza la meta en un tiempo razonable — prueba con un precio menor o una meta más baja.</div></td></tr>`;
     pie.innerHTML = "";
     nota.textContent = "";
     return;
@@ -2968,8 +2980,7 @@ function actualizarProyeccion(){
       <td>${f.fecha.toLocaleDateString("es-CO",{day:"numeric",month:"long",year:"numeric"})}</td>
       <td class="num">${f.dias}</td>
       <td class="num">${f.motos}</td>
-      <td class="num">${formatPesos(f.ingresoDiario)}</td>
-      <td class="num">${formatPesos(f.ingresoDiario * diasEnMes(f.fecha))}</td>
+      <td class="num">${formatPesos(f.ingresoMensual)}</td>
       <td class="nota">${f.obs}</td>
     </tr>`
   ).join("");
@@ -2979,8 +2990,7 @@ function actualizarProyeccion(){
   pie.innerHTML = `<tr>
     <td colspan="3">Total · ${totalDias} días desde hoy</td>
     <td class="num">${ultima.motos}</td>
-    <td class="num">${formatPesos(ultima.ingresoDiario)}</td>
-    <td class="num">${formatPesos(ultima.ingresoDiario * diasEnMes(ultima.fecha))}</td>
+    <td class="num">${formatPesos(ultima.ingresoMensual)}</td>
     <td></td>
   </tr>`;
 
