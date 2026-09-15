@@ -2884,18 +2884,25 @@ function actualizarProyeccion(){
   const pie = document.getElementById("tabla-proyeccion-pie");
   const nota = document.getElementById("nota-proyeccion");
 
-  const motosActualesInicio = DATOS_ACTIVO.global.cantidad_motos;
+  // Solo clientes que aún tienen cuotas pendientes
+  const _clientesActivos = (DATOS_ACTIVO.clientes || []).filter(c => !c.contrato_completo && (c.pagos_restantes || 0) > 0);
+  const motosActualesInicio = _clientesActivos.length;
 
-  // Ingreso mensual real: suma de (meta_ciclo / dias_ciclo * 30) por cliente activo
-  const _ingresoMensualBase = Math.round((DATOS_ACTIVO.clientes || []).reduce((s,c) => {
+  // Ingreso mensual real: suma de (meta_ciclo / dias_ciclo * 30) solo de activos
+  const _ingresoMensualBase = Math.round(_clientesActivos.reduce((s,c) => {
     const dc = c.dias_ciclo || 7;
     const meta = c.meta_ciclo || c.tarifa_ref || 240000;
     return s + (30 / dc) * meta;
   }, 0));
   const ingresoMensualPorMoto = motosActualesInicio > 0 ? _ingresoMensualBase / motosActualesInicio : 0;
 
-  // Para la simulación diaria seguimos usando tarifa diaria internamente
-  const tarifaPorMotoNueva = motosActualesInicio > 0 ? (DATOS_ACTIVO.global.tarifa_diaria_combinada / motosActualesInicio) : 0;
+  // Para la simulación diaria: tarifa diaria combinada solo de activos
+  const _tarifaDiariaActivos = _clientesActivos.reduce((s,c) => {
+    const dc = c.dias_ciclo || 7;
+    const meta = c.meta_ciclo || c.tarifa_ref || 240000;
+    return s + meta / dc;
+  }, 0);
+  const tarifaPorMotoNueva = motosActualesInicio > 0 ? _tarifaDiariaActivos / motosActualesInicio : 0;
 
   if (precio <= 0 || _ingresoMensualBase <= 0){
     tbody.innerHTML = "";
@@ -2913,11 +2920,15 @@ function actualizarProyeccion(){
   const metaMotos = Math.min(metaMotosInput, motosActualesInicio + 60); // límite de seguridad
 
   // Motos actuales que van a terminar de pagarse (dejan de generar ingreso) durante la proyección
-  const vencimientos = DATOS_ACTIVO.clientes
-    .map(c => ({ fecha: new Date(c.fecha_fin_contrato + "T00:00:00"), tarifa: c.tarifa_ref, nombre: c.nombre }))
+  const vencimientos = _clientesActivos
+    .map(c => ({
+      fecha: new Date(c.fecha_fin_contrato + "T00:00:00"),
+      tarifa: (c.meta_ciclo || c.tarifa_ref || 240000) / (c.dias_ciclo || 7),
+      nombre: c.nombre
+    }))
     .sort((a,b)=> a.fecha - b.fecha);
 
-  let ingresoDiario = DATOS_ACTIVO.global.tarifa_diaria_combinada;
+  let ingresoDiario = _tarifaDiariaActivos;
   let ahorro = yaTienes;
   let motos = motosActualesInicio;
   let numeroCompra = 0;
