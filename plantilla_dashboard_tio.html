@@ -2872,6 +2872,40 @@ function diasEnMes(fecha){
   return new Date(fecha.getFullYear(), fecha.getMonth()+1, 0).getDate();
 }
 
+// Cuenta cuántos pagos exactos caen en [primerDia, ultimoDia] para un cliente,
+// avanzando desde su último pago en pasos de dias_ciclo.
+function pagosEnMes(c, primerDia, ultimoDia){
+  const dc   = c.dias_ciclo || 7;
+  const meta = c.meta_ciclo || c.tarifa_ref || 240000;
+  if (!meta || !dc) return 0;
+
+  // Punto de partida: último pago registrado
+  const ultimoPagoStr = c.ultimo_pago_fecha || c.fecha_inicio;
+  if (!ultimoPagoStr) {
+    // Fallback: aproximación si no hay fecha de referencia
+    return (diasEnMes(primerDia) / dc);
+  }
+  let cursor = new Date(ultimoPagoStr + "T00:00:00");
+
+  // Avanzar hasta llegar al rango del mes (o pasarlo)
+  // Si el cursor ya pasó el fin del mes, retroceder al inicio de la cadena
+  // Necesitamos la primera fecha >= primerDia que sea múltiplo de dc desde cursor
+  if (cursor > ultimoDia) {
+    // cursor está en el futuro respecto al mes — retroceder
+    while (cursor > primerDia) cursor = new Date(cursor.getTime() - dc * 86400000);
+  }
+  // Avanzar hasta entrar al mes
+  while (cursor < primerDia) cursor = new Date(cursor.getTime() + dc * 86400000);
+
+  // Contar pagos dentro del mes
+  let count = 0;
+  while (cursor <= ultimoDia) {
+    count++;
+    cursor = new Date(cursor.getTime() + dc * 86400000);
+  }
+  return count;
+}
+
 function mismoDia(a, b){
   return a.getFullYear()===b.getFullYear() && a.getMonth()===b.getMonth() && a.getDate()===b.getDate();
 }
@@ -2888,11 +2922,12 @@ function actualizarProyeccion(){
   const _clientesActivos = (DATOS_ACTIVO.clientes || []).filter(c => !c.contrato_completo && (c.pagos_restantes || 0) > 0);
   const motosActualesInicio = _clientesActivos.length;
 
-  // Ingreso mensual real: suma de (meta_ciclo / dias_ciclo * 30) solo de activos
+  // Ingreso mensual real: pagos exactos que caen en el mes actual
+  const _hoyDate   = new Date(DATOS_ACTIVO.hoy + "T00:00:00");
+  const _primerDia = new Date(_hoyDate.getFullYear(), _hoyDate.getMonth(), 1);
+  const _ultimoDia = new Date(_hoyDate.getFullYear(), _hoyDate.getMonth() + 1, 0);
   const _ingresoMensualBase = Math.round(_clientesActivos.reduce((s,c) => {
-    const dc = c.dias_ciclo || 7;
-    const meta = c.meta_ciclo || c.tarifa_ref || 240000;
-    return s + (30 / dc) * meta;
+    return s + pagosEnMes(c, _primerDia, _ultimoDia) * (c.meta_ciclo || c.tarifa_ref || 240000);
   }, 0));
   const ingresoMensualPorMoto = motosActualesInicio > 0 ? _ingresoMensualBase / motosActualesInicio : 0;
 
@@ -3016,13 +3051,14 @@ function actualizarProyeccion(){
 function _autoRellenarIngresoPlaner(){
   if (!DATOS_ACTIVO) return;
   const hoy = new Date(DATOS_ACTIVO.hoy + "T00:00:00");
-  const diasMesHoy = diasEnMes(hoy);
-  // Suma tarifa_ref/dias_ciclo*30 por cada cliente activo este mes
-  const ingresoTotal = Math.round((DATOS_ACTIVO.clientes || []).reduce((s, c) => {
-    const dc = c.dias_ciclo || 7;
-    const meta = c.meta_ciclo || c.tarifa_ref || 240000;
-    return s + (diasMesHoy / dc) * meta;
-  }, 0));
+  const primerDiaMes = new Date(hoy.getFullYear(), hoy.getMonth(), 1);
+  const ultimoDiaMes = new Date(hoy.getFullYear(), hoy.getMonth() + 1, 0);
+  // Pagos exactos que caen en el mes actual por cada cliente activo
+  const ingresoTotal = Math.round(
+    (DATOS_ACTIVO.clientes || [])
+      .filter(c => !c.contrato_completo && (c.pagos_restantes || 0) > 0)
+      .reduce((s, c) => s + pagosEnMes(c, primerDiaMes, ultimoDiaMes) * (c.meta_ciclo || c.tarifa_ref || 240000), 0)
+  );
   const inp = document.getElementById("plan-ingreso");
   const hint = document.getElementById("plan-ingreso-auto");
   if (!inp.value || parseFloat(inp.value) === 0){
@@ -3223,11 +3259,9 @@ function cargarProyeccion(){
     .map(c => ({ ...c, _finReal: fechaFinReal(c) }))
     .filter(c => c._finReal !== null);
 
-  // Ingreso mensual estimado por cliente (si paga puntual)
-  function ingresoMensualCliente(c, diasEnMes){
-    const diasCiclo = c.dias_ciclo || 7;
-    const meta      = c.meta_ciclo || 240000;
-    return (diasEnMes / diasCiclo) * meta;
+  // Ingreso mensual EXACTO por cliente: cuenta cuántos pagos caen dentro del mes
+  function ingresoMensualCliente(c, _ignorado, primerDia, ultimoDia){
+    return pagosEnMes(c, primerDia, ultimoDia) * (c.meta_ciclo || c.tarifa_ref || 240000);
   }
 
   // Generar meses desde el mes actual hasta dic 2027
@@ -3249,20 +3283,11 @@ function cargarProyeccion(){
     // Terminan: su fin proyectado cae dentro de este mes
     const terminan = clientesActivos.filter(c => c._finReal >= primerDia && c._finReal <= ultimoDia);
 
-    // Ingreso esperado = suma de activos este mes
-    // Si terminan este mes, solo cuentan las cuotas hasta su fecha de fin
-    const ingresoEsperado = activos.reduce((s,c) => {
-      const diasCiclo = c.dias_ciclo || 7;
-      const meta      = c.meta_ciclo || 240000;
-      // Si termina este mes, proporcional a los días hasta el fin
-      const diasActivos = terminan.includes(c)
-        ? Math.min(diasEnMes, Math.round((c._finReal - primerDia) / (24*60*60*1000)))
-        : diasEnMes;
-      return s + (diasActivos / diasCiclo) * meta;
-    }, 0);
+    // Ingreso esperado = pagos exactos que caen en este mes por cliente activo
+    const ingresoEsperado = activos.reduce((s,c) => s + ingresoMensualCliente(c, diasEnMes, primerDia, ultimoDia), 0);
 
-    // Ingreso que cae: contribución mensual de los que terminan
-    const ingresoTermina = terminan.reduce((s,c) => s + ingresoMensualCliente(c, diasEnMes), 0);
+    // Ingreso que cae: contribución mensual de los que terminan (misma lógica exacta)
+    const ingresoTermina = terminan.reduce((s,c) => s + ingresoMensualCliente(c, diasEnMes, primerDia, ultimoDia), 0);
 
     meses.push({
       year, month, esMesActual, diasEnMes,
