@@ -1930,9 +1930,34 @@
         <tbody id="proyeccion-tbody"></tbody>
       </table>
     </div>
-    <p style="margin-top:16px;font-size:.75rem;color:var(--ink-soft);">
-      Ingreso = suma de lo que pagaría cada cliente activo ese mes si paga puntual su cuota (tarifa ÷ días de ciclo × 30).
+    <p style="margin-top:8px;font-size:.75rem;color:var(--ink-soft);">
+      Ingreso = pagos exactos que caen en el mes por cada cliente, contados desde su último pago real.
     </p>
+
+    <!-- Desglose por cliente -->
+    <div style="margin-top:24px;">
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;flex-wrap:wrap;">
+        <h3 style="margin:0;font-size:.95rem;">Desglose por moto —</h3>
+        <select id="proy-mes-desglose" style="font-size:.85rem;padding:4px 8px;border:1px solid var(--borde);border-radius:6px;background:var(--card);color:var(--ink);cursor:pointer;"></select>
+      </div>
+      <div class="tabla-scroll">
+        <table class="detalle" id="proy-tabla-desglose">
+          <thead>
+            <tr>
+              <th>Cliente</th>
+              <th>Ciclo</th>
+              <th>Último pago</th>
+              <th style="text-align:center;">Pagos</th>
+              <th>Cuota</th>
+              <th>Total mes</th>
+              <th>Fechas de pago</th>
+            </tr>
+          </thead>
+          <tbody id="proy-desglose-tbody"></tbody>
+          <tfoot id="proy-desglose-pie"></tfoot>
+        </table>
+      </div>
+    </div>
   </section>
 
   </div>
@@ -2879,8 +2904,8 @@ function pagosEnMes(c, primerDia, ultimoDia){
   const meta = c.meta_ciclo || c.tarifa_ref || 240000;
   if (!meta || !dc) return 0;
 
-  // Punto de partida: último pago registrado
-  const ultimoPagoStr = c.ultimo_pago_fecha || c.fecha_inicio;
+  // Punto de partida: último pago real (Excel + Sheets combinado)
+  const ultimoPagoStr = c.ultimo_pago || c.ultimo_pago_fecha || c.fecha_inicio;
   if (!ultimoPagoStr) {
     // Fallback: aproximación si no hay fecha de referencia
     return (diasEnMes(primerDia) / dc);
@@ -3367,7 +3392,7 @@ function cargarProyeccion(){
     }
 
     const trCls = m.esMesActual ? "proy-mes-actual" : "";
-    return `<tr class="${trCls}">
+    return `<tr class="${trCls}" style="cursor:pointer;" onclick="renderDesgloseMes('${m.year}-${String(m.month).padStart(2,'0')}')">
       <td><span class="proy-mes-lbl">${m.label}</span>${m.esMesActual ? ' <span style="font-size:.65rem;background:#8B5CF622;color:#7C3AED;border-radius:4px;padding:1px 6px;font-weight:700;">HOY</span>' : ''}</td>
       <td><span class="proy-badge-activos">🏍️ ${m.numActivos}</span></td>
       <td><span class="proy-ingreso">${formatCompacto(m.ingresoEsperado)}</span></td>
@@ -3376,6 +3401,70 @@ function cargarProyeccion(){
       <td>${recHtml}</td>
     </tr>`;
   }).join("");
+
+  // ── Selector de mes para desglose ─────────────────────────────
+  const sel = document.getElementById("proy-mes-desglose");
+  if(sel){
+    sel.innerHTML = meses.map(m =>
+      `<option value="${m.year}-${String(m.month).padStart(2,'0')}">${m.label}</option>`
+    ).join("");
+    const mesActualKey = `${hoy.getFullYear()}-${String(hoy.getMonth()).padStart(2,'0')}`;
+    sel.value = mesActualKey;
+    sel.addEventListener("change", () => renderDesgloseMes(sel.value));
+    renderDesgloseMes(mesActualKey);
+  }
+
+  // ── Render desglose por cliente para un mes dado ───────────────
+  window.renderDesgloseMes = function(key){
+    const sel2 = document.getElementById("proy-mes-desglose");
+    if(sel2) sel2.value = key;
+    const [y, m0] = key.split("-").map(Number);
+    const primerDia = new Date(y, m0, 1);
+    const ultimoDia = new Date(y, m0 + 1, 0);
+    const TIPOS = {1:"Diario", 7:"Semanal", 15:"Quincenal", 30:"Mensual"};
+
+    const activos = clientesActivos.filter(c => c._finReal >= primerDia);
+    const filas = activos.map(c => {
+      const dc    = c.dias_ciclo || 7;
+      const cuota = c.meta_ciclo || c.tarifa_ref || 240000;
+      // Calcular fechas exactas de pago en el mes
+      const ultPagoStr = c.ultimo_pago || c.ultimo_pago_fecha || c.fecha_inicio;
+      let cursor = ultPagoStr ? new Date(ultPagoStr + "T00:00:00") : null;
+      const fechasPago = [];
+      if(cursor){
+        if(cursor > ultimoDia){ while(cursor > primerDia) cursor = new Date(cursor - dc*86400000); }
+        while(cursor < primerDia) cursor = new Date(cursor.getTime() + dc*86400000);
+        while(cursor <= ultimoDia){
+          fechasPago.push(cursor.getDate() + "/" + (cursor.getMonth()+1));
+          cursor = new Date(cursor.getTime() + dc*86400000);
+        }
+      }
+      const n = fechasPago.length;
+      return { nombre: c.nombre, tipo: TIPOS[dc] || dc+"d", ultPago: ultPagoStr||"—", n, cuota, total: n*cuota, fechas: fechasPago };
+    }).sort((a,b) => b.total - a.total);
+
+    const totalMes = filas.reduce((s,f) => s+f.total, 0);
+    const tbody2 = document.getElementById("proy-desglose-tbody");
+    const pie2   = document.getElementById("proy-desglose-pie");
+    if(!tbody2) return;
+
+    tbody2.innerHTML = filas.map(f => `
+      <tr>
+        <td>${f.nombre}</td>
+        <td style="text-align:center;">${f.tipo}</td>
+        <td style="text-align:center;">${typeof f.ultPago==='string'?f.ultPago.slice(0,10):'—'}</td>
+        <td style="text-align:center;font-weight:700;">${f.n}</td>
+        <td class="num">${formatPesos(f.cuota)}</td>
+        <td class="num" style="font-weight:700;color:var(--verde);">${formatPesos(f.total)}</td>
+        <td style="font-size:.78rem;color:var(--ink-soft);">${f.fechas.join(" · ") || "—"}</td>
+      </tr>`).join("");
+
+    pie2.innerHTML = `<tr style="font-weight:700;">
+      <td colspan="5">TOTAL ${NOMBRES_MESES_ES[m0].toUpperCase()} ${y}</td>
+      <td class="num" style="color:var(--verde);">${formatPesos(totalMes)}</td>
+      <td></td>
+    </tr>`;
+  };
 }
 
 function iniciarTabs(){
